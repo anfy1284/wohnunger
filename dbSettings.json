@@ -1,0 +1,8 @@
+{
+    "dialect": "sqlite",
+    "storage": "./drive_root/db/database.sqlite",
+    "logging": false,
+    "define": {
+        "timestamps": true
+    }
+}
