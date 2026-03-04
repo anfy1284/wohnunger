@@ -13,7 +13,19 @@ if (!appName) {
     process.exit(1);
 }
 
-const appsDir = path.join(__dirname, '..', 'apps');
+// ОПРЕДЕЛЯЕМ ПУТЬ ДЛЯ СОЗДАНИЯ ПРИЛОЖЕНИЯ
+// Приоритет: node_modules/my-old-space/apps/ (если мы в корне проекта)
+// Или просто apps/ (если мы внутри фреймворка)
+const frameworkAppsDir = path.join(__dirname, '..', 'node_modules', 'my-old-space', 'apps');
+const localAppsDir = path.join(__dirname, '..', 'apps');
+
+let appsDir;
+if (fs.existsSync(frameworkAppsDir)) {
+    appsDir = frameworkAppsDir;
+} else {
+    appsDir = localAppsDir;
+}
+
 const appPath = path.join(appsDir, appName);
 
 if (fs.existsSync(appPath)) {

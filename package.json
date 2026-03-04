@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "description": "Empty Node.js app that uses my-old-space",
-  "main": "src/index.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon --watch src --exec node src/index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
