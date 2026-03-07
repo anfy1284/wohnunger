@@ -1,0 +1,116 @@
+{
+    "models": [
+        {
+            "name": "AccommodationTypes",
+            "tableName": "accommodation_types",
+            "fields": {
+                "id": {
+                    "type": "INTEGER",
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "caption": "ID"
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Тип размещения"
+                },
+                "description": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Описание"
+                }
+            },
+            "options": {
+                "timestamps": false
+            }
+        },
+        {
+            "name": "Organizations",
+            "tableName": "organizations",
+            "fields": {
+                "id": {
+                    "type": "INTEGER",
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "caption": "ID"
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Название организации"
+                },
+                "description": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Описание"
+                },
+                "isActive": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": true,
+                    "caption": "Активна"
+                },
+                "accommodationTypeId": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "field": "accommodationTypeId",
+                    "references": {
+                        "model": "accommodation_types",
+                        "key": "id"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "SET NULL",
+                    "caption": "Тип размещения"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "Users",
+            "tableName": "users",
+            "fields": {
+                "organizationId": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "field": "organizationId",
+                    "references": {
+                        "model": "organizations",
+                        "key": "id"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                }
+            }
+        }
+    ],
+    "associations": [
+        {
+            "type": "hasMany",
+            "source": "AccommodationTypes",
+            "target": "Organizations",
+            "foreignKey": "accommodationTypeId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Organizations",
+            "target": "AccommodationTypes",
+            "foreignKey": "accommodationTypeId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "Users",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Users",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        }
+    ]
+}

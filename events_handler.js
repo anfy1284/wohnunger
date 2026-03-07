@@ -7,6 +7,14 @@
 // Placeholder для будущих обработчиков
 export default {
     /**
+     * Вызывается после сбора и слияния моделей, но до инициализации в Sequelize.
+     * @param {Object} context - { mergedModelsDef, allAssociations, sequelize, projectRoot }
+     */
+    onModelsPostCollect: async (context) => {
+        // console.log('[events_handler] Models post-collect hook executed.');
+    },
+
+    /**
      * Вызывается после завершения каскадного формирования базы данных (миграций и сидов).
      * @param {Object} context - Контекст инициализации (sequelize instance и т.д.)
      */

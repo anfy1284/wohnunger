@@ -1,3 +1,8 @@
 {
-    "apps": []
+    "apps": [
+        {
+            "name": "organizations",
+            "path": "/organizations"
+        }
+    ]
 }
