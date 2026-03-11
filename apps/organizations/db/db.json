@@ -4,11 +4,11 @@
             "name": "AccommodationTypes",
             "tableName": "accommodation_types",
             "fields": {
-                "id": {
-                    "type": "INTEGER",
-                    "primaryKey": true,
-                    "autoIncrement": true,
-                    "caption": "ID"
+                "UID": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "GENERATE_UID",
+                    "primaryKey": true
                 },
                 "name": {
                     "type": "STRING",
@@ -29,11 +29,11 @@
             "name": "Organizations",
             "tableName": "organizations",
             "fields": {
-                "id": {
-                    "type": "INTEGER",
-                    "primaryKey": true,
-                    "autoIncrement": true,
-                    "caption": "ID"
+                "UID": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "GENERATE_UID",
+                    "primaryKey": true
                 },
                 "name": {
                     "type": "STRING",
@@ -52,12 +52,12 @@
                     "caption": "Активна"
                 },
                 "accommodationTypeId": {
-                    "type": "INTEGER",
+                    "type": "STRING",
                     "allowNull": true,
                     "field": "accommodationTypeId",
                     "references": {
                         "model": "accommodation_types",
-                        "key": "id"
+                        "key": "UID"
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
@@ -72,13 +72,18 @@
             "name": "Users",
             "tableName": "users",
             "fields": {
+                "UID": {
+                    "type": "STRING",
+                    "primaryKey": true,
+                    "defaultValue": "GENERATE_UID"
+                },
                 "organizationId": {
-                    "type": "INTEGER",
+                    "type": "STRING",
                     "allowNull": true,
                     "field": "organizationId",
                     "references": {
                         "model": "organizations",
-                        "key": "id"
+                        "key": "UID"
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
