@@ -4,12 +4,6 @@
             "name": "AccommodationTypes",
             "tableName": "accommodation_types",
             "fields": {
-                "UID": {
-                    "type": "STRING",
-                    "allowNull": false,
-                    "defaultValue": "GENERATE_UID",
-                    "primaryKey": true
-                },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
@@ -29,12 +23,6 @@
             "name": "Organizations",
             "tableName": "organizations",
             "fields": {
-                "UID": {
-                    "type": "STRING",
-                    "allowNull": false,
-                    "defaultValue": "GENERATE_UID",
-                    "primaryKey": true
-                },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
@@ -72,11 +60,6 @@
             "name": "Users",
             "tableName": "users",
             "fields": {
-                "UID": {
-                    "type": "STRING",
-                    "primaryKey": true,
-                    "defaultValue": "GENERATE_UID"
-                },
                 "organizationId": {
                     "type": "STRING",
                     "allowNull": true,
@@ -95,12 +78,6 @@
             "name": "UserOrganizations",
             "tableName": "user_organizations",
             "fields": {
-                "UID": {
-                    "type": "STRING",
-                    "allowNull": false,
-                    "defaultValue": "GENERATE_UID",
-                    "primaryKey": true
-                },
                 "userId": {
                     "type": "STRING",
                     "allowNull": false,
@@ -132,12 +109,6 @@
             "name": "Hotels",
             "tableName": "hotels",
             "fields": {
-                "UID": {
-                    "type": "STRING",
-                    "allowNull": false,
-                    "defaultValue": "GENERATE_UID",
-                    "primaryKey": true
-                },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
@@ -163,9 +134,46 @@
             "options": {
                 "timestamps": true
             }
+        },
+        {
+            "name": "Rooms",
+            "tableName": "rooms",
+            "fields": {
+                "number": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Номер комнаты"
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Гостиница"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
         }
     ],
     "associations": [
+        {
+            "type": "hasMany",
+            "source": "Hotels",
+            "target": "Rooms",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Rooms",
+            "target": "Hotels",
+            "foreignKey": "hotelId"
+        },
         {
             "type": "hasMany",
             "source": "AccommodationTypes",
