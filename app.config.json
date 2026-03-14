@@ -1,0 +1,16 @@
+{
+  "required_access_fields": [
+    "organizationId",
+    "userId",
+    "hotelId"
+  ],
+  "excluded_tables": [
+    "default_values",
+    "user_settings_types",
+    "user_settings_fields",
+    "systems",
+    "access_roles",
+    "accommodation_types",
+    "organizations"
+  ]
+}

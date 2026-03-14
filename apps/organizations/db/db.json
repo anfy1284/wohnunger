@@ -90,6 +90,79 @@
                     "caption": "Организация"
                 }
             }
+        },
+        {
+            "name": "UserOrganizations",
+            "tableName": "user_organizations",
+            "fields": {
+                "UID": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "GENERATE_UID",
+                    "primaryKey": true
+                },
+                "userId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "users",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Пользователь"
+                },
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "Hotels",
+            "tableName": "hotels",
+            "fields": {
+                "UID": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "GENERATE_UID",
+                    "primaryKey": true
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Название гостиницы"
+                },
+                "address": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Адрес"
+                },
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
         }
     ],
     "associations": [
@@ -114,6 +187,42 @@
         {
             "type": "belongsTo",
             "source": "Users",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Users",
+            "target": "UserOrganizations",
+            "foreignKey": "userId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "UserOrganizations",
+            "target": "Users",
+            "foreignKey": "userId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "UserOrganizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "UserOrganizations",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "Hotels",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Hotels",
             "target": "Organizations",
             "foreignKey": "organizationId"
         }
