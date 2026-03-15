@@ -43,8 +43,8 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
         }
     }
 
-    // Если таблица в исключениях или это не операция с фильтрами - просто идем дальше
-    if (excludedTables.includes(table) || !['read', 'findOne', 'count', 'update', 'delete'].includes(operation)) {
+    // Если таблица в исключениях (и это не organizations) или это не операция с фильтрами - просто идем дальше
+    if ((excludedTables.includes(table) && table !== 'organizations') || !['read', 'findOne', 'count', 'update', 'delete'].includes(operation)) {
         return await next(request);
     }
 
@@ -59,10 +59,22 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
         const attributes = Model.rawAttributes;
         const availableFields = requiredFields.filter(f => attributes[f]);
 
-        if (availableFields.length > 0) {
+        if (availableFields.length > 0 || table === 'organizations') {
             if (!request.where) request.where = {};
             const { Op } = require('sequelize');
             const filters = [];
+
+            // Для таблицы организаций фильтруем по самому UID
+            if (table === 'organizations' && userId) {
+                const userOrgs = await dbGateway.execute({
+                    operation: 'read',
+                    table: 'user_organizations',
+                    where: { userId: userId },
+                    context: { role: 'admin' }
+                });
+                const orgIds = userOrgs.map(uo => uo.organizationId);
+                filters.push({ UID: { [Op.in]: orgIds } });
+            }
 
             // 1. Фильтр по userId
             if (attributes.userId && userId) {
