@@ -159,6 +159,186 @@
             "options": {
                 "timestamps": true
             }
+        },
+        {
+            "name": "Services",
+            "tableName": "services",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "caption": "Гостиница"
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Название услуги"
+                },
+                "systemCode": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Системный код"
+                },
+                "chargeType": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Тип начисления (per_night, per_stay)"
+                },
+                "taxRate": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": "Ставка налога"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "ServicePrices",
+            "tableName": "service_prices",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "caption": "Гостиница"
+                },
+                "serviceId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "services",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Услуга"
+                },
+                "roomId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "rooms",
+                        "key": "UID"
+                    },
+                    "caption": "Комната"
+                },
+                "ageFrom": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "caption": "Возраст ОТ"
+                },
+                "ageTo": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "caption": "Возраст ДО"
+                },
+                "price": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": "Стоимость"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "RoomPrices",
+            "tableName": "room_prices",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "caption": "Гостиница"
+                },
+                "roomId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "rooms",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Комната"
+                },
+                "dateFrom": {
+                    "type": "DATEONLY",
+                    "allowNull": false,
+                    "caption": "Начало периода"
+                },
+                "dateTo": {
+                    "type": "DATEONLY",
+                    "allowNull": false,
+                    "caption": "Конец периода"
+                },
+                "guestsCount": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "caption": "Количество гостей"
+                },
+                "price": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": "Цена базового тарифа"
+                },
+                "taxRate": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "defaultValue": 7,
+                    "caption": "Ставка налога"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
         }
     ],
     "associations": [
@@ -233,6 +413,66 @@
             "source": "Hotels",
             "target": "Organizations",
             "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "Services",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Services",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "ServicePrices",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "ServicePrices",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "RoomPrices",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "RoomPrices",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Services",
+            "target": "ServicePrices",
+            "foreignKey": "serviceId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "ServicePrices",
+            "target": "Services",
+            "foreignKey": "serviceId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Rooms",
+            "target": "RoomPrices",
+            "foreignKey": "roomId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "RoomPrices",
+            "target": "Rooms",
+            "foreignKey": "roomId"
         }
     ]
 }
