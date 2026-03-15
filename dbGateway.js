@@ -20,7 +20,21 @@ const fs = require('fs');
  */
 dbGateway.use('app', async function accessControlMiddleware(request, next) {
     const { operation, table, context = {} } = request;
-    const { userId, role } = context;
+    let { userId, role } = context;
+
+    // Если роль не передали из драйвера, но есть userId, найдем её, 
+    // чтобы системный админ не блокировался
+    if (!role && userId) {
+        const globalForms = require('./node_modules/my-old-space/drive_forms/globalServerContext');
+        try {
+            role = await globalForms.getUserAccessRole({ UID: userId });
+            context.role = role;
+        } catch (e) {
+            console.error('[project/dbGateway] Error fetching role:', e.message);
+        }
+    }
+
+    console.log(`[dbGateway DEBUG] table=${table} | userId=${userId} | role=${role} | operation=${operation}`);
 
     // Пропускаем проверку для админа
     if (role === 'admin') {
@@ -73,6 +87,7 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
                     context: { role: 'admin' }
                 });
                 const orgIds = userOrgs.map(uo => uo.organizationId);
+                console.log(`[dbGateway DEBUG] Allowed orgIds for ${userId}:`, orgIds);
                 filters.push({ UID: { [Op.in]: orgIds } });
             }
 
@@ -111,6 +126,7 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
                     context: { role: 'admin' }
                 });
                 const hotelIds = hotels.map(h => h.UID);
+                console.log(`[dbGateway DEBUG] Allowed hotelIds for ${userId} via orgIds(${orgIds}):`, hotelIds);
                 filters.push({ hotelId: { [Op.in]: hotelIds } });
             }
 
@@ -126,8 +142,7 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
                     };
                 } else {
                     request.where = { [Op.or]: filters };
-                }
-            } else if (!userId) {
+                }                console.log(`[dbGateway DEBUG] Applied filters for ${table}:`, JSON.stringify(request.where));            } else if (!userId) {
                 // Если нет userId и есть обязательные поля - блокируем доступ
                 request.where = { UID: '__BLOCK_ACCESS__' };
             }
