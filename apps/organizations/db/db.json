@@ -189,11 +189,6 @@
                     "allowNull": false,
                     "caption": "Название услуги"
                 },
-                "systemCode": {
-                    "type": "STRING",
-                    "allowNull": true,
-                    "caption": "Системный код"
-                },
                 "chargeType": {
                     "type": "STRING",
                     "allowNull": false,
@@ -339,6 +334,473 @@
             "options": {
                 "timestamps": true
             }
+        },
+        {
+            "name": "GuestTypes",
+            "tableName": "guest_types",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Тип гостя"
+                },
+                "ageFrom": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "caption": "Возраст от"
+                },
+                "ageTo": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "caption": "Возраст до"
+                }
+            },
+            "options": {
+                "timestamps": false
+            }
+        },
+        {
+            "name": "Clients",
+            "tableName": "clients",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Имя / Название"
+                },
+                "address": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Адрес"
+                },
+                "email": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Email"
+                },
+                "phone": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Телефон"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "Bookings",
+            "tableName": "bookings",
+            "fields": {
+                "name": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Номер / Название брони"
+                },
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": "Гостиница"
+                },
+                "clientId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "clients",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": "Клиент"
+                },
+                "checkIn": {
+                    "type": "DATEONLY",
+                    "allowNull": false,
+                    "caption": "Дата заезда"
+                },
+                "checkOut": {
+                    "type": "DATEONLY",
+                    "allowNull": false,
+                    "caption": "Дата выезда"
+                },
+                "status": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "draft",
+                    "caption": "Статус"
+                },
+                "notes": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": "Примечания"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "BookingRooms",
+            "tableName": "booking_rooms",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "bookingId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Бронь"
+                },
+                "roomId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "rooms",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": "Номер"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "BookingRoomServices",
+            "tableName": "booking_room_services",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "bookingRoomId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "booking_rooms",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Номер в брони"
+                },
+                "serviceId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "services",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": "Услуга"
+                },
+                "count": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "defaultValue": 1,
+                    "caption": "Количество"
+                }
+            },
+            "options": {
+                "timestamps": false
+            }
+        },
+        {
+            "name": "BookingGuests",
+            "tableName": "booking_guests",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "bookingRoomId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "booking_rooms",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Номер в брони"
+                },
+                "guestTypeId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "guest_types",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": "Тип гостя"
+                },
+                "count": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "defaultValue": 1,
+                    "caption": "Количество"
+                }
+            },
+            "options": {
+                "timestamps": false
+            }
+        },
+        {
+            "name": "Invoices",
+            "tableName": "invoices",
+            "fields": {
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Номер счёта"
+                },
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": "Гостиница"
+                },
+                "bookingId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": "Бронь"
+                },
+                "clientId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "clients",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": "Клиент"
+                },
+                "invoiceDate": {
+                    "type": "DATEONLY",
+                    "allowNull": false,
+                    "caption": "Дата счёта"
+                },
+                "dueDate": {
+                    "type": "DATEONLY",
+                    "allowNull": true,
+                    "caption": "Оплатить до"
+                },
+                "status": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "draft",
+                    "caption": "Статус"
+                },
+                "prepayment": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": "Предоплата (Anzahlung)"
+                },
+                "notes": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": "Примечания"
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "InvoiceLines",
+            "tableName": "invoice_lines",
+            "fields": {
+                "label": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": "Описание позиции"
+                },
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Организация"
+                },
+                "invoiceId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "invoices",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Счёт"
+                },
+                "bookingRoomId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "booking_rooms",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "SET NULL",
+                    "caption": "Номер (секция)"
+                },
+                "sectionLabel": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Заголовок секции (снимок)"
+                },
+                "serviceId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "services",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "SET NULL",
+                    "caption": "Услуга (справочно)"
+                },
+                "guestTypeId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "guest_types",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "SET NULL",
+                    "caption": "Тип гостя (справочно)"
+                },
+                "quantity": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": "Количество"
+                },
+                "unitPrice": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": "Цена за единицу (брутто)"
+                },
+                "taxRate": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": "Ставка налога %"
+                },
+                "amount": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": "Сумма (брутто)"
+                },
+                "sortOrder": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": "Порядок"
+                }
+            },
+            "options": {
+                "timestamps": false
+            }
         }
     ],
     "associations": [
@@ -473,6 +935,210 @@
             "source": "RoomPrices",
             "target": "Rooms",
             "foreignKey": "roomId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "GuestTypes",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "GuestTypes",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "GuestTypes",
+            "target": "BookingGuests",
+            "foreignKey": "guestTypeId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "BookingGuests",
+            "target": "GuestTypes",
+            "foreignKey": "guestTypeId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "Clients",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Clients",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "Bookings",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Bookings",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Hotels",
+            "target": "Bookings",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Bookings",
+            "target": "Hotels",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Clients",
+            "target": "Bookings",
+            "foreignKey": "clientId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Bookings",
+            "target": "Clients",
+            "foreignKey": "clientId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Bookings",
+            "target": "BookingRooms",
+            "foreignKey": "bookingId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "BookingRooms",
+            "target": "Bookings",
+            "foreignKey": "bookingId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Rooms",
+            "target": "BookingRooms",
+            "foreignKey": "roomId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "BookingRooms",
+            "target": "Rooms",
+            "foreignKey": "roomId"
+        },
+        {
+            "type": "hasMany",
+            "source": "BookingRooms",
+            "target": "BookingGuests",
+            "foreignKey": "bookingRoomId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "BookingGuests",
+            "target": "BookingRooms",
+            "foreignKey": "bookingRoomId"
+        },
+        {
+            "type": "hasMany",
+            "source": "BookingRooms",
+            "target": "BookingRoomServices",
+            "foreignKey": "bookingRoomId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "BookingRoomServices",
+            "target": "BookingRooms",
+            "foreignKey": "bookingRoomId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Services",
+            "target": "BookingRoomServices",
+            "foreignKey": "serviceId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "BookingRoomServices",
+            "target": "Services",
+            "foreignKey": "serviceId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Bookings",
+            "target": "Invoices",
+            "foreignKey": "bookingId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Invoices",
+            "target": "Bookings",
+            "foreignKey": "bookingId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Clients",
+            "target": "Invoices",
+            "foreignKey": "clientId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Invoices",
+            "target": "Clients",
+            "foreignKey": "clientId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Hotels",
+            "target": "Invoices",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Invoices",
+            "target": "Hotels",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "Invoices",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Invoices",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Invoices",
+            "target": "InvoiceLines",
+            "foreignKey": "invoiceId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "InvoiceLines",
+            "target": "Invoices",
+            "foreignKey": "invoiceId"
+        },
+        {
+            "type": "hasMany",
+            "source": "BookingRooms",
+            "target": "InvoiceLines",
+            "foreignKey": "bookingRoomId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "InvoiceLines",
+            "target": "BookingRooms",
+            "foreignKey": "bookingRoomId"
         }
     ]
 }
