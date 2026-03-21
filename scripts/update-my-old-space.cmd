@@ -4,7 +4,7 @@ rem Запускайте этот скрипт из любой папки — о
 
 pushd "%~dp0.."
 echo --- Updating my-old-space from GitHub (default branch) ---
-npm install git+https://github.com/anfy1284/my-old-space.git --save
+npm install git+https://github.com/anfy1284/my-old-space.git --save --force
 echo.
 echo --- Installed my-old-space info ---
 npm ls my-old-space --json
