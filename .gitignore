@@ -5,3 +5,4 @@
 dbSettings.json
 dbSettings.sqlite.json
 dbSettings.postgres.json
+database.sqlite-journal
