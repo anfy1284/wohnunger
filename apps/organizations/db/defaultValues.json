@@ -1,0 +1,28 @@
+{
+    "guest_types": [
+        {
+            "UID": "000000000-guest-type-0001",
+            "name": "Взрослый",
+            "ageFrom": 16,
+            "ageTo": null
+        },
+        {
+            "UID": "000000000-guest-type-0002",
+            "name": "Ребенок 6-15 лет",
+            "ageFrom": 6,
+            "ageTo": 15
+        },
+        {
+            "UID": "000000000-guest-type-0003",
+            "name": "Ребенок 3-5 лет",
+            "ageFrom": 3,
+            "ageTo": 5
+        },
+        {
+            "UID": "000000000-guest-type-0004",
+            "name": "Младенец до 2 лет",
+            "ageFrom": 0,
+            "ageTo": 2
+        }
+    ]
+}

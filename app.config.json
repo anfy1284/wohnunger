@@ -11,6 +11,7 @@
     "systems",
     "access_roles",
     "accommodation_types",
-    "organizations"
+    "organizations",
+    "guest_types"
   ]
 }
