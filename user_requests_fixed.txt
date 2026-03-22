@@ -1,54 +1,0 @@
-User: A=0G0;0 >7=0:><LAO A 8=AB@C:F859, ?@>25@L =5B ;8 B0< 8=AB@C:F88 ?@028BL D09;K B>;L:> G5@57 :>=A>;L=K5 :><0=4K, 5A;8 24@C3 5ABL B> C40;8, =C6=> ?@028BL D09;K B0: GB>1K O 2845; 2A5 87<5=5=8O
-User: 745AL ?> 0=0;>388 A "onDatabasePostInit" 4>;6=5= 1KBL 5IQ >4=8 <5B>4 :>B>@K9 2K7K205BAO, ?>A;5 A>18@0=8O 2A5E <>45;59 ?@>5:B0, => 4> =5?>A@54AB5==>3> 87<5=5=8O 107K. C6=> 4;O D8=0;L=>3> 87<5=5=8O <>45;59 107K 40==KE, 0=0;>38G=K9 D09; 4>;65= 1KBL 2 :>@=5 D@59<2>@:0 my-old-space, <5B>4K 2 =5< 4>;6=K 2K7K20BLAO 4> <5B>4>2 MB> D09;0 ?@>5:B0
-User: B5?5@L 2 :>@=5 D@59<>2@:0 A45;09 ?@>F54C@C D>@<8@CNICN UID ?> A;54CNI5<C 0;3>@8B<C - ?5@20O 3@C??0 - B5:CI55 2@5<O 2 <8;8A8:C=40E, 2B>@0O - EMH ?5@540==>9 2 DC=:F8N AB@>:8 (BC40 1C4CB ?5@54020BLAO =0720=8O A?@02>G=8:>2), ?0@0<5B@ =5 >1O70B5;L=>9 2 MB>< A;CG05 =C;8, B@5BLO 3@C??0 - A;CG09=>5 7=0G5=85, 2A5 3@C??K :>48@CNBAO 2A5<8 1C:20<8 0=3;89A:>3> 0;D0D8B0 (<0;5=L:8<8) 8 F8D@0<8 <56C 3@C?? A8<2>; "-". :0640O 3@C??0 2A5340 8<55B AB@>3> >?@545;5==>5 :>;8G5AB2> A8<;>2>2. =5>1E>48<K5 :>;8G5AB20 A8<2>;>2 @0AAG8B09 BK
-User: B5?5@L ?>60;C9AB0 2 MB>< D09;5 2 onModelsPostCollect 2K7>28 ?@>F5@C4C CAB0=02;820NICN 2> 2A5 B01;8FK 107K 40==K7 ?>;5 UID, >=> 4>;6=> 1KBL Primary key 8 2A5 :0: ?>;>65=>, 0 5A;8 5ABL 2 B01;8F5 4@C385 Primary key - B> MB>B ?@87=0: C =8E =C6=> C1@0BL
-User: =C6=> ?@>25@8BL A=0G0;0, 2>7<>6=> UID C65 5ABL 2 B01;8F5
-User: 8A?@02L >H81:8: Error creating database: error: =525@=>5 8<O ;>:0;8 LC_COLLATE: "C.UTF-8"
-User: [MIGRATION] No schema changes requiring migration. Ensuring all tables exist...
-User: =5B, =5 =04> MB>3> 45;0BL, ;CGH5 70948 2 :064K9 D09; db.json 2> D@59<2>@:5 8 ?@>5:B5 8 8A?@02L AAK;>G=K5 ?>;O, >=8 4>;6=K AAK;0BLAO =0 UID 0 =5 =0 ID => =0720=8O =5 <5=O9 ?>ABL >AB05BAO =0?@8<5@ "organizationId" 0 =5 "organizationUID"
-User: [MIGRATION] ERROR: Migration cancelled, all changes rolled back.
-User: 2> ?5@2KE MB> =5 A@01>B0;>, 2> 2B>@KE <K ?@>AB> ?><5=O;8 ID =0 UID 8 2A5 A;><0;>AL? >G5=L AB@0==>. <>65B 1KBL ?@>3@0<<0 ?KB05BLAO 70?8A0BL 107C 40==KE @0=LH5 G5< 2K?>;=O5BAO ?@>F54C@0 2 events_handler.js ? ?@>25@L! 5A;8 =5B, B> B>340 =C6=> =5<>3> CA;>6=8BL ?@>F54C@C D878G5A:>3> A>740=8O 107K 40==KE ?> A>740==K< <>45;O<, 0 8<5==> - 5A;8 B01;8FC A>740BL =5 ?>;CG05BAO 87 70 A2O78 A B01;8F59, :>B>@0O 5IQ =5 ACI5AB2C5B - ?@>?CA:05< MBC B01;8FC 8 845< : A;54CNI59, ?>B><, ?>A;5 ?>;=>3> ?@>E>40 - 2>72@0I05<AO : =5>1@01>B0==K< 8 A=>20 ?KB05<AO A>740BL 8 B0: ?> :@C3C ?>:0 2A5 =5 8A?>;=8BLAO
-User: [MIGRATION] Table users failed to sync (pass 1): >B=>H5=85 "organizations" =5 ACI5AB2C5B. Will retry.
-User: >AB0;0AL ?@>1;5<<0 2 D09;0E defaultValues B0< =C6=> 70<5=8BL ID =0 UID 2 MB8E D09;0E UID <>6=> 70E0@4:>48BL: ?5@20O 3@C??0 =C;8, 2B>@0O - 8<O A?@02>G=8:0, B@5BLAO =><5@ =0?@8@ B0< 345 id = 0 B> "...0001"
-User: >AB0;8AL >H81:8: [MIGRATION] New table detected (will be created): FileSystem_Agents
-User: {"error":"Internal Server Error","details":"7=0G5=85 NULL 2 AB>;1F5 \"UID\" >B=>H5=8O \"sessions\" =0@CH05B >3@0=8G5=85 NOT NULL"}
-User: =8G53> =5 ?><5=O;>AL! ?@8 A>740=88 =>2>9 70?8A8 2 14 4>;6=0 2K7K20BLAO =0H0 ?@>F54C@0 A>740=8O UID! UID =5 4>;65= 1KBL ?CAB>9! =C BK G53>?! "{"error":"Internal Server Error","details":"7=0G5=85 NULL 2 AB>;1F5 \"UID\" >B=>H5=8O \"sessions\" =0@CH05B >3@0=8G5=85 NOT NULL"}"
-User: 1;OBL BK 70510; ?KB0BLAO 45;0BL >4=> 8 B>65! =C 2848HL 65 GB> =5 ?>;CG05BAO C B51O >B;04:C 70?CAB8BL! =C =0E5@0 BK <>5 2@5<O B@0B8HL!? O A0< 70?CIC
-User: Uncaught Error Error: A column called 'id' was added to the attributes of 'sessions' but not marked with 'primaryKey: true'
-User: B5?5@L GB>-B> A @>;O<8 ?>;L7>20B5;59, ?>;L7>20B5;N =5 >B:@K205BAO =8 >4=> ?@8;>65=85 :@><5 "login" MB> 7=0G8B GB> C ?>;L7>20B5;O =5B @>;8
-User: client.js:9  POST http://localhost:3000/app/call 500 (Internal Server Error)
-User: C40;8 2@5<5==K5 D09;K :>B>@K5 BK A>740; 2 @0<:0E MB>3> 480;>30
-User: B5?5@L ?@>25@L 2A5 D09;K D@59<2>@:0 8 70<5=8 B0< 8A?>;L7>20=85 id =0 8A?>;L7>20=85 uid 25745. >4=5A8AL >B25BAB25==>
-User: @agent Try Again
-User: BK 4518;!
-User: BK 2>B BCB ?>=O45;0; D09;>2 :>B>@K5 <5=ONB D09;K, :0: BK B5?5@L ?;0=8@C5HL 25@=CBL 2 D09;K 2 A>AB>O=85 4> B>3> :0: 1K;> 4> B>3> :0: BK 2 MB> 2;57?
-User: BK 51;0=! MB> B> GB> O :0: @07 8 <5=ON! B5?5@L <=5 =C6=> 2KG8I0BL B> GB> BK BCB ?>=020O; >B B>3> GB> =C6=>! :CA>: 3>2=0!
-User: O GB>-B> >B:0B8; 87 B2>8E ?>?KB>:, >B:0B8; 5AB5AB25==> ;8H=55, B5?5@L G8=8: 157 ;8H=53>! 8 157 A:@8?B>2!: client.js:9 POST http://localhost:3000/app/call 500 (Internal Server Error)
-User: 206=K9 <><5=B! 1070 40==KE =5 ?@54AB02;O5B F5==>AB8! =5 =C6=> B@0B8BL 2@5<O ?KB0OAL G8=8BL ACI5AB2CNICN 107C 40==KE, A:068 <=5 - O 5Q 4@>?=C 5A;8 GB>. 1>;55 B>3> A59G0A O 5Q 4@>?=C;. >H81:8 A59G0A ?@8 ;>38@>20=88: client.js:9  POST http://localhost:3000/app/call 500 (Internal Server Error)
-User: /", !# "+ "#/! / " '#" !!   +% -  ( $! #.)% ! " % !#!  " +%!   $! ", # +%!   #",! !   /  #. ! !
-User: =07CO BK ?KB05HLAO MB> A45;0BL?
-User: ?@5645 G5< GB>-B> BK <=5 ?@5;0305HL ?@8=OBL A=0G0;0 >1JOA=O9 4;O G53> MB>
-User: A59G0A =8G53> =5 45;09! B>;L:> >B25G09 <=5! BK <>65HL >1JOA=OBL <=5 A2>8 459AB28O ?@5645 G5< 70?@0H8205HL C <5=O ?>4B25@645=85?
-User: 1C45HL 45;0BL <0;K<8 H030<8! E>@>H>, A=0G0 ?5@5?@>25@L 2A5 D09;K  db.json 8 defaultvalues.json
-User: =C 2?5@54!
-User: "! id =5 =C6=> 70<5=OBL =0 UID! UID C =0A A>7405BAO 4;O 2A5E B01;8F 2 >B45;L=>9 ?@>F54C@5! 8 2 MB8E D09;0E >= =5 =C65=
-User: 2KOA=8 >B:C40 >H81:0, 8 ?@54;>68 <=5 @5H5=8O => A0< ?>:0 =5 8A?@02;O9
-User: 45;09 20@80=B 1, =5 B@>305< =0720=8O ?>;59! =5 8A?>;L7C9 A:@8?BK 4;O 70<5=K
-User: GB> MB> 70 70?@>A? >?OBL E>G5HL A:@8?B>< 87<5=8BL AC:0?
-User: 45;09
-User: BK <5=O 70  4518;0 45@68HL!? BK 65 E>G5HL ?><5=OBL A:@8?B>< D09;!
-User: 2KOA=8 ?>G5<C >H81:0 ?@8 A>E@0=5=88 70?8A8, ?>:0 =5 G8=8: H81:0 A>E@0=5=8O: SequelizeUniqueConstraintError: ?>2B>@ONI55AO 7=0G5=85 :;NG0 =0@CH05B >3@0=8G5=85 C=8:0;L=>AB8 "organizations_pkey"
-User: ?>;=>ABLN C40;8 ?>;O "id" bp 2A5E D09;>2 db.json, defaultValues.json 0 ?@8 A>740=88 =>2>9 70?8A8 B01;8FK 4>;65= 2K720BLAO <5B>4 35=5@0F88 UID 8 A>>B25BA25==> 35=5@8@>20=LAO A ?><>ILN =53> =>2K9 UID
-User: %  ! "! " !,   -" # " ",?!
-User: @agent Continue: "Continue to iterate?"
-User: B5?5@L =0948 ?>60;C9AB0 2> D@59<2>@:5 2A5 <5AB0 345 2A5 5IQ 8A?>;L7C5BAO id, B0:85 5ABL =0?@8<5@ 2 ?@8;>65=88 "uniListForm" B5?5@L 70?8AL 87 B01;8FK =5 >B:@K205BAO. % !  ! "!
-User: @agent Continue: "Continue to iterate?"
-User: @agent Continue: "Continue to iterate?"
-User: (index):15  GET http://localhost:3000/app/loadApps net::ERR_ABORTED 500 (Internal Server Error)
-User: A>15@8 ACBL 480;>30 2 >B45;L=K9 D09;, 4;O >7=0:><;5=8O AI-?><>H=8:0 2 4@C3>< 480;>35. ?><5AB8 D09; 2 :>@5=L A @0AH5@5=85< txt
-User: >1=>2;5=8O ?>B5@O;8AL. ?>60;C9AB0 A45;09 5IQ @07 ?@>45;0==>5 2 MB>< G0B5
-User: 45;09
-User: @agent Continue: "Continue to iterate?"
-User: ?> @CAA:8
-User: 2> ?5@2KE - =5 286C DC=:F88 A>740=8O UID, <>65B >= 5ABL => O =5 286C ?@>25@L, 2> 2B>@KE D09; "globalservercontext" A>45@68B A8=B0:A8G5A:85 >H81:8 - =0948 8 8A?@02L, 2 B@5BL8E, :>=B@C:F88 ?>4>1=K5 MB><C =0< =5 =C6=K: const "userId = user.UID || user.id", =C6=> ?@>AB> "userId = user.UID" 157 2AO:8E! >B id <K 1C45< 6>A:> 87102;OBLAO
-User: =5B, =0< =5 =C6=> require('crypto').randomUUID(), C =0A A2>9 1C45B 0;3>@8B< A>740=8O UID, 2 MB>< 480;>35 5ABL ?>;=>5 >?8A0=85 MB>3> 0;3>@8B<0 - ?5@5G8B09 2=8<0B5;L=>
