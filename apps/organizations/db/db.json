@@ -516,6 +516,11 @@
                     "caption": "Номер"
                 }
             },
+            "tabularSection": {
+                "parentTable": "bookings",
+                "parentField": "bookingId",
+                "caption": "Номера размещения"
+            },
             "options": {
                 "timestamps": true
             }

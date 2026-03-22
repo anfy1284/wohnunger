@@ -15,22 +15,47 @@ const path = require('path');
 const fs = require('fs');
 
 /**
+ * Зарезервированный session ID для внутренних системных вызовов сервера.
+ * Используйте поиск по '__SYS_INTERNAL__' для аудита всех мест, где обходится
+ * контроль доступа. Никогда не передавайте это значение с клиента.
+ */
+const SYSTEM_SESSION_ID = '__SYS_INTERNAL__';
+
+/**
  * Middleware для контроля доступа на основе обязательных реквизитов (required_access_fields).
  * Накладывает обязательные фильтры на запросы чтения, обновления и удаления.
+ * 
+ * Принимает из context ТОЛЬКО sessionID. userId и role определяются
+ * исключительно на сервере по сессии — никогда не из внешнего контекста.
  */
 dbGateway.use('app', async function accessControlMiddleware(request, next) {
     const { operation, table, context = {} } = request;
-    let { userId, role } = context;
+    const { sessionID } = context;
 
-    // Если роль не передали из драйвера, но есть userId, найдем её, 
-    // чтобы системный админ не блокировался
-    if (!role && userId) {
-        const globalForms = require('./node_modules/my-old-space/drive_forms/globalServerContext');
+    // Системные внутренние вызовы — пропускаем без проверки доступа.
+    // Ищите '__SYS_INTERNAL__' в коде для аудита всех мест обхода контроля доступа.
+    if (sessionID === SYSTEM_SESSION_ID) {
+        return await next(request);
+    }
+
+    // Резолвим пользователя только через сессию — никогда не доверяем userId/role из контекста
+    let userId = null;
+    let role = null;
+    if (sessionID) {
         try {
-            role = await globalForms.getUserAccessRole({ UID: userId });
-            context.role = role;
+            const globalRoot = require('./node_modules/my-old-space/drive_root/globalServerContext');
+            const user = await globalRoot.getUserBySessionID(sessionID);
+            if (user) {
+                userId = user.UID;
+                try {
+                    const globalForms = require('./node_modules/my-old-space/drive_forms/globalServerContext');
+                    role = await globalForms.getUserAccessRole({ UID: userId });
+                } catch (e) {
+                    console.error('[project/dbGateway] Error fetching role:', e.message);
+                }
+            }
         } catch (e) {
-            console.error('[project/dbGateway] Error fetching role:', e.message);
+            console.error('[project/dbGateway] Error resolving session:', e.message);
         }
     }
 
@@ -84,7 +109,7 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
                     operation: 'read',
                     table: 'user_organizations',
                     where: { userId: userId },
-                    context: { role: 'admin' }
+                    context: { sessionID: SYSTEM_SESSION_ID }
                 });
                 const orgIds = userOrgs.map(uo => uo.organizationId);
                 console.log(`[dbGateway DEBUG] Allowed orgIds for ${userId}:`, orgIds);
@@ -98,12 +123,11 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
 
             // 2. Фильтр по organizationId (через таблицу связей)
             if (attributes.organizationId && userId) {
-                // Получаем список организаций пользователя
                 const userOrgs = await dbGateway.execute({
                     operation: 'read',
                     table: 'user_organizations',
                     where: { userId: userId },
-                    context: { role: 'admin' }
+                    context: { sessionID: SYSTEM_SESSION_ID }
                 });
                 const orgIds = userOrgs.map(uo => uo.organizationId);
                 filters.push({ organizationId: { [Op.in]: orgIds } });
@@ -115,7 +139,7 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
                     operation: 'read',
                     table: 'user_organizations',
                     where: { userId: userId },
-                    context: { role: 'admin' }
+                    context: { sessionID: SYSTEM_SESSION_ID }
                 });
                 const orgIds = userOrgs.map(uo => uo.organizationId);
 
@@ -123,7 +147,7 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
                     operation: 'read',
                     table: 'hotels',
                     where: { organizationId: { [Op.in]: orgIds } },
-                    context: { role: 'admin' }
+                    context: { sessionID: SYSTEM_SESSION_ID }
                 });
                 const hotelIds = hotels.map(h => h.UID);
                 console.log(`[dbGateway DEBUG] Allowed hotelIds for ${userId} via orgIds(${orgIds}):`, hotelIds);
@@ -142,7 +166,9 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
                     };
                 } else {
                     request.where = { [Op.or]: filters };
-                }                console.log(`[dbGateway DEBUG] Applied filters for ${table}:`, JSON.stringify(request.where));            } else if (!userId) {
+                }
+                console.log(`[dbGateway DEBUG] Applied filters for ${table}:`, JSON.stringify(request.where));
+            } else if (!userId) {
                 // Если нет userId и есть обязательные поля - блокируем доступ
                 request.where = { UID: '__BLOCK_ACCESS__' };
             }
