@@ -21,11 +21,11 @@ const rooms = [
 ];
 
 const services = [
-    { id: 'srv-breakfast', name: 'Frühstück', code: 'breakfast', chargeType: 'per_night', taxRate: 19 },
-    { id: 'srv-kurbeitrag', name: 'Kurbeitrag', code: 'kurbeitrag', chargeType: 'per_night', taxRate: 0 },
-    { id: 'srv-cleaning', name: 'Endreinigung', code: 'cleaning', chargeType: 'per_stay', taxRate: 7 },
-    { id: 'srv-pet', name: 'Gebühr für den Hund', code: 'pet', chargeType: 'per_night', taxRate: 7 },
-    { id: 'srv-child', name: 'Kinderpreis (3-5 Jahre)', code: 'child_fee', chargeType: 'per_night', taxRate: 7 }
+    { id: 'srv-breakfast', name: 'Frühstück', chargeType: 'per_night', taxRate: 19 },
+    { id: 'srv-kurbeitrag', name: 'Kurbeitrag', chargeType: 'per_night', taxRate: 0 },
+    { id: 'srv-cleaning', name: 'Endreinigung', chargeType: 'per_stay', taxRate: 7 },
+    { id: 'srv-pet', name: 'Gebühr für den Hund', chargeType: 'per_night', taxRate: 7 },
+    { id: 'srv-child', name: 'Kinderpreis (3-5 Jahre)', chargeType: 'per_night', taxRate: 7 }
 ];
 
 const servicePrices = [
@@ -159,9 +159,9 @@ async function run() {
         // 5. Services
         for (const service of services) {
             await executeSql(`
-                INSERT INTO services ("UID", "organizationId", "hotelId", name, "systemCode", "chargeType", "taxRate", "createdAt", "updatedAt")
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `, [service.id, orgId, hotelId, service.name, service.code, service.chargeType, service.taxRate, dateNow, dateNow]);
+                INSERT INTO services ("UID", "organizationId", "hotelId", name, "chargeType", "taxRate", "createdAt", "updatedAt")
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `, [service.id, orgId, hotelId, service.name, service.chargeType, service.taxRate, dateNow, dateNow]);
         }
 
         // 6. Service Prices
