@@ -540,6 +540,17 @@
                     "onDelete": "CASCADE",
                     "caption": "Организация"
                 },
+                "bookingId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Бронь"
+                },
                 "bookingRoomId": {
                     "type": "STRING",
                     "allowNull": false,
@@ -568,6 +579,11 @@
                     "defaultValue": 1,
                     "caption": "Количество"
                 }
+            },
+            "tabularSection": {
+                "parentTable": "bookings",
+                "parentField": "bookingId",
+                "caption": "Услуги бронирования"
             },
             "options": {
                 "timestamps": false
@@ -599,6 +615,17 @@
                     "onDelete": "CASCADE",
                     "caption": "Номер в брони"
                 },
+                "bookingId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Бронь"
+                },
                 "guestTypeId": {
                     "type": "STRING",
                     "allowNull": false,
@@ -616,6 +643,11 @@
                     "defaultValue": 1,
                     "caption": "Количество"
                 }
+            },
+            "tabularSection": {
+                "parentTable": "bookings",
+                "parentField": "bookingId",
+                "caption": "Гости бронирования"
             },
             "options": {
                 "timestamps": false
@@ -702,6 +734,11 @@
                     "caption": "Примечания"
                 }
             },
+            "tabularSection": {
+                "parentTable": "bookings",
+                "parentField": "bookingId",
+                "caption": "Счета"
+            },
             "options": {
                 "timestamps": true
             }
@@ -726,15 +763,26 @@
                     "onDelete": "CASCADE",
                     "caption": "Организация"
                 },
-                "invoiceId": {
+                "bookingId": {
                     "type": "STRING",
                     "allowNull": false,
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": "Бронь"
+                },
+                "invoiceId": {
+                    "type": "STRING",
+                    "allowNull": true,
                     "references": {
                         "model": "invoices",
                         "key": "UID"
                     },
                     "onUpdate": "CASCADE",
-                    "onDelete": "CASCADE",
+                    "onDelete": "SET NULL",
                     "caption": "Счёт"
                 },
                 "bookingRoomId": {
@@ -802,6 +850,11 @@
                     "defaultValue": 0,
                     "caption": "Порядок"
                 }
+            },
+            "tabularSection": {
+                "parentTable": "bookings",
+                "parentField": "bookingId",
+                "caption": "Спецификация счёта"
             },
             "options": {
                 "timestamps": false
@@ -1132,6 +1185,18 @@
             "source": "InvoiceLines",
             "target": "Invoices",
             "foreignKey": "invoiceId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Bookings",
+            "target": "InvoiceLines",
+            "foreignKey": "bookingId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "InvoiceLines",
+            "target": "Bookings",
+            "foreignKey": "bookingId"
         },
         {
             "type": "hasMany",
