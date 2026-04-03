@@ -3,6 +3,10 @@
         {
             "name": "organizations",
             "path": "/organizations"
+        },
+        {
+            "name": "ai_chat",
+            "path": "/ai_chat"
         }
     ]
 }

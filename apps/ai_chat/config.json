@@ -1,0 +1,14 @@
+{
+    "level": "app",
+    "autoStart": true,
+    "system": ["mySpace"],
+    "access": ["admin", "user"],
+    "dependencies": {},
+    "mainMenuCommands": [
+        {"id": "main", "items": [
+            { "caption": "apps", "items": [
+                { "caption": "Чат с ИИ", "action": "open" }
+            ]}
+        ]}
+    ]
+}
