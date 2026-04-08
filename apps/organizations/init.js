@@ -5,7 +5,47 @@
 
 module.exports = async function (modelsDB) {
     try {
-        const layoutMemory = require('../../node_modules/my-old-space/drive_root/layoutMemory');
+        const layoutMemory   = require('../../node_modules/my-old-space/drive_root/layoutMemory');
+        const { loadScript, loadServerScript } = require('../../node_modules/my-old-space');
+
+
+        // ─────────────────────────────────────────────────────────────────
+        //  Серверный скрипт: функции с доступом к БД.
+        //  Функции получают (params, ctx) где ctx = { sessionID, user, role }
+        // ─────────────────────────────────────────────────────────────────
+        const serverScriptName = loadServerScript('organizations.bookingActions', {
+
+            async getBookingStatus({ bookingId } = {}, ctx) {
+                if (!bookingId) return { error: 'bookingId required' };
+                const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
+                if (!booking) return { error: 'Бронирование не найдено' };
+                return { name: booking.name, status: booking.status };
+            },
+
+        }, 'user');
+
+        // ─────────────────────────────────────────────────────────────────
+        //  Клиентские функции формы бронирования.
+        //  serverUID встраивается в текст скрипта при загрузке (template literal).
+        //  callServer() — глобальный хелпер, доступен в любом клиентском скрипте.
+        // ─────────────────────────────────────────────────────────────────
+        const clientUID = await loadScript(`
+            function sayHello({ name } = {}) {
+                showAlert('Привет, ' + (name || 'незнакомец') + '!');
+            }
+
+            function say({ name, message } = {}) {
+                showAlert(name + ': ' + message);
+            }
+
+            async function showBookingStatus({ bookingId } = {}) {
+                const result = await callServer('${serverScriptName}', 'getBookingStatus', { bookingId });
+                if (result.error) { showAlert('Ошибка: ' + result.error); return; }
+                showAlert('Бронирование: ' + result.name + '\\nСтатус: ' + result.status);
+            }
+
+            return { sayHello, say, showBookingStatus };
+        `, 'user');
 
         // ─────────────────────────────────────────────────────────────────
         //  uniRecordForm / bookings — роль "user"
@@ -127,8 +167,11 @@ module.exports = async function (modelsDB) {
                 caption: '',
                 orientation: 'horizontal',
                 layout: [
-                    { type: 'button', action: 'save',   caption: 'Сохранить' },
-                    { type: 'button', action: 'cancel', caption: 'Отмена' }
+                    { type: 'button', action: 'save',      caption: 'Сохранить' },
+                    { type: 'button', action: 'cancel',    caption: 'Отмена' },
+                    { type: 'button', action: 'runScript', caption: 'Привет Васе',   params: { uid: clientUID, fn: 'sayHello',         fnParams: { name: 'Вася' } } },
+                    { type: 'button', action: 'runScript', caption: 'Вася говорит',  params: { uid: clientUID, fn: 'say',              fnParams: { name: 'Вася', message: 'Как дела?' } } },
+                    { type: 'button', action: 'runScript', caption: 'Статус брони',  params: { uid: clientUID, fn: 'showBookingStatus', fnParams: { bookingId: '{data.UID}' } } }
                 ]
             }
         ];
@@ -141,6 +184,8 @@ module.exports = async function (modelsDB) {
         });
 
         console.log('[organizations/init] Custom layouts registered');
+        console.log('[organizations/init] serverScriptName:', serverScriptName);
+        console.log('[organizations/init] clientUID:', clientUID);
     } catch (e) {
         console.error('[organizations/init] Failed to register layouts:', e && e.message || e);
     }
