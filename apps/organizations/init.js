@@ -15,6 +15,25 @@ module.exports = async function (modelsDB) {
         // ─────────────────────────────────────────────────────────────────
         const serverScriptName = loadServerScript('organizations.bookingActions', {
 
+            // ── Серверные события формы ──────────────────────────────────
+            // Привязываются в saveLayout({ events: { ... } }) — это события
+            // самой формы как UI-объекта.
+
+            // Вызывается сервером ДО записи в БД.
+            // Здесь: заполняем organizationId во все строки ТЧ,
+            // т.к. поле скрыто в форме и клиент его не передаёт.
+            async onBeforeSave({ record, changes, tabularSections }, ctx) {
+                const orgId = record && record.organizationId;
+                if (!orgId) return;
+                for (const rows of Object.values(tabularSections)) {
+                    for (const row of rows) {
+                        if (!row.organizationId) row.organizationId = orgId;
+                    }
+                }
+            },
+
+            // ── Прочие серверные методы (вызываются через callServer) ───
+
             async getBookingStatus({ bookingId } = {}, ctx) {
                 if (!bookingId) return { error: 'bookingId required' };
                 const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
@@ -44,7 +63,15 @@ module.exports = async function (modelsDB) {
                 showAlert('Бронирование: ' + result.name + '\\nСтатус: ' + result.status);
             }
 
-            return { sayHello, say, showBookingStatus };
+            // ── Обработчики событий UI-объектов ─────────────────────────
+            // Привязываются через events: { ... } прямо на контроле в лейауте.
+
+            // Вызывается при активации строки в таблице номеров.
+            function onRoomActivated(rowIndex) {
+                console.log('Выбран номер, строка:', rowIndex);
+            }
+
+            return { sayHello, say, showBookingStatus, onRoomActivated };
         `, 'user');
 
         // ─────────────────────────────────────────────────────────────────
@@ -162,6 +189,109 @@ module.exports = async function (modelsDB) {
                     }
                 ]
             },
+            // Номера размещения (справа, мастер) + Гости (слева, деталь) — горизонтально
+            {
+                type: 'group',
+                caption: '',
+                orientation: 'horizontal',
+                layout: [
+                    {
+                        type: 'group',
+                        caption: 'Номера размещения',
+                        orientation: 'vertical',
+                        layout: [{
+                            type: 'table',
+                            name: 'ts_booking_rooms',
+                            data: 'booking_rooms',
+                            columns: [
+                                {
+                                    caption: 'Номер', data: 'roomId', width: 200,
+                                    inputType: 'recordSelector',
+                                    properties: {
+                                        showSelectionButton: true,
+                                        selection: { table: 'rooms', idField: 'UID', displayField: 'number' }
+                                    }
+                                }
+                            ],
+                            properties: {
+                                editMode: 'cell-immediate',
+                                visibleRows: 8,
+                                tabularFilter: { bookingId: '{UID}' },
+                                masterFor:   ['ts_booking_guests', 'ts_booking_room_services'],
+                                masterField: 'UID',
+                                detailField: 'bookingRoomId'
+                            },
+                            // События на UI-объекте: привязываются к клиентскому скрипту.
+                            // Механизм тот же что и для DOM-событий (onClick, onMouseOver)
+                            // и объектных коллбеков (onRowActivate, onSelect).
+                            events: {
+                                onRowActivate: { clientScript: clientUID, fn: 'onRoomActivated' }
+                            }
+                        }]
+                    },
+                    {
+                        type: 'group',
+                        caption: 'Гости',
+                        orientation: 'vertical',
+                        layout: [{
+                            type: 'table',
+                            name: 'ts_booking_guests',
+                            data: 'booking_guests',
+                            columns: [
+                                {
+                                    caption: 'Тип гостя', data: 'guestTypeId', width: 180,
+                                    inputType: 'recordSelector',
+                                    properties: {
+                                        showSelectionButton: true,
+                                        selection: { table: 'guest_types', idField: 'UID', displayField: 'name' }
+                                    }
+                                },
+                                { caption: 'Кол-во', data: 'count', width: 80 }
+                            ],
+                            properties: {
+                                editMode: 'cell-immediate',
+                                visibleRows: 8,
+                                tabularFilter: { bookingId: '{UID}' }
+                            }
+                        }]
+                    }
+                ]
+            },
+            // Услуги бронирования (фильтруются вместе с Гостями при выборе Номера)
+            {
+                type: 'group',
+                caption: 'Услуги',
+                orientation: 'vertical',
+                layout: [{
+                    type: 'table',
+                    name: 'ts_booking_room_services',
+                    data: 'booking_room_services',
+                    columns: [
+                        {
+                            caption: 'Номер', data: 'bookingRoomId', width: 150,
+                            inputType: 'recordSelector',
+                            properties: {
+                                showSelectionButton: true,
+                                selection: { table: 'booking_rooms', idField: 'UID', displayField: 'UID' }
+                            }
+                        },
+                        {
+                            caption: 'Услуга', data: 'serviceId', width: 200,
+                            inputType: 'recordSelector',
+                            properties: {
+                                showSelectionButton: true,
+                                selection: { table: 'services', idField: 'UID', displayField: 'name' }
+                            }
+                        },
+                        { caption: 'Кол-во', data: 'count', width: 80 }
+                    ],
+                    properties: {
+                        editMode: 'cell-immediate',
+                        visibleRows: 5,
+                        tabularFilter: { bookingId: '{UID}' }
+                    }
+                }]
+            },
             {
                 type: 'group',
                 caption: '',
@@ -180,7 +310,10 @@ module.exports = async function (modelsDB) {
             appName: 'uniRecordForm',
             tableName: 'bookings',
             roles: 'user',
-            layout: bookingsLayout
+            layout: bookingsLayout,
+            events: {
+                onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' }
+            }
         });
 
         console.log('[organizations/init] Custom layouts registered');
