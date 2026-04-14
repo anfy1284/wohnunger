@@ -49,25 +49,30 @@ module.exports = async function (modelsDB) {
         //  callServer() — глобальный хелпер, доступен в любом клиентском скрипте.
         // ─────────────────────────────────────────────────────────────────
         const clientUID = await loadScript(`
-            function sayHello({ name } = {}) {
+            function sayHello(ev, ctx) {
+                var name = ctx.fnParams && ctx.fnParams.name;
                 showAlert('Привет, ' + (name || 'незнакомец') + '!');
             }
 
-            function say({ name, message } = {}) {
-                showAlert(name + ': ' + message);
+            function say(ev, ctx) {
+                var p = ctx.fnParams || {};
+                showAlert(p.name + ': ' + p.message);
             }
 
-            async function showBookingStatus({ bookingId } = {}) {
+            async function showBookingStatus(ev, ctx) {
+                var bookingId = ctx.fnParams && ctx.fnParams.bookingId;
+                if (!bookingId) {
+                    var uidEntry = ctx.form._dataMap && ctx.form._dataMap['UID'];
+                    bookingId = uidEntry && uidEntry.value;
+                }
                 const result = await callServer('${serverScriptName}', 'getBookingStatus', { bookingId });
                 if (result.error) { showAlert('Ошибка: ' + result.error); return; }
                 showAlert('Бронирование: ' + result.name + '\\nСтатус: ' + result.status);
             }
 
-            // ── Обработчики событий UI-объектов ─────────────────────────
-            // Привязываются через events: { ... } прямо на контроле в лейауте.
-
             // Вызывается при активации строки в таблице номеров.
-            function onRoomActivated(rowIndex) {
+            // rowIndex — аргумент от onRowActivate, ctx — контекст формы.
+            function onRoomActivated(rowIndex, ctx) {
                 console.log('Выбран номер, строка:', rowIndex);
             }
 
@@ -221,11 +226,9 @@ module.exports = async function (modelsDB) {
                                 masterField: 'UID',
                                 detailField: 'bookingRoomId'
                             },
-                            // События на UI-объекте: привязываются к клиентскому скрипту.
-                            // Механизм тот же что и для DOM-событий (onClick, onMouseOver)
-                            // и объектных коллбеков (onRowActivate, onSelect).
+                            // События: строка = имя функции из clientScript
                             events: {
-                                onRowActivate: { clientScript: clientUID, fn: 'onRoomActivated' }
+                                onRowActivate: 'onRoomActivated'
                             }
                         }]
                     },
@@ -297,11 +300,11 @@ module.exports = async function (modelsDB) {
                 caption: '',
                 orientation: 'horizontal',
                 layout: [
-                    { type: 'button', action: 'save',      caption: 'Сохранить' },
-                    { type: 'button', action: 'cancel',    caption: 'Отмена' },
-                    { type: 'button', action: 'runScript', caption: 'Привет Васе',   params: { uid: clientUID, fn: 'sayHello',         fnParams: { name: 'Вася' } } },
-                    { type: 'button', action: 'runScript', caption: 'Вася говорит',  params: { uid: clientUID, fn: 'say',              fnParams: { name: 'Вася', message: 'Как дела?' } } },
-                    { type: 'button', action: 'runScript', caption: 'Статус брони',  params: { uid: clientUID, fn: 'showBookingStatus', fnParams: { bookingId: '{data.UID}' } } }
+                    { type: 'button', action: 'save',    caption: 'Сохранить' },
+                    { type: 'button', action: 'cancel',  caption: 'Отмена' },
+                    { type: 'button', name: 'btnHello',  caption: 'Привет Васе',  events: { onClick: { fn: 'sayHello',  fnParams: { name: 'Вася' } } } },
+                    { type: 'button', name: 'btnSay',    caption: 'Вася говорит', events: { onClick: { fn: 'say',       fnParams: { name: 'Вася', message: 'Как дела?' } } } },
+                    { type: 'button', name: 'btnStatus', caption: 'Статус брони', events: { onClick: { fn: 'showBookingStatus', fnParams: { bookingId: '{data.UID}' } } } }
                 ]
             }
         ];
@@ -311,6 +314,7 @@ module.exports = async function (modelsDB) {
             tableName: 'bookings',
             roles: 'user',
             layout: bookingsLayout,
+            clientScript: clientUID,
             events: {
                 onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' }
             }
