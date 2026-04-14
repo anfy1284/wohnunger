@@ -28,6 +28,36 @@
                     "allowNull": false,
                     "caption": "Название организации"
                 },
+                "address": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Адрес"
+                },
+                "phone": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Телефон"
+                },
+                "email": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "E-Mail"
+                },
+                "taxNumber": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "Steuernummer"
+                },
+                "iban": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "IBAN"
+                },
+                "bic": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": "BIC"
+                },
                 "description": {
                     "type": "STRING",
                     "allowNull": true,
