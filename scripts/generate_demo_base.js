@@ -105,10 +105,19 @@ async function run() {
 
         // 1. Organization
         await executeSql(`
-            INSERT INTO organizations ("UID", name, "createdAt", "updatedAt")
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT ("UID") DO UPDATE SET name = EXCLUDED.name
-        `, [orgId, 'Gästehaus Beim Seiler', dateNow, dateNow]);
+            INSERT INTO organizations ("UID", name, address, phone, email, "taxNumber", iban, bic, "createdAt", "updatedAt")
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT ("UID") DO UPDATE SET name = EXCLUDED.name, address = EXCLUDED.address,
+                phone = EXCLUDED.phone, email = EXCLUDED.email, "taxNumber" = EXCLUDED."taxNumber",
+                iban = EXCLUDED.iban, bic = EXCLUDED.bic
+        `, [orgId, 'Gästehaus Beim Seiler',
+            'Breitenbergstr. 32, 87541 Hinterstein',
+            '+49 8324 953440',
+            'info@beim-seiler.de',
+            '121/123/12345',
+            'DE89 3704 0044 0532 0130 00',
+            'COBADEFFXXX',
+            dateNow, dateNow]);
 
         // 2. User (password: "123456")
         await executeSql(`
