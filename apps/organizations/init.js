@@ -106,7 +106,7 @@ module.exports = async function (modelsDB) {
                     const rLabel = rInfo ? rInfo.number : '?';
 
                     // Классификация гостей по возрасту
-                    let adults = 0, kids6_15 = 0, kids3_5 = 0, infants = 0;
+                    let adults = 0, kids6_15 = 0, kids3_5 = 0, kids2 = 0, infants = 0;
                     for (const g of rGuests) {
                         const gt = gtMap[g.guestTypeId];
                         if (!gt) continue;
@@ -114,6 +114,7 @@ module.exports = async function (modelsDB) {
                         if (gt.ageFrom >= 16) adults += c;
                         else if (gt.ageFrom >= 6) kids6_15 += c;
                         else if (gt.ageFrom >= 3) kids3_5 += c;
+                        else if (gt.ageFrom >= 2) kids2 += c;
                         else infants += c;
                     }
                     const billingGuests = adults + kids6_15;
@@ -147,6 +148,20 @@ module.exports = async function (modelsDB) {
                             label: 'Дети 3-5 лет (' + kids3_5 + ' чел.) × ' + nights + ' ноч.',
                             quantity: qty, unitPrice: 10, taxRate: 7,
                             amount: r2(qty * 10), sortOrder: ++sortOrd
+                        });
+                    }
+
+                    // 2б. Дети 2 лет: 10 €/ночь, 7% MwSt (завтрак — бесплатно)
+                    if (kids2 > 0) {
+                        const qty2 = kids2 * nights;
+                        lines.push({
+                            UID: Utilities.generateUID('InvoiceLines'),
+                            bookingId, bookingRoomId: room.UID, organizationId: orgId,
+                            guestTypeId: '000000000-guest-type-0005',
+                            sectionLabel: 'Проживание',
+                            label: 'Дети 2 лет (' + kids2 + ' чел.) × ' + nights + ' ноч.',
+                            quantity: qty2, unitPrice: 10, taxRate: 7,
+                            amount: r2(qty2 * 10), sortOrder: ++sortOrd
                         });
                     }
 
@@ -191,7 +206,8 @@ module.exports = async function (modelsDB) {
                                 { gtId: '000000000-guest-type-0001', n: adults, lbl: 'взр.' },
                                 { gtId: '000000000-guest-type-0002', n: kids6_15, lbl: '6-15' },
                                 { gtId: '000000000-guest-type-0003', n: kids3_5, lbl: '3-5' },
-                                { gtId: '000000000-guest-type-0004', n: infants, lbl: '0-2' },
+                                { gtId: '000000000-guest-type-0005', n: kids2,   lbl: '2 г.' },
+                                { gtId: '000000000-guest-type-0004', n: infants, lbl: '0-1' },
                             ];
                             for (const ag of groups) {
                                 if (ag.n <= 0) continue;
