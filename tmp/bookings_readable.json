@@ -1,0 +1,301 @@
+[ {
+  "room" : "Ferienwohnung Nr. 4",
+  "customerName" : "Herr Bryce Brady",
+  "customerAddress" : "Chardonnay Cir 273, 84059 Vineyard, US",
+  "startDate" : "2025-06-14",
+  "endDate" : "2025-06-16",
+  "nights" : 3,
+  "guests" : [ {
+    "name" : "Bryce Brady",
+    "dateOfBirth" : "1989-04-21"
+  }, {
+    "name" : "Hailey Brady",
+    "dateOfBirth" : "1988-02-22"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 3",
+  "customerName" : "Herr Andreas Röther",
+  "customerAddress" : "Kastanieneweg, 74417 Gschwend",
+  "startDate" : "2025-06-15",
+  "endDate" : "2025-06-18",
+  "nights" : 4,
+  "guests" : [ {
+    "name" : "Andreas Röther",
+    "dateOfBirth" : "1977-09-28"
+  }, {
+    "name" : "Corinna Röther",
+    "dateOfBirth" : "1982-01-31"
+  }, {
+    "name" : "Luca",
+    "dateOfBirth" : "2010-09-24"
+  }, {
+    "name" : "Leon",
+    "dateOfBirth" : "2015-06-01"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 4",
+  "customerName" : "Herr Mohamad Azuan, DMG MORI",
+  "customerAddress" : "Arena Curve, Jalan Mahsuri 72-3-23, MY-11950 Bayan Baru, Malaysia Sdn. Bhd.",
+  "startDate" : "2025-07-20",
+  "endDate" : "2025-08-02",
+  "nights" : 14,
+  "guests" : [ {
+    "name" : "Azuan Mohamad",
+    "dateOfBirth" : "1998-02-14"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 1",
+  "customerName" : "Herr Gökhan Bulut",
+  "customerAddress" : "Oberröblingerstr. 32, 06526 Sangerhausen, DE",
+  "startDate" : "2025-06-14",
+  "endDate" : "2025-06-18",
+  "nights" : 5,
+  "prepayment" : 171.6,
+  "guests" : [ {
+    "name" : "Gökhan",
+    "dateOfBirth" : "1989-05-22"
+  }, {
+    "name" : "Buse",
+    "dateOfBirth" : "1990-04-27"
+  }, {
+    "name" : "Ahmet",
+    "dateOfBirth" : "2019-03-28"
+  }, {
+    "name" : "Mehmet",
+    "dateOfBirth" : "1986-10-09"
+  }, {
+    "name" : "Burcu",
+    "dateOfBirth" : "1989-05-25"
+  }, {
+    "name" : "Ipek",
+    "dateOfBirth" : "2019-12-06"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 1",
+  "customerName" : "Frau Marie Kirschlager",
+  "customerAddress" : "Breslauerstr 4, 73249 Wernau",
+  "startDate" : "2025-06-18",
+  "endDate" : "2025-06-22",
+  "nights" : 5,
+  "prepayment" : 100.0,
+  "guests" : [ {
+    "name" : "Marie",
+    "dateOfBirth" : "1987-06-18"
+  }, {
+    "name" : "Andreas",
+    "dateOfBirth" : "1988-03-20"
+  }, {
+    "name" : "Elyas",
+    "dateOfBirth" : "2018-11-13"
+  }, {
+    "name" : "Ella",
+    "dateOfBirth" : "2020-08-18"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 2",
+  "customerName" : "Herr Manuel Mosis",
+  "customerAddress" : "Ilbesheimerstr. 42, 55234 Freimersheim",
+  "startDate" : "2025-06-17",
+  "endDate" : "2025-06-22",
+  "nights" : 6,
+  "prepayment" : 100.0,
+  "guests" : [ {
+    "name" : "Manuel",
+    "dateOfBirth" : "1988-02-10"
+  }, {
+    "name" : "Denise",
+    "dateOfBirth" : "1992-06-11"
+  }, {
+    "name" : "Amy",
+    "dateOfBirth" : "2014-10-27"
+  }, {
+    "name" : "Lio",
+    "dateOfBirth" : "2021-05-17"
+  }, {
+    "name" : "Albrecht",
+    "dateOfBirth" : "1964-06-21"
+  }, {
+    "name" : "Wili",
+    "dateOfBirth" : "1958-10-10"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 3",
+  "customerName" : "Frau Brigitte Strobel",
+  "customerAddress" : "Weilerwaldstr. 22, 70771 Leinfelden-Echterdingen",
+  "startDate" : "2025-06-18",
+  "endDate" : "2025-06-21",
+  "nights" : 4,
+  "prepayment" : 100.0,
+  "guests" : [ {
+    "name" : "Brigitte",
+    "dateOfBirth" : "1977-02-14"
+  }, {
+    "name" : "Eva",
+    "dateOfBirth" : "1970-02-02"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 4",
+  "customerName" : "Herr Manuel Thiele",
+  "customerAddress" : "Weserstr. 22, 64347 Griesheim",
+  "startDate" : "2025-06-19",
+  "endDate" : "2025-06-22",
+  "nights" : 4,
+  "prepayment" : 100.0,
+  "guests" : [ {
+    "name" : "Manuel",
+    "dateOfBirth" : "2004-06-23"
+  }, {
+    "name" : "Caroline ",
+    "dateOfBirth" : "2006-08-17"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 1",
+  "customerName" : "Herr Armin Kaiser",
+  "customerAddress" : "Innere Gasse 4, 97461 Hofheim-Eichelsdorf",
+  "startDate" : "2025-06-26",
+  "endDate" : "2025-06-30",
+  "nights" : 5,
+  "guests" : [ {
+    "name" : "Armin Kaiser",
+    "dateOfBirth" : "1962-11-05"
+  }, {
+    "name" : "Jutta Kaiser",
+    "dateOfBirth" : "1963-05-07"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 2",
+  "customerName" : "Frau Lena Marie Wirtz",
+  "customerAddress" : "Feldstr. 109, 51469 Bergisch Gladbach",
+  "startDate" : "2025-06-22",
+  "endDate" : "2025-07-03",
+  "nights" : 12,
+  "prepayment" : 100.0,
+  "guests" : [ {
+    "name" : "Ann",
+    "dateOfBirth" : "2007-05-18"
+  }, {
+    "name" : "Nele",
+    "dateOfBirth" : "2007-09-21"
+  }, {
+    "name" : "Lena",
+    "dateOfBirth" : "2006-01-28"
+  }, {
+    "name" : "Nina",
+    "dateOfBirth" : "2007-01-03"
+  }, {
+    "name" : "Oscar",
+    "dateOfBirth" : "2007-07-14"
+  }, {
+    "name" : "Leonard",
+    "dateOfBirth" : "2007-02-09"
+  }, {
+    "name" : "Philip",
+    "dateOfBirth" : "2007-05-14"
+  }, {
+    "name" : "Benjamin",
+    "dateOfBirth" : "2007-05-16"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 2",
+  "customerName" : "Herr Berd Jurk",
+  "customerAddress" : "Sofienstr. 1, 73235 Weilheim an der Teck",
+  "startDate" : "2025-07-04",
+  "endDate" : "2025-07-07",
+  "nights" : 4,
+  "prepayment" : 100.0,
+  "guests" : [ {
+    "name" : "Berd",
+    "dateOfBirth" : "1970-02-19"
+  }, {
+    "name" : "Jan1",
+    "dateOfBirth" : "1972-06-19"
+  }, {
+    "name" : "Tom",
+    "dateOfBirth" : "1976-01-28"
+  }, {
+    "name" : "Mir",
+    "dateOfBirth" : "1967-09-09"
+  }, {
+    "name" : "Andy",
+    "dateOfBirth" : "1972-01-01"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 3",
+  "customerName" : "Frau Shu Yuan Yang",
+  "customerAddress" : "Guanghua 2, 806 Kaohsiung, Taiwan",
+  "startDate" : "2025-07-10",
+  "endDate" : "2025-07-13",
+  "nights" : 4,
+  "prepayment" : 100.0,
+  "guests" : [ {
+    "name" : "Yang",
+    "dateOfBirth" : "1979-05-28"
+  }, {
+    "name" : "Hong",
+    "dateOfBirth" : "2010-02-25"
+  }, {
+    "name" : "Hung",
+    "dateOfBirth" : "2014-11-14"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 4",
+  "customerName" : "Frau Shu Yuan Yang",
+  "customerAddress" : "Guanghua 2, 806 Kaohsiung, Taiwan",
+  "startDate" : "2025-07-10",
+  "endDate" : "2025-07-13",
+  "nights" : 4,
+  "guests" : [ {
+    "name" : "Wan",
+    "dateOfBirth" : "2013-11-05"
+  }, {
+    "name" : "Lin",
+    "dateOfBirth" : "2014-04-14"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 2",
+  "customerName" : "Herr Carmen Heth",
+  "customerAddress" : "Harthöhe 11, 55595 Wallhausen",
+  "startDate" : "2025-07-12",
+  "endDate" : "2025-07-15",
+  "nights" : 4,
+  "prepayment" : 100.0,
+  "guests" : [ {
+    "name" : "Gerhard",
+    "dateOfBirth" : "1949-11-06"
+  }, {
+    "name" : "Anita",
+    "dateOfBirth" : "1953-02-28"
+  }, {
+    "name" : "Carmen",
+    "dateOfBirth" : "1979-06-05"
+  }, {
+    "name" : "Jörg",
+    "dateOfBirth" : "1978-11-06"
+  }, {
+    "name" : "Elisa",
+    "dateOfBirth" : "2018-07-21"
+  }, {
+    "name" : "Matteo",
+    "dateOfBirth" : "2020-06-17"
+  } ]
+}, {
+  "room" : "Ferienwohnung Nr. 3",
+  "customerName" : "Herr Markus Fleischl",
+  "customerAddress" : "Töllergasse 27 16, 1219 Wien",
+  "startDate" : "2025-07-13",
+  "endDate" : "2025-07-16",
+  "guests" : [ {
+    "name" : "Markus",
+    "dateOfBirth" : "1983-11-11"
+  }, {
+    "name" : "Katrin",
+    "dateOfBirth" : "1983-06-05"
+  }, {
+    "name" : "Mira"
+  }, {
+    "name" : "Marie",
+    "dateOfBirth" : "1987-06-18"
+  }, {
+    "name" : "LoLo"
+  } ]
+} ]

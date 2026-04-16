@@ -1,0 +1,721 @@
+[ {
+  "number" : "1223",
+  "date" : "16.06.2025",
+  "bookings" : [ "Herr Bryce Brady | Ferienwohnung Nr. 4 | 2025-06-14 – 2025-06-16" ],
+  "bill" : {
+    "total" : "192.40 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "12.04 €"
+    } ],
+    "main" : [ {
+      "key" : "accommodationPrice",
+      "taxRate" : 7,
+      "value" : "184.00 €",
+      "tax" : "12.04 €",
+      "label" : "2 Übernachtungen vom 14.06.25 bis zum 16.06.25 Ferienwohnung Nr. 4",
+      "net" : "171.96 €"
+    }, {
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0,
+      "value" : "8.40 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "8.40 €"
+    }, {
+      "key" : "totalPrice",
+      "taxRate" : 0,
+      "value" : "192.40 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "192.40 €"
+    }, {
+      "key" : "prepayment",
+      "taxRate" : 0,
+      "value" : "0.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "0.00 €"
+    }, {
+      "key" : "totalSum",
+      "taxRate" : 0,
+      "value" : "192.40 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "192.40 €"
+    } ]
+  }
+}, {
+  "number" : "1224",
+  "date" : "16.06.2025",
+  "bookings" : [ "Herr Andreas Röther | Ferienwohnung Nr. 3 | 2025-06-15 – 2025-06-18" ],
+  "bill" : {
+    "total" : "396.60 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "24.73 €"
+    } ],
+    "main" : [ {
+      "key" : "accommodationPrice",
+      "taxRate" : 7,
+      "value" : "378.00 €",
+      "tax" : "24.73 €",
+      "label" : "3 Übernachtungen vom 15.06.25 bis zum 18.06.25 Ferienwohnung Nr. 3",
+      "net" : "353.27 €"
+    }, {
+      "key" : "kurbeitrag6To15",
+      "taxRate" : 0,
+      "value" : "6.00 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (6-15 Jahre)",
+      "net" : "6.00 €"
+    }, {
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0,
+      "value" : "12.60 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "12.60 €"
+    }, {
+      "key" : "totalPrice",
+      "taxRate" : 0,
+      "value" : "396.60 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "396.60 €"
+    }, {
+      "key" : "prepayment",
+      "taxRate" : 0,
+      "value" : "0.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "0.00 €"
+    }, {
+      "key" : "totalSum",
+      "taxRate" : 0,
+      "value" : "396.60 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "396.60 €"
+    } ]
+  }
+}, {
+  "number" : "1225",
+  "date" : "16.06.2025",
+  "bookings" : [ "Herr Mohamad Azuan, DMG MORI | Ferienwohnung Nr. 4 | 2025-07-20 – 2025-08-02" ],
+  "bill" : {
+    "total" : "846.30 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "53.58 €"
+    } ],
+    "main" : [ {
+      "value" : "819.00 €",
+      "tax" : "53.58 €",
+      "label" : "13 Übernachtungen vom 20.07.25 bis zum 02.08.25 Ferienwohnung Nr. 4",
+      "net" : "765.42 €",
+      "key" : "accommodationPrice",
+      "taxRate" : 7
+    }, {
+      "value" : "27.30 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "27.30 €",
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0
+    }, {
+      "value" : "846.30 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "846.30 €",
+      "key" : "totalPrice",
+      "taxRate" : 0
+    }, {
+      "value" : "0.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "0.00 €",
+      "key" : "prepayment",
+      "taxRate" : 0
+    }, {
+      "value" : "846.30 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "846.30 €",
+      "key" : "totalSum",
+      "taxRate" : 0
+    } ]
+  }
+}, {
+  "number" : "1226",
+  "date" : "18.06.2025",
+  "bookings" : [ "Herr Gökhan Bulut | Ferienwohnung Nr. 1 | 2025-06-14 – 2025-06-18" ],
+  "bill" : {
+    "total" : "576.00 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "46.45 €"
+    } ],
+    "main" : [ {
+      "value" : "670.00 €",
+      "tax" : "43.83 €",
+      "label" : "4 Übernachtungen vom 14.06.25 bis zum 18.06.25 Ferienwohnung Nr. 1",
+      "net" : "626.17 €",
+      "key" : "accommodationPrice",
+      "taxRate" : 7
+    }, {
+      "value" : "40.00 €",
+      "tax" : "2.62 €",
+      "label" : "Kinderpreis (3-5 Jahre)",
+      "net" : "37.38 €",
+      "key" : "children3To5Price",
+      "taxRate" : 7
+    }, {
+      "value" : "4.00 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (6-15 Jahre)",
+      "net" : "4.00 €",
+      "key" : "kurbeitrag6To15",
+      "taxRate" : 0
+    }, {
+      "value" : "33.60 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "33.60 €",
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0
+    }, {
+      "value" : "747.60 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "747.60 €",
+      "key" : "totalPrice",
+      "taxRate" : 0
+    }, {
+      "value" : "171.60 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "171.60 €",
+      "key" : "prepayment",
+      "taxRate" : 0
+    }, {
+      "value" : "576.00 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "576.00 €",
+      "key" : "totalSum",
+      "taxRate" : 0
+    } ]
+  }
+}, {
+  "number" : "1227",
+  "date" : "21.06.2025",
+  "bookings" : [ "Frau Marie Kirschlager | Ferienwohnung Nr. 1 | 2025-06-18 – 2025-06-22" ],
+  "bill" : {
+    "total" : "505.20 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "37.68 €"
+    } ],
+    "main" : [ {
+      "value" : "576.00 €",
+      "tax" : "37.68 €",
+      "label" : "4 Übernachtungen vom 18.06.25 bis zum 22.06.25 Ferienwohnung Nr. 1",
+      "net" : "538.32 €",
+      "key" : "accommodationPrice",
+      "taxRate" : 7
+    }, {
+      "value" : "4.00 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (6-15 Jahre)",
+      "net" : "4.00 €",
+      "key" : "kurbeitrag6To15",
+      "taxRate" : 0
+    }, {
+      "value" : "25.20 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "25.20 €",
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0
+    }, {
+      "value" : "605.20 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "605.20 €",
+      "key" : "totalPrice",
+      "taxRate" : 0
+    }, {
+      "value" : "100.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "100.00 €",
+      "key" : "prepayment",
+      "taxRate" : 0
+    }, {
+      "value" : "505.20 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "505.20 €",
+      "key" : "totalSum",
+      "taxRate" : 0
+    } ]
+  }
+}, {
+  "number" : "1228",
+  "date" : "21.06.2025",
+  "bookings" : [ "Herr Manuel Mosis | Ferienwohnung Nr. 2 | 2025-06-17 – 2025-06-22" ],
+  "bill" : {
+    "total" : "897.00 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "62.15 €"
+    } ],
+    "main" : [ {
+      "value" : "900.00 €",
+      "tax" : "58.88 €",
+      "label" : "5 Übernachtungen vom 17.06.25 bis zum 22.06.25 Ferienwohnung Nr. 2",
+      "net" : "841.12 €",
+      "key" : "accommodationPrice",
+      "taxRate" : 7
+    }, {
+      "value" : "50.00 €",
+      "tax" : "3.27 €",
+      "label" : "Kinderpreis (3-5 Jahre)",
+      "net" : "46.73 €",
+      "key" : "children3To5Price",
+      "taxRate" : 7
+    }, {
+      "value" : "5.00 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (6-15 Jahre)",
+      "net" : "5.00 €",
+      "key" : "kurbeitrag6To15",
+      "taxRate" : 0
+    }, {
+      "value" : "42.00 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "42.00 €",
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0
+    }, {
+      "value" : "997.00 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "997.00 €",
+      "key" : "totalPrice",
+      "taxRate" : 0
+    }, {
+      "value" : "100.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "100.00 €",
+      "key" : "prepayment",
+      "taxRate" : 0
+    }, {
+      "value" : "897.00 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "897.00 €",
+      "key" : "totalSum",
+      "taxRate" : 0
+    } ]
+  }
+}, {
+  "number" : "1229",
+  "date" : "21.06.2025",
+  "bookings" : [ "Frau Brigitte Strobel | Ferienwohnung Nr. 3 | 2025-06-18 – 2025-06-21" ],
+  "bill" : {
+    "total" : "173.60 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "17.07 €"
+    } ],
+    "main" : [ {
+      "value" : "261.00 €",
+      "tax" : "17.07 €",
+      "label" : "3 Übernachtungen vom 18.06.25 bis zum 21.06.25 Ferienwohnung Nr. 3",
+      "net" : "243.93 €",
+      "key" : "accommodationPrice",
+      "taxRate" : 7
+    }, {
+      "value" : "12.60 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "12.60 €",
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0
+    }, {
+      "value" : "273.60 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "273.60 €",
+      "key" : "totalPrice",
+      "taxRate" : 0
+    }, {
+      "value" : "100.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "100.00 €",
+      "key" : "prepayment",
+      "taxRate" : 0
+    }, {
+      "value" : "173.60 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "173.60 €",
+      "key" : "totalSum",
+      "taxRate" : 0
+    } ]
+  }
+}, {
+  "number" : "1230",
+  "date" : "21.06.2025",
+  "bookings" : [ "Herr Manuel Thiele | Ferienwohnung Nr. 4 | 2025-06-19 – 2025-06-22" ],
+  "bill" : {
+    "total" : "173.60 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "17.07 €"
+    } ],
+    "main" : [ {
+      "value" : "261.00 €",
+      "tax" : "17.07 €",
+      "label" : "3 Übernachtungen vom 19.06.25 bis zum 22.06.25 Ferienwohnung Nr. 4",
+      "net" : "243.93 €",
+      "key" : "accommodationPrice",
+      "taxRate" : 7
+    }, {
+      "value" : "12.60 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "12.60 €",
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0
+    }, {
+      "value" : "273.60 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "273.60 €",
+      "key" : "totalPrice",
+      "taxRate" : 0
+    }, {
+      "value" : "100.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "100.00 €",
+      "key" : "prepayment",
+      "taxRate" : 0
+    }, {
+      "value" : "173.60 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "173.60 €",
+      "key" : "totalSum",
+      "taxRate" : 0
+    } ]
+  }
+}, {
+  "number" : "1231",
+  "date" : "30.06.2025",
+  "bookings" : [ "Herr Armin Kaiser | Ferienwohnung Nr. 1 | 2025-06-26 – 2025-06-30" ],
+  "bill" : {
+    "total" : "388.80 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "24.34 €"
+    } ],
+    "main" : [ {
+      "tax" : "24.34 €",
+      "label" : "4 Übernachtungen vom 26.06.25 bis zum 30.06.25 Ferienwohnung Nr. 1",
+      "net" : "347.66 €",
+      "key" : "accommodationPrice",
+      "taxRate" : 7,
+      "value" : "372.00 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "16.80 €",
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0,
+      "value" : "16.80 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "388.80 €",
+      "key" : "totalPrice",
+      "taxRate" : 0,
+      "value" : "388.80 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "0.00 €",
+      "key" : "prepayment",
+      "taxRate" : 0,
+      "value" : "0.00 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "388.80 €",
+      "key" : "totalSum",
+      "taxRate" : 0,
+      "value" : "388.80 €"
+    } ]
+  }
+}, {
+  "number" : "1232",
+  "date" : "03.07.2025",
+  "bookings" : [ "Frau Lena Marie Wirtz | Ferienwohnung Nr. 2 | 2025-06-22 – 2025-07-03" ],
+  "bill" : {
+    "total" : "2878.80 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "182.79 €"
+    } ],
+    "main" : [ {
+      "tax" : "182.79 €",
+      "label" : "11 Übernachtungen vom 22.06.25 bis zum 03.07.25 Ferienwohnung Nr. 2",
+      "net" : "2611.21 €",
+      "key" : "accommodationPrice",
+      "taxRate" : 7,
+      "value" : "2794.00 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "184.80 €",
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0,
+      "value" : "184.80 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "2978.80 €",
+      "key" : "totalPrice",
+      "taxRate" : 0,
+      "value" : "2978.80 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "100.00 €",
+      "key" : "prepayment",
+      "taxRate" : 0,
+      "value" : "100.00 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "2878.80 €",
+      "key" : "totalSum",
+      "taxRate" : 0,
+      "value" : "2878.80 €"
+    } ]
+  }
+}, {
+  "number" : "1233",
+  "date" : "05.07.2025",
+  "bookings" : [ "Herr Berd Jurk | Ferienwohnung Nr. 2 | 2025-07-04 – 2025-07-07" ],
+  "bill" : {
+    "total" : "531.50 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "39.25 €"
+    } ],
+    "main" : [ {
+      "tax" : "39.25 €",
+      "label" : "3 Übernachtungen vom 04.07.25 bis zum 07.07.25 Ferienwohnung Nr. 2",
+      "net" : "560.75 €",
+      "key" : "accommodationPrice",
+      "taxRate" : 7,
+      "value" : "600.00 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "31.50 €",
+      "key" : "kurbeitrag16AndOlder",
+      "taxRate" : 0,
+      "value" : "31.50 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "631.50 €",
+      "key" : "totalPrice",
+      "taxRate" : 0,
+      "value" : "631.50 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "100.00 €",
+      "key" : "prepayment",
+      "taxRate" : 0,
+      "value" : "100.00 €"
+    }, {
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "531.50 €",
+      "key" : "totalSum",
+      "taxRate" : 0,
+      "value" : "531.50 €"
+    } ]
+  }
+}, {
+  "number" : "1234",
+  "date" : "11.07.2025",
+  "bookings" : [ "Frau Shu Yuan Yang | Ferienwohnung Nr. 3 | 2025-07-10 – 2025-07-13" ],
+  "bill" : {
+    "total" : "234.80 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "21.10 €"
+    } ],
+    "main" : [ {
+      "taxRate" : 7,
+      "value" : "322.50 €",
+      "tax" : "21.10 €",
+      "label" : "3 Übernachtungen vom 10.07.25 bis zum 13.07.25 Ferienwohnung Nr. 3",
+      "net" : "301.40 €",
+      "key" : "accommodationPrice"
+    }, {
+      "taxRate" : 0,
+      "value" : "6.00 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (6-15 Jahre)",
+      "net" : "6.00 €",
+      "key" : "kurbeitrag6To15"
+    }, {
+      "taxRate" : 0,
+      "value" : "6.30 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "6.30 €",
+      "key" : "kurbeitrag16AndOlder"
+    }, {
+      "taxRate" : 0,
+      "value" : "334.80 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "334.80 €",
+      "key" : "totalPrice"
+    }, {
+      "taxRate" : 0,
+      "value" : "100.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "100.00 €",
+      "key" : "prepayment"
+    }, {
+      "taxRate" : 0,
+      "value" : "234.80 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "234.80 €",
+      "key" : "totalSum"
+    } ]
+  }
+}, {
+  "number" : "1235",
+  "date" : "11.07.2025",
+  "bookings" : [ "Frau Shu Yuan Yang | Ferienwohnung Nr. 4 | 2025-07-10 – 2025-07-13" ],
+  "bill" : {
+    "total" : "267.00 €",
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "17.07 €"
+    } ],
+    "main" : [ {
+      "taxRate" : 7,
+      "value" : "261.00 €",
+      "tax" : "17.07 €",
+      "label" : "3 Übernachtungen vom 10.07.25 bis zum 13.07.25 Ferienwohnung Nr. 4",
+      "net" : "243.93 €",
+      "key" : "accommodationPrice"
+    }, {
+      "taxRate" : 0,
+      "value" : "6.00 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (6-15 Jahre)",
+      "net" : "6.00 €",
+      "key" : "kurbeitrag6To15"
+    }, {
+      "taxRate" : 0,
+      "value" : "267.00 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "267.00 €",
+      "key" : "totalPrice"
+    }, {
+      "taxRate" : 0,
+      "value" : "0.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "0.00 €",
+      "key" : "prepayment"
+    }, {
+      "taxRate" : 0,
+      "value" : "267.00 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "267.00 €",
+      "key" : "totalSum"
+    } ]
+  }
+}, {
+  "number" : "1236",
+  "date" : "15.07.2025",
+  "bookings" : [ "Herr Carmen Heth | Ferienwohnung Nr. 2 | 2025-07-12 – 2025-07-15" ],
+  "bill" : {
+    "mwst" : [ {
+      "label" : "MwSt. gesamt",
+      "value" : "41.21 €"
+    } ],
+    "main" : [ {
+      "taxRate" : 7,
+      "value" : "600.00 €",
+      "tax" : "39.25 €",
+      "label" : "3 Übernachtungen vom 12.07.25 bis zum 15.07.25 Ferienwohnung Nr. 2",
+      "net" : "560.75 €",
+      "key" : "accommodationPrice"
+    }, {
+      "taxRate" : 7,
+      "value" : "30.00 €",
+      "tax" : "1.96 €",
+      "label" : "Kinderpreis (3-5 Jahre)",
+      "net" : "28.04 €",
+      "key" : "children3To5Price"
+    }, {
+      "taxRate" : 0,
+      "value" : "3.00 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (6-15 Jahre)",
+      "net" : "3.00 €",
+      "key" : "kurbeitrag6To15"
+    }, {
+      "taxRate" : 0,
+      "value" : "25.20 €",
+      "tax" : "0.00 €",
+      "label" : "Kurbeitrag (ab 16 Jahre)",
+      "net" : "25.20 €",
+      "key" : "kurbeitrag16AndOlder"
+    }, {
+      "taxRate" : 0,
+      "value" : "658.20 €",
+      "tax" : "0.00 €",
+      "label" : "Betrag",
+      "net" : "658.20 €",
+      "key" : "totalPrice"
+    }, {
+      "taxRate" : 0,
+      "value" : "100.00 €",
+      "tax" : "0.00 €",
+      "label" : "Anzahlung",
+      "net" : "100.00 €",
+      "key" : "prepayment"
+    }, {
+      "taxRate" : 0,
+      "value" : "558.20 €",
+      "tax" : "0.00 €",
+      "label" : "Restbetrag",
+      "net" : "558.20 €",
+      "key" : "totalSum"
+    } ]
+  }
+} ]
