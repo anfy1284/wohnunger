@@ -461,19 +461,6 @@ module.exports = async function (modelsDB) {
                     }
                 ]
             },
-            {
-                type: 'group',
-                caption: 'Примечания',
-                orientation: 'vertical',
-                layout: [
-                    {
-                        type: 'textarea',
-                        name: 'notes',
-                        data: 'notes',
-                        caption: ''
-                    }
-                ]
-            },
             // Номера размещения (справа, мастер) + Гости (слева, деталь) — горизонтально
             {
                 type: 'group',
@@ -537,43 +524,43 @@ module.exports = async function (modelsDB) {
                                 tabularFilter: { bookingId: '{UID}' }
                             }
                         }]
+                    },
+                    // Услуги бронирования (фильтруются вместе с Гостями при выборе Номера)
+                    {
+                        type: 'group',
+                        caption: 'Услуги',
+                        orientation: 'vertical',
+                        layout: [{
+                            type: 'table',
+                            name: 'ts_booking_room_services',
+                            data: 'booking_room_services',
+                            columns: [
+                                {
+                                    caption: 'Номер', data: 'bookingRoomId', width: 150,
+                                    inputType: 'recordSelector',
+                                    properties: {
+                                        showSelectionButton: true,
+                                        selection: { table: 'booking_rooms', idField: 'UID', displayField: 'UID' }
+                                    }
+                                },
+                                {
+                                    caption: 'Услуга', data: 'serviceId', width: 200,
+                                    inputType: 'recordSelector',
+                                    properties: {
+                                        showSelectionButton: true,
+                                        selection: { table: 'services', idField: 'UID', displayField: 'name' }
+                                    }
+                                },
+                                { caption: 'Кол-во', data: 'count', width: 80 }
+                            ],
+                            properties: {
+                                editMode: 'cell-immediate',
+                                visibleRows: 8,
+                                tabularFilter: { bookingId: '{UID}' }
+                            }
+                        }]
                     }
                 ]
-            },
-            // Услуги бронирования (фильтруются вместе с Гостями при выборе Номера)
-            {
-                type: 'group',
-                caption: 'Услуги',
-                orientation: 'vertical',
-                layout: [{
-                    type: 'table',
-                    name: 'ts_booking_room_services',
-                    data: 'booking_room_services',
-                    columns: [
-                        {
-                            caption: 'Номер', data: 'bookingRoomId', width: 150,
-                            inputType: 'recordSelector',
-                            properties: {
-                                showSelectionButton: true,
-                                selection: { table: 'booking_rooms', idField: 'UID', displayField: 'UID' }
-                            }
-                        },
-                        {
-                            caption: 'Услуга', data: 'serviceId', width: 200,
-                            inputType: 'recordSelector',
-                            properties: {
-                                showSelectionButton: true,
-                                selection: { table: 'services', idField: 'UID', displayField: 'name' }
-                            }
-                        },
-                        { caption: 'Кол-во', data: 'count', width: 80 }
-                    ],
-                    properties: {
-                        editMode: 'cell-immediate',
-                        visibleRows: 5,
-                        tabularFilter: { bookingId: '{UID}' }
-                    }
-                }]
             },
             // Спецификация счёта (InvoiceLines) — рассчитывается кнопкой
             {
@@ -597,6 +584,19 @@ module.exports = async function (modelsDB) {
                         tabularFilter: { bookingId: '{UID}' }
                     }
                 }]
+            },
+            {
+                type: 'group',
+                caption: 'Примечания',
+                orientation: 'vertical',
+                layout: [
+                    {
+                        type: 'textarea',
+                        name: 'notes',
+                        data: 'notes',
+                        caption: ''
+                    }
+                ]
             },
             {
                 type: 'group',
