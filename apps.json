@@ -11,6 +11,10 @@
         {
             "name": "reports",
             "path": "/reports"
+        },
+        {
+            "name": "booking_icons",
+            "path": "/booking_icons"
         }
     ]
 }

@@ -95,6 +95,7 @@ MySpace.register('ai_chat', {
             // Button — кнопка «Отправить»
             _sendBtn = new Button(inputRow);
             _sendBtn.setCaption('Отправить');
+            _sendBtn.setIcon('/apps/general_icons/resources/public/16x16/send.png');
             _sendBtn.setWidth(90);
             _sendBtn.Draw(inputRow);
 
