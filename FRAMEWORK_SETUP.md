@@ -86,3 +86,42 @@ node index.js
 - **База данных**: При использовании SQLite файл `database.sqlite` будет создан автоматически при первом запуске.
 - **Миграции**: Фреймворк сам проверяет схему и создает таблицы на основе `db.json` определений, найденных в `node_modules/my-old-space` и папке `apps/`.
 - **SSE**: Встроенная поддержка Server-Sent Events для мессенджера и уведомлений.
+
+## Иконки
+
+### Правило: каждый UI-элемент должен иметь иконку
+
+При создании **любого** нового UI-объекта (кнопка, пункт меню, колонка таблицы и т.д.)
+**обязательно** назначать ему иконку из каталога.
+
+### Каталог иконок
+
+Полный список доступных иконок находится в файле:
+```
+D:\wohnunger_icons\ICONS_CATALOG.txt
+```
+
+### Как использовать иконку
+
+Иконки доступны через два приложения:
+
+| Коллекция | Приложение | URL |
+|-----------|------------|-----|
+| general (системные) | `general_icons` (фреймворк) | `/apps/general_icons/resources/public/16x16/<id>.png` или `/apps/general_icons/resources/public/32x32/<id>.png` |
+| booking (прикладные) | `booking_icons` (проект) | `/apps/booking_icons/resources/public/16x16/<id>.png` или `/apps/booking_icons/resources/public/32x32/<id>.png` |
+
+Пример использования в форме (`init.js`):
+```javascript
+// Кнопка с иконкой
+{ id: 'btnSave', type: 'button', text: 'Сохранить', icon: '/apps/general_icons/resources/public/16x16/save.png' }
+
+// Кнопка прикладного решения
+{ id: 'btnCalc', type: 'button', text: 'Рассчитать', icon: '/apps/booking_icons/resources/public/16x16/calculate.png' }
+```
+
+### Как добавить новую иконку
+
+1. Создать файл `D:\wohnunger_icons\scripts\icons/<коллекция>/<id>.py` по образцу существующих
+2. Запустить: `python scripts/generate_all.py`
+3. Обновить `ICONS_CATALOG.txt`
+4. Задеплоить: `python scripts/deploy.py`

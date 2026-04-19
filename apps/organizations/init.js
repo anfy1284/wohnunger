@@ -603,13 +603,13 @@ module.exports = async function (modelsDB) {
                 caption: '',
                 orientation: 'horizontal',
                 layout: [
-                    { type: 'button', action: 'save',    caption: 'Сохранить' },
-                    { type: 'button', action: 'cancel',  caption: 'Отмена' },
-                    { type: 'button', name: 'btnHello',  caption: 'Привет Васе',  events: { onClick: { fn: 'sayHello',  fnParams: { name: 'Вася' } } } },
-                    { type: 'button', name: 'btnSay',    caption: 'Вася говорит', events: { onClick: { fn: 'say',       fnParams: { name: 'Вася', message: 'Как дела?' } } } },
-                    { type: 'button', name: 'btnStatus', caption: 'Статус брони', events: { onClick: { fn: 'showBookingStatus', fnParams: { bookingId: '{data.UID}' } } } },
-                    { type: 'button', name: 'btnCalc',   caption: 'Рассчитать стоимость', events: { onClick: 'calculateCost' } },
-                    { type: 'button', name: 'btnPrint',  caption: 'Печать счёта',         events: { onClick: 'printInvoice' } }
+                    { type: 'button', action: 'save',    caption: 'Сохранить', icon: '/apps/general_icons/resources/public/16x16/save.png' },
+                    { type: 'button', action: 'cancel',  caption: 'Отмена',    icon: '/apps/general_icons/resources/public/16x16/cancel.png' },
+                    { type: 'button', name: 'btnHello',  caption: 'Привет Васе',  icon: '/apps/general_icons/resources/public/16x16/user.png',  events: { onClick: { fn: 'sayHello',  fnParams: { name: 'Вася' } } } },
+                    { type: 'button', name: 'btnSay',    caption: 'Вася говорит', icon: '/apps/general_icons/resources/public/16x16/send.png',  events: { onClick: { fn: 'say',       fnParams: { name: 'Вася', message: 'Как дела?' } } } },
+                    { type: 'button', name: 'btnStatus', caption: 'Статус брони', icon: '/apps/booking_icons/resources/public/16x16/booking_status.png', events: { onClick: { fn: 'showBookingStatus', fnParams: { bookingId: '{data.UID}' } } } },
+                    { type: 'button', name: 'btnCalc',   caption: 'Рассчитать стоимость', icon: '/apps/booking_icons/resources/public/16x16/calculate.png', events: { onClick: 'calculateCost' } },
+                    { type: 'button', name: 'btnPrint',  caption: 'Печать счёта',         icon: '/apps/booking_icons/resources/public/16x16/invoice_print.png', events: { onClick: 'printInvoice' } }
                 ]
             }
         ];

@@ -1,0 +1,6 @@
+{
+    "name": "booking_icons",
+    "description": "Иконки прикладного решения (бронирование, счета, расчёты)",
+    "autoStart": false,
+    "access": { "user": true, "admin": true }
+}
