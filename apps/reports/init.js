@@ -5,6 +5,7 @@
 // Серверные функции генерации печатных форм.
 // Каждый отчёт хранится в своей подпапке: reports/invoice/, reports/...
 // ─────────────────────────────────────────────────────────────────────
+const { tForSession } = require('../../node_modules/my-old-space/drive_forms/globalServerContext');
 
 module.exports = async function (modelsDB) {
     try {
@@ -16,10 +17,10 @@ module.exports = async function (modelsDB) {
 
             // Генерация HTML-счёта (Rechnung) по bookingId
             async generateInvoiceHTML({ bookingId } = {}, ctx) {
-                if (!bookingId) return { error: 'bookingId обязателен' };
+                if (!bookingId) return { error: await tForSession('bookingId required', ctx.sessionID) };
 
                 const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
-                if (!booking) return { error: 'Бронирование не найдено' };
+                if (!booking) return { error: await tForSession('Booking not found', ctx.sessionID) };
 
                 const client = booking.clientId
                     ? await modelsDB.Clients.findByPk(booking.clientId, { raw: true }) : null;
@@ -33,7 +34,7 @@ module.exports = async function (modelsDB) {
                     order: [['sortOrder', 'ASC']],
                     raw: true
                 });
-                if (!lines.length) return { error: 'Нет строк спецификации. Сначала рассчитайте стоимость.' };
+                if (!lines.length) return { error: await tForSession('No invoice lines. Calculate cost first.', ctx.sessionID) };
 
                 const html = renderInvoiceHTML({ booking, client, hotel, org, lines });
                 return { html };

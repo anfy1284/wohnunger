@@ -2,6 +2,7 @@
 
 // Регистрация кастомных лейаутов при старте сервера.
 // Этот файл автоматически вызывается фреймворком (drive_forms/init.js).
+const { tForSession } = require('../../node_modules/my-old-space/drive_forms/globalServerContext');
 
 module.exports = async function (modelsDB) {
     try {
@@ -48,22 +49,22 @@ module.exports = async function (modelsDB) {
             // ── Прочие серверные методы (вызываются через callServer) ───
 
             async getBookingStatus({ bookingId } = {}, ctx) {
-                if (!bookingId) return { error: 'bookingId required' };
+                if (!bookingId) return { error: await tForSession('bookingId required', ctx.sessionID) };
                 const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
-                if (!booking) return { error: 'Бронирование не найдено' };
+                if (!booking) return { error: await tForSession('Booking not found', ctx.sessionID) };
                 return { name: booking.name, status: booking.status };
             },
 
             // ── Расчёт стоимости бронирования ──────────────────────────
             async calculateBookingCost({ bookingId } = {}, ctx) {
-                if (!bookingId) return { error: 'bookingId обязателен' };
+                if (!bookingId) return { error: await tForSession('bookingId required', ctx.sessionID) };
                 const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
-                if (!booking) return { error: 'Бронирование не найдено' };
+                if (!booking) return { error: await tForSession('Booking not found', ctx.sessionID) };
 
                 const checkIn = new Date(booking.checkIn);
                 const checkOut = new Date(booking.checkOut);
                 const nights = Math.round((checkOut - checkIn) / 86400000);
-                if (nights <= 0) return { error: 'Некорректные даты' };
+                if (nights <= 0) return { error: await tForSession('Invalid dates', ctx.sessionID) };
 
                 const rooms = await modelsDB.BookingRooms.findAll({ where: { bookingId }, raw: true });
                 const allGuests = await modelsDB.BookingGuests.findAll({ where: { bookingId }, raw: true });
@@ -129,7 +130,7 @@ module.exports = async function (modelsDB) {
                         lines.push({
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
-                            sectionLabel: 'Проживание',
+                            sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
                             label: 'Комн. ' + rLabel + ' (' + billingGuests + ' гост.) × ' + nights + ' ноч.',
                             quantity: nights, unitPrice: rp.price,
                             taxRate: rp.taxRate != null ? rp.taxRate : 7,
@@ -144,7 +145,7 @@ module.exports = async function (modelsDB) {
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             guestTypeId: '000000000-guest-type-0003',
-                            sectionLabel: 'Проживание',
+                            sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
                             label: 'Дети 3-5 лет (' + kids3_5 + ' чел.) × ' + nights + ' ноч.',
                             quantity: qty, unitPrice: 10, taxRate: 7,
                             amount: r2(qty * 10), sortOrder: ++sortOrd
@@ -158,7 +159,7 @@ module.exports = async function (modelsDB) {
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             guestTypeId: '000000000-guest-type-0005',
-                            sectionLabel: 'Проживание',
+                            sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
                             label: 'Дети 2 лет (' + kids2 + ' чел.) × ' + nights + ' ноч.',
                             quantity: qty2, unitPrice: 10, taxRate: 7,
                             amount: r2(qty2 * 10), sortOrder: ++sortOrd
@@ -172,7 +173,7 @@ module.exports = async function (modelsDB) {
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             guestTypeId: '000000000-guest-type-0001',
-                            sectionLabel: 'Курортный сбор',
+                            sectionLabel: await tForSession('resort_fee_section', ctx.sessionID),
                             label: 'Взрослые (' + adults + ') × ' + nights + ' ноч.',
                             quantity: qty, unitPrice: 2.10, taxRate: 0,
                             amount: r2(qty * 2.10), sortOrder: ++sortOrd
@@ -184,7 +185,7 @@ module.exports = async function (modelsDB) {
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             guestTypeId: '000000000-guest-type-0002',
-                            sectionLabel: 'Курортный сбор',
+                            sectionLabel: await tForSession('resort_fee_section', ctx.sessionID),
                             label: 'Дети 6-15 (' + kids6_15 + ') × ' + nights + ' ноч.',
                             quantity: qty, unitPrice: 1.00, taxRate: 0,
                             amount: r2(qty * 1.00), sortOrder: ++sortOrd
@@ -258,7 +259,7 @@ module.exports = async function (modelsDB) {
                                 UID: Utilities.generateUID('InvoiceLines'),
                                 bookingId, bookingRoomId: room.UID, organizationId: orgId,
                                 serviceId: csp.serviceId || null,
-                                sectionLabel: 'Проживание',
+                                sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
                                 label: 'Финальная уборка — комн. ' + rLabel,
                                 quantity: 1, unitPrice: csp.price, taxRate: 7,
                                 amount: csp.price, sortOrder: ++sortOrd
