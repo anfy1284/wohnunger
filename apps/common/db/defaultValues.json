@@ -2,33 +2,45 @@
     "guest_types": [
         {
             "UID": "000000000-guest-type-0001",
-            "name": "Взрослый",
+            "name": "Adult",
             "ageFrom": 16,
             "ageTo": null
         },
         {
             "UID": "000000000-guest-type-0002",
-            "name": "Ребенок 6-15 лет",
+            "name": "Child 6–15 years",
             "ageFrom": 6,
             "ageTo": 15
         },
         {
             "UID": "000000000-guest-type-0003",
-            "name": "Ребенок 3-5 лет",
+            "name": "Child 3–5 years",
             "ageFrom": 3,
             "ageTo": 5
         },
         {
             "UID": "000000000-guest-type-0004",
-            "name": "Младенец (до 2 лет)",
+            "name": "Infant (under 2 years)",
             "ageFrom": 0,
             "ageTo": 1
         },
         {
             "UID": "000000000-guest-type-0005",
-            "name": "Ребенок 2 лет",
+            "name": "Child 2 years",
             "ageFrom": 2,
             "ageTo": 2
         }
+    ],
+    "translations": [
+        { "UID": "tr-gt-ru-0001", "recordId": "000000000-guest-type-0001", "tableName": "guest_types", "fieldName": "name", "language": "ru", "value": "Взрослый" },
+        { "UID": "tr-gt-ru-0002", "recordId": "000000000-guest-type-0002", "tableName": "guest_types", "fieldName": "name", "language": "ru", "value": "Ребенок 6-15 лет" },
+        { "UID": "tr-gt-ru-0003", "recordId": "000000000-guest-type-0003", "tableName": "guest_types", "fieldName": "name", "language": "ru", "value": "Ребенок 3-5 лет" },
+        { "UID": "tr-gt-ru-0004", "recordId": "000000000-guest-type-0004", "tableName": "guest_types", "fieldName": "name", "language": "ru", "value": "Младенец (до 2 лет)" },
+        { "UID": "tr-gt-ru-0005", "recordId": "000000000-guest-type-0005", "tableName": "guest_types", "fieldName": "name", "language": "ru", "value": "Ребенок 2 лет" },
+        { "UID": "tr-gt-de-0001", "recordId": "000000000-guest-type-0001", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Erwachsener" },
+        { "UID": "tr-gt-de-0002", "recordId": "000000000-guest-type-0002", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Kind 6–15 Jahre" },
+        { "UID": "tr-gt-de-0003", "recordId": "000000000-guest-type-0003", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Kind 3–5 Jahre" },
+        { "UID": "tr-gt-de-0004", "recordId": "000000000-guest-type-0004", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Kleinkind (unter 2 Jahre)" },
+        { "UID": "tr-gt-de-0005", "recordId": "000000000-guest-type-0005", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Kind 2 Jahre" }
     ]
 }

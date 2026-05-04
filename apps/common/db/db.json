@@ -383,6 +383,7 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
+                    "translatable": true,
                     "caption": "Тип гостя"
                 },
                 "ageFrom": {

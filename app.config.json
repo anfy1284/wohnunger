@@ -12,6 +12,7 @@
     "access_roles",
     "accommodation_types",
     "organizations",
-    "guest_types"
+    "guest_types",
+    "translations"
   ]
 }
