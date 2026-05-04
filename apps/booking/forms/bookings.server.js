@@ -7,7 +7,7 @@
 //
 // Каждая функция получает (params, ctx) где ctx = { sessionID, user, role }.
 
-const { tForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
+const { tForSession, tfForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
 
 module.exports = function (modelsDB, Utilities) {
     return {
@@ -122,7 +122,7 @@ module.exports = function (modelsDB, Utilities) {
                         UID: Utilities.generateUID('InvoiceLines'),
                         bookingId, bookingRoomId: room.UID, organizationId: orgId,
                         sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
-                        label:    'Комн. ' + rLabel + ' (' + billingGuests + ' гост.) × ' + nights + ' ноч.',
+                        label:    await tfForSession('room_line_label', ctx.sessionID, { room: rLabel, guests: billingGuests, nights }),
                         quantity: nights, unitPrice: rp.price,
                         taxRate:  rp.taxRate != null ? rp.taxRate : 7,
                         amount:   r2(rp.price * nights), sortOrder: ++sortOrd
@@ -137,7 +137,7 @@ module.exports = function (modelsDB, Utilities) {
                         bookingId, bookingRoomId: room.UID, organizationId: orgId,
                         guestTypeId: '000000000-guest-type-0003',
                         sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
-                        label:    'Дети 3-5 лет (' + kids3_5 + ' чел.) × ' + nights + ' ноч.',
+                        label:    await tfForSession('children_3_5_line_label', ctx.sessionID, { count: kids3_5, nights }),
                         quantity: qty, unitPrice: 10, taxRate: 7,
                         amount:   r2(qty * 10), sortOrder: ++sortOrd
                     });
@@ -151,7 +151,7 @@ module.exports = function (modelsDB, Utilities) {
                         bookingId, bookingRoomId: room.UID, organizationId: orgId,
                         guestTypeId: '000000000-guest-type-0005',
                         sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
-                        label:    'Дети 2 лет (' + kids2 + ' чел.) × ' + nights + ' ноч.',
+                        label:    await tfForSession('children_2_line_label', ctx.sessionID, { count: kids2, nights }),
                         quantity: qty2, unitPrice: 10, taxRate: 7,
                         amount:   r2(qty2 * 10), sortOrder: ++sortOrd
                     });
@@ -165,7 +165,7 @@ module.exports = function (modelsDB, Utilities) {
                         bookingId, bookingRoomId: room.UID, organizationId: orgId,
                         guestTypeId: '000000000-guest-type-0001',
                         sectionLabel: await tForSession('resort_fee_section', ctx.sessionID),
-                        label:    'Взрослые (' + adults + ') × ' + nights + ' ноч.',
+                        label:    await tfForSession('adults_resort_fee_label', ctx.sessionID, { count: adults, nights }),
                         quantity: qty, unitPrice: 2.10, taxRate: 0,
                         amount:   r2(qty * 2.10), sortOrder: ++sortOrd
                     });
@@ -177,7 +177,7 @@ module.exports = function (modelsDB, Utilities) {
                         bookingId, bookingRoomId: room.UID, organizationId: orgId,
                         guestTypeId: '000000000-guest-type-0002',
                         sectionLabel: await tForSession('resort_fee_section', ctx.sessionID),
-                        label:    'Дети 6-15 (' + kids6_15 + ') × ' + nights + ' ноч.',
+                        label:    await tfForSession('children_6_15_resort_fee_label', ctx.sessionID, { count: kids6_15, nights }),
                         quantity: qty, unitPrice: 1.00, taxRate: 0,
                         amount:   r2(qty * 1.00), sortOrder: ++sortOrd
                     });
@@ -195,11 +195,11 @@ module.exports = function (modelsDB, Utilities) {
                     if (agePrices.length > 0 && svc.chargeType === 'per_night') {
                         // Дифференциация по возрасту (напр. завтрак)
                         const groups = [
-                            { gtId: '000000000-guest-type-0001', n: adults,   lbl: 'взр.' },
-                            { gtId: '000000000-guest-type-0002', n: kids6_15, lbl: '6-15' },
-                            { gtId: '000000000-guest-type-0003', n: kids3_5,  lbl: '3-5'  },
-                            { gtId: '000000000-guest-type-0005', n: kids2,    lbl: '2 г.' },
-                            { gtId: '000000000-guest-type-0004', n: infants,  lbl: '0-1'  },
+                            { gtId: '000000000-guest-type-0001', n: adults,   lblKey: 'age_group_adults_abbr' },
+                            { gtId: '000000000-guest-type-0002', n: kids6_15, lblKey: 'age_group_6_15_abbr' },
+                            { gtId: '000000000-guest-type-0003', n: kids3_5,  lblKey: 'age_group_3_5_abbr'  },
+                            { gtId: '000000000-guest-type-0005', n: kids2,    lblKey: 'age_group_2_abbr'   },
+                            { gtId: '000000000-guest-type-0004', n: infants,  lblKey: 'age_group_0_1_abbr'  },
                         ];
                         for (const ag of groups) {
                             if (ag.n <= 0) continue;
@@ -216,7 +216,7 @@ module.exports = function (modelsDB, Utilities) {
                                 bookingId, bookingRoomId: room.UID, organizationId: orgId,
                                 serviceId: rs.serviceId, guestTypeId: ag.gtId,
                                 sectionLabel: svc.name,
-                                label:    svc.name + ' — ' + ag.lbl + ' (' + ag.n + '×' + cnt + ') × ' + nights + ' ноч.',
+                                label:    await tfForSession('service_age_group_per_night_label', ctx.sessionID, { name: svc.name, ageGroup: await tForSession(ag.lblKey, ctx.sessionID), count: ag.n, perRoom: cnt, nights }),
                                 quantity: qty, unitPrice: sp.price, taxRate: svc.taxRate,
                                 amount:   r2(qty * sp.price), sortOrder: ++sortOrd
                             });
@@ -227,12 +227,14 @@ module.exports = function (modelsDB, Utilities) {
                         const price = sp ? sp.price : 0;
                         if (price > 0) {
                             const qty = svc.chargeType === 'per_night' ? cnt * nights : cnt;
+                            const svcLabel = svc.chargeType === 'per_night'
+                                ? await tfForSession('service_per_night_label', ctx.sessionID, { name: svc.name, count: cnt, nights })
+                                : await tfForSession('service_once_label',      ctx.sessionID, { name: svc.name, count: cnt });
                             lines.push({
                                 UID: Utilities.generateUID('InvoiceLines'),
                                 bookingId, bookingRoomId: room.UID, organizationId: orgId,
                                 serviceId: rs.serviceId, sectionLabel: svc.name,
-                                label:    svc.name + ' (' + cnt + ')' +
-                                          (svc.chargeType === 'per_night' ? ' × ' + nights + ' ноч.' : ''),
+                                label:    svcLabel,
                                 quantity: qty, unitPrice: price, taxRate: svc.taxRate,
                                 amount:   r2(qty * price), sortOrder: ++sortOrd
                             });
@@ -249,7 +251,7 @@ module.exports = function (modelsDB, Utilities) {
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             serviceId: csp.serviceId || null,
                             sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
-                            label:    'Финальная уборка — комн. ' + rLabel,
+                            label:    await tfForSession('final_cleaning_label', ctx.sessionID, { room: rLabel }),
                             quantity: 1, unitPrice: csp.price, taxRate: 7,
                             amount:   csp.price, sortOrder: ++sortOrd
                         });

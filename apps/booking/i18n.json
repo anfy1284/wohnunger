@@ -225,5 +225,76 @@
         "en": "lines",
         "ru": "позиций",
         "de": "Positionen"
+    },
+
+    "room_line_label": {
+        "en": "Room {{room}} ({{guests}} guest(s.)) × {{nights}} night(s.)",
+        "ru": "Комн. {{room}} ({{guests}} гост.) × {{nights}} ноч.",
+        "de": "Zimmer {{room}} ({{guests}} Gast/Gäste) × {{nights}} Nacht/Nächte"
+    },
+    "children_3_5_line_label": {
+        "en": "Children 3–5 y.o. ({{count}} pers.) × {{nights}} night(s.)",
+        "ru": "Дети 3–5 лет ({{count}} чел.) × {{nights}} ноч.",
+        "de": "Kinder 3–5 J. ({{count}} Pers.) × {{nights}} Nacht/Nächte"
+    },
+    "children_2_line_label": {
+        "en": "Children 2 y.o. ({{count}} pers.) × {{nights}} night(s.)",
+        "ru": "Дети 2 лет ({{count}} чел.) × {{nights}} ноч.",
+        "de": "Kinder 2 J. ({{count}} Pers.) × {{nights}} Nacht/Nächte"
+    },
+    "adults_resort_fee_label": {
+        "en": "Adults ({{count}}) × {{nights}} night(s.)",
+        "ru": "Взрослые ({{count}}) × {{nights}} ноч.",
+        "de": "Erwachsene ({{count}}) × {{nights}} Nacht/Nächte"
+    },
+    "children_6_15_resort_fee_label": {
+        "en": "Children 6–15 ({{count}}) × {{nights}} night(s.)",
+        "ru": "Дети 6–15 ({{count}}) × {{nights}} ноч.",
+        "de": "Kinder 6–15 ({{count}}) × {{nights}} Nacht/Nächte"
+    },
+    "final_cleaning_label": {
+        "en": "Final cleaning – room {{room}}",
+        "ru": "Финальная уборка — комн. {{room}}",
+        "de": "Endreinigung – Zimmer {{room}}"
+    },
+    "service_age_group_per_night_label": {
+        "en": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}}) × {{nights}} night(s.)",
+        "ru": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}}) × {{nights}} ноч.",
+        "de": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}}) × {{nights}} Nacht/Nächte"
+    },
+    "service_per_night_label": {
+        "en": "{{name}} ({{count}}) × {{nights}} night(s.)",
+        "ru": "{{name}} ({{count}}) × {{nights}} ноч.",
+        "de": "{{name}} ({{count}}) × {{nights}} Nacht/Nächte"
+    },
+    "service_once_label": {
+        "en": "{{name}} ({{count}})",
+        "ru": "{{name}} ({{count}})",
+        "de": "{{name}} ({{count}})"
+    },
+    "age_group_adults_abbr": {
+        "en": "adults",
+        "ru": "взр.",
+        "de": "Erw."
+    },
+    "age_group_6_15_abbr": {
+        "en": "6–15",
+        "ru": "6–15",
+        "de": "6–15"
+    },
+    "age_group_3_5_abbr": {
+        "en": "3–5",
+        "ru": "3–5",
+        "de": "3–5"
+    },
+    "age_group_2_abbr": {
+        "en": "2 y.o.",
+        "ru": "2 г.",
+        "de": "2 J."
+    },
+    "age_group_0_1_abbr": {
+        "en": "0–1",
+        "ru": "0–1",
+        "de": "0–1"
     }
 }
