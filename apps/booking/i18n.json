@@ -23,5 +23,207 @@
         "en": "Resort fee",
         "ru": "Курортный сбор",
         "de": "Kurtaxe"
+    },
+
+    "Booking": {
+        "en": "Booking",
+        "ru": "Бронирование",
+        "de": "Buchung"
+    },
+    "booking_name_field": {
+        "en": "Room / name",
+        "ru": "Номер / название",
+        "de": "Zimmernummer / Name"
+    },
+    "Client": {
+        "en": "Client",
+        "ru": "Клиент",
+        "de": "Mandant"
+    },
+    "Hotel": {
+        "en": "Hotel",
+        "ru": "Гостиница",
+        "de": "Hotel"
+    },
+    "Organization": {
+        "en": "Organization",
+        "ru": "Организация",
+        "de": "Organisation"
+    },
+    "check_in": {
+        "en": "Check-in",
+        "ru": "Заезд",
+        "de": "Anreise"
+    },
+    "check_out": {
+        "en": "Check-out",
+        "ru": "Выезд",
+        "de": "Abreise"
+    },
+    "Status": {
+        "en": "Status",
+        "ru": "Статус",
+        "de": "Status"
+    },
+    "Draft": {
+        "en": "Draft",
+        "ru": "Черновик",
+        "de": "Entwurf"
+    },
+    "Confirmed": {
+        "en": "Confirmed",
+        "ru": "Подтверждено",
+        "de": "Bestätigt"
+    },
+    "Cancelled": {
+        "en": "Cancelled",
+        "ru": "Отменено",
+        "de": "Storniert"
+    },
+    "booking_rooms_tab": {
+        "en": "Accommodation rooms",
+        "ru": "Номера размещения",
+        "de": "Unterkunftszimmer"
+    },
+    "Guests": {
+        "en": "Guests",
+        "ru": "Гости",
+        "de": "Gäste"
+    },
+    "Services": {
+        "en": "Services",
+        "ru": "Услуги",
+        "de": "Leistungen"
+    },
+    "Room": {
+        "en": "Room",
+        "ru": "Номер",
+        "de": "Zimmer"
+    },
+    "guest_type_field": {
+        "en": "Guest type",
+        "ru": "Тип гостя",
+        "de": "Gästetyp"
+    },
+    "Quantity": {
+        "en": "Qty",
+        "ru": "Кол-во",
+        "de": "Anz."
+    },
+    "Service": {
+        "en": "Service",
+        "ru": "Услуга",
+        "de": "Leistung"
+    },
+    "invoice_lines_tab": {
+        "en": "Invoice specification",
+        "ru": "Спецификация счёта",
+        "de": "Rechnungsspezifikation"
+    },
+    "Section": {
+        "en": "Section",
+        "ru": "Раздел",
+        "de": "Abschnitt"
+    },
+    "Description": {
+        "en": "Description",
+        "ru": "Описание",
+        "de": "Beschreibung"
+    },
+    "Price": {
+        "en": "Price",
+        "ru": "Цена",
+        "de": "Preis"
+    },
+    "vat_rate_field": {
+        "en": "VAT %",
+        "ru": "НДС %",
+        "de": "MwSt %"
+    },
+    "Amount": {
+        "en": "Amount",
+        "ru": "Сумма",
+        "de": "Betrag"
+    },
+    "Notes": {
+        "en": "Notes",
+        "ru": "Примечания",
+        "de": "Anmerkungen"
+    },
+    "Save": {
+        "en": "Save",
+        "ru": "Сохранить",
+        "de": "Speichern"
+    },
+    "Cancel": {
+        "en": "Cancel",
+        "ru": "Отмена",
+        "de": "Abbrechen"
+    },
+    "hello_vasya_btn": {
+        "en": "Hello Vasya",
+        "ru": "Привет Васе",
+        "de": "Hallo Vasya"
+    },
+    "vasya_says_btn": {
+        "en": "Vasya says",
+        "ru": "Вася говорит",
+        "de": "Vasya sagt"
+    },
+    "booking_status_btn": {
+        "en": "Booking status",
+        "ru": "Статус брони",
+        "de": "Buchungsstatus"
+    },
+    "calculate_cost_btn": {
+        "en": "Calculate cost",
+        "ru": "Рассчитать стоимость",
+        "de": "Kosten berechnen"
+    },
+    "print_invoice_btn": {
+        "en": "Print invoice",
+        "ru": "Печать счёта",
+        "de": "Rechnung drucken"
+    },
+
+    "Hello, ": {
+        "en": "Hello, ",
+        "ru": "Привет, ",
+        "de": "Hallo, "
+    },
+    "stranger": {
+        "en": "stranger",
+        "ru": "незнакомец",
+        "de": "Unbekannter"
+    },
+    "Error: ": {
+        "en": "Error: ",
+        "ru": "Ошибка: ",
+        "de": "Fehler: "
+    },
+    "Booking: ": {
+        "en": "Booking: ",
+        "ru": "Бронирование: ",
+        "de": "Buchung: "
+    },
+    "Status: ": {
+        "en": "Status: ",
+        "ru": "Статус: ",
+        "de": "Status: "
+    },
+    "Please save the booking first": {
+        "en": "Please save the booking first",
+        "ru": "Сначала сохраните бронирование",
+        "de": "Bitte speichern Sie die Buchung zuerst"
+    },
+    "Calculation complete: ": {
+        "en": "Calculation complete: ",
+        "ru": "Расчёт выполнен: ",
+        "de": "Berechnung abgeschlossen: "
+    },
+    "lines": {
+        "en": "lines",
+        "ru": "позиций",
+        "de": "Positionen"
     }
 }

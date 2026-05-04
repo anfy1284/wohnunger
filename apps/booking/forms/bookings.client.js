@@ -11,7 +11,7 @@
 
 function sayHello(ev, ctx) {
     var name = ctx.fnParams && ctx.fnParams.name;
-    showAlert('Привет, ' + (name || 'незнакомец') + '!');
+    showAlert(__t('Hello, ') + (name || __t('stranger')) + '!');
 }
 
 function say(ev, ctx) {
@@ -26,8 +26,8 @@ async function showBookingStatus(ev, ctx) {
         bookingId = uidEntry && uidEntry.value;
     }
     var result = await callServer('__SERVER_SCRIPT__', 'getBookingStatus', { bookingId });
-    if (result.error) { showAlert('Ошибка: ' + result.error); return; }
-    showAlert('Бронирование: ' + result.name + '\nСтатус: ' + result.status);
+    if (result.error) { showAlert(__t('Error: ') + result.error); return; }
+    showAlert(__t('Booking: ') + result.name + '\n' + __t('Status: ') + result.status);
 }
 
 // Вызывается при активации строки в таблице номеров.
@@ -40,10 +40,10 @@ async function calculateCost(ev, ctx) {
     var form = ctx.form;
     var uidEntry = form._dataMap && form._dataMap['UID'];
     var bookingId = uidEntry && uidEntry.value;
-    if (!bookingId) { showAlert('Сначала сохраните бронирование'); return; }
+    if (!bookingId) { showAlert(__t('Please save the booking first')); return; }
 
     var result = await callServer('__SERVER_SCRIPT__', 'calculateBookingCost', { bookingId: bookingId });
-    if (result.error) { showAlert('Ошибка: ' + result.error); return; }
+    if (result.error) { showAlert(__t('Error: ') + result.error); return; }
 
     // Перезаписать данные ТЧ invoice_lines
     var tbl = form.controlsMap['ts_invoice_lines'];
@@ -55,17 +55,17 @@ async function calculateCost(ev, ctx) {
         if (tbl._invokeRenderBodyRows) tbl._invokeRenderBodyRows();
     }
     form.setModified(true);
-    showAlert('Расчёт выполнен: ' + (result.lines ? result.lines.length : 0) + ' позиций');
+    showAlert(__t('Calculation complete: ') + (result.lines ? result.lines.length : 0) + ' ' + __t('lines'));
 }
 
 async function printInvoice(ev, ctx) {
     var form = ctx.form;
     var uidEntry = form._dataMap && form._dataMap['UID'];
     var bookingId = uidEntry && uidEntry.value;
-    if (!bookingId) { showAlert('Сначала сохраните бронирование'); return; }
+    if (!bookingId) { showAlert(__t('Please save the booking first')); return; }
 
     var result = await callServer('reports.actions', 'generateInvoiceHTML', { bookingId: bookingId });
-    if (result.error) { showAlert('Ошибка: ' + result.error); return; }
+    if (result.error) { showAlert(__t('Error: ') + result.error); return; }
 
     if (window.MySpace && typeof window.MySpace.open === 'function') {
         await window.MySpace.open('printPreview', { html: result.html });
