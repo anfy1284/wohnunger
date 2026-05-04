@@ -1,0 +1,27 @@
+{
+    "bookingId required": {
+        "en": "bookingId is required",
+        "ru": "bookingId обязателен",
+        "de": "bookingId ist erforderlich"
+    },
+    "Booking not found": {
+        "en": "Booking not found",
+        "ru": "Бронирование не найдено",
+        "de": "Buchung nicht gefunden"
+    },
+    "Invalid dates": {
+        "en": "Invalid dates",
+        "ru": "Некорректные даты",
+        "de": "Ungültige Datumsangaben"
+    },
+    "accommodation_section": {
+        "en": "Accommodation",
+        "ru": "Проживание",
+        "de": "Unterkunft"
+    },
+    "resort_fee_section": {
+        "en": "Resort fee",
+        "ru": "Курортный сбор",
+        "de": "Kurtaxe"
+    }
+}

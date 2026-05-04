@@ -7,14 +7,14 @@ const { tForSession } = require('../../node_modules/my-old-space/drive_forms/glo
 module.exports = async function (modelsDB) {
     try {
         const layoutMemory   = require('../../node_modules/my-old-space/drive_root/layoutMemory');
-        const { loadScript, loadServerScript, Utilities } = require('../../node_modules/my-old-space');
+        const { loadScript, loadServerScript, Utilities } = require('my-old-space');
 
 
         // ─────────────────────────────────────────────────────────────────
         //  Серверный скрипт: функции с доступом к БД.
         //  Функции получают (params, ctx) где ctx = { sessionID, user, role }
         // ─────────────────────────────────────────────────────────────────
-        const serverScriptName = loadServerScript('organizations.bookingActions', {
+        const serverScriptName = loadServerScript('booking.bookingActions', {
 
             // ── Серверные события формы ──────────────────────────────────
             // Привязываются в saveLayout({ events: { ... } }) — это события
@@ -626,10 +626,10 @@ module.exports = async function (modelsDB) {
             }
         });
 
-        console.log('[organizations/init] Custom layouts registered');
-        console.log('[organizations/init] serverScriptName:', serverScriptName);
-        console.log('[organizations/init] clientUID:', clientUID);
+        console.log('[booking/init] Custom layouts registered');
+        console.log('[booking/init] serverScriptName:', serverScriptName);
+        console.log('[booking/init] clientUID:', clientUID);
     } catch (e) {
-        console.error('[organizations/init] Failed to register layouts:', e && e.message || e);
+        console.error('[booking/init] Failed to register layouts:', e && e.message || e);
     }
 };

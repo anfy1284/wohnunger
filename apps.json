@@ -1,8 +1,12 @@
 {
     "apps": [
         {
-            "name": "organizations",
-            "path": "/organizations"
+            "name": "common",
+            "path": "/common"
+        },
+        {
+            "name": "booking",
+            "path": "/booking"
         },
         {
             "name": "ai_chat",

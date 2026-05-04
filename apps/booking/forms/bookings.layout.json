@@ -1,0 +1,256 @@
+[
+    {
+        "type": "group",
+        "caption": "Бронирование",
+        "orientation": "horizontal",
+        "layout": [
+            {
+                "type": "group",
+                "caption": "",
+                "orientation": "vertical",
+                "layout": [
+                    {
+                        "type": "textbox",
+                        "name": "name",
+                        "data": "name",
+                        "caption": "Номер / название"
+                    },
+                    {
+                        "type": "recordSelector",
+                        "name": "clientId",
+                        "data": "clientId",
+                        "caption": "Клиент",
+                        "properties": {
+                            "showSelectionButton": true,
+                            "selection": {
+                                "table": "clients",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    },
+                    {
+                        "type": "recordSelector",
+                        "name": "hotelId",
+                        "data": "hotelId",
+                        "caption": "Гостиница",
+                        "properties": {
+                            "showSelectionButton": true,
+                            "selection": {
+                                "table": "hotels",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    },
+                    {
+                        "type": "recordSelector",
+                        "name": "organizationId",
+                        "data": "organizationId",
+                        "caption": "Организация",
+                        "properties": {
+                            "showSelectionButton": true,
+                            "selection": {
+                                "table": "organizations",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "group",
+                "caption": "",
+                "orientation": "vertical",
+                "layout": [
+                    {
+                        "type": "date",
+                        "name": "checkIn",
+                        "data": "checkIn",
+                        "caption": "Заезд"
+                    },
+                    {
+                        "type": "date",
+                        "name": "checkOut",
+                        "data": "checkOut",
+                        "caption": "Выезд"
+                    },
+                    {
+                        "type": "emunList",
+                        "name": "status",
+                        "data": "status",
+                        "caption": "Статус",
+                        "options": [
+                            { "value": "draft",      "caption": "Черновик" },
+                            { "value": "confirmed",  "caption": "Подтверждено" },
+                            { "value": "checkedIn",  "caption": "Заезд" },
+                            { "value": "checkedOut", "caption": "Выезд" },
+                            { "value": "cancelled",  "caption": "Отменено" }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "group",
+        "caption": "",
+        "orientation": "horizontal",
+        "layout": [
+            {
+                "type": "group",
+                "caption": "Номера размещения",
+                "orientation": "vertical",
+                "layout": [{
+                    "type": "table",
+                    "name": "ts_booking_rooms",
+                    "data": "booking_rooms",
+                    "columns": [
+                        {
+                            "caption": "Номер",
+                            "data": "roomId",
+                            "width": 200,
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "showSelectionButton": true,
+                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "editMode": "cell-immediate",
+                        "visibleRows": 8,
+                        "tabularFilter": { "bookingId": "{UID}" },
+                        "masterFor":   ["ts_booking_guests", "ts_booking_room_services"],
+                        "masterField": "UID",
+                        "detailField": "bookingRoomId"
+                    },
+                    "events": {
+                        "onRowActivate": "onRoomActivated"
+                    }
+                }]
+            },
+            {
+                "type": "group",
+                "caption": "Гости",
+                "orientation": "vertical",
+                "layout": [{
+                    "type": "table",
+                    "name": "ts_booking_guests",
+                    "data": "booking_guests",
+                    "columns": [
+                        {
+                            "caption": "Тип гостя",
+                            "data": "guestTypeId",
+                            "width": 180,
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "showSelectionButton": true,
+                                "selection": { "table": "guest_types", "idField": "UID", "displayField": "name" }
+                            }
+                        },
+                        { "caption": "Кол-во", "data": "count", "width": 80 }
+                    ],
+                    "properties": {
+                        "editMode": "cell-immediate",
+                        "visibleRows": 8,
+                        "tabularFilter": { "bookingId": "{UID}" }
+                    }
+                }]
+            },
+            {
+                "type": "group",
+                "caption": "Услуги",
+                "orientation": "vertical",
+                "layout": [{
+                    "type": "table",
+                    "name": "ts_booking_room_services",
+                    "data": "booking_room_services",
+                    "columns": [
+                        {
+                            "caption": "Номер",
+                            "data": "bookingRoomId",
+                            "width": 150,
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "showSelectionButton": true,
+                                "selection": { "table": "booking_rooms", "idField": "UID", "displayField": "UID" }
+                            }
+                        },
+                        {
+                            "caption": "Услуга",
+                            "data": "serviceId",
+                            "width": 200,
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "showSelectionButton": true,
+                                "selection": { "table": "services", "idField": "UID", "displayField": "name" }
+                            }
+                        },
+                        { "caption": "Кол-во", "data": "count", "width": 80 }
+                    ],
+                    "properties": {
+                        "editMode": "cell-immediate",
+                        "visibleRows": 8,
+                        "tabularFilter": { "bookingId": "{UID}" }
+                    }
+                }]
+            }
+        ]
+    },
+    {
+        "type": "group",
+        "caption": "Спецификация счёта",
+        "orientation": "vertical",
+        "layout": [{
+            "type": "table",
+            "name": "ts_invoice_lines",
+            "data": "invoice_lines",
+            "columns": [
+                { "caption": "Раздел",   "data": "sectionLabel", "width": 140 },
+                { "caption": "Описание", "data": "label",        "width": 300 },
+                { "caption": "Кол-во",   "data": "quantity",     "width": 70 },
+                { "caption": "Цена",     "data": "unitPrice",    "width": 90 },
+                { "caption": "НДС %",    "data": "taxRate",      "width": 60 },
+                { "caption": "Сумма",    "data": "amount",       "width": 100 }
+            ],
+            "properties": {
+                "visibleRows": 10,
+                "tabularFilter": { "bookingId": "{UID}" }
+            }
+        }]
+    },
+    {
+        "type": "group",
+        "caption": "Примечания",
+        "orientation": "vertical",
+        "layout": [
+            {
+                "type": "textarea",
+                "name": "notes",
+                "data": "notes",
+                "caption": ""
+            }
+        ]
+    },
+    {
+        "type": "group",
+        "caption": "",
+        "orientation": "horizontal",
+        "layout": [
+            { "type": "button", "action": "save",    "caption": "Сохранить",           "icon": "/apps/general_icons/resources/public/16x16/save.png" },
+            { "type": "button", "action": "cancel",  "caption": "Отмена",              "icon": "/apps/general_icons/resources/public/16x16/cancel.png" },
+            { "type": "button", "name": "btnHello",  "caption": "Привет Васе",          "icon": "/apps/general_icons/resources/public/16x16/user.png",
+              "events": { "onClick": { "fn": "sayHello",           "fnParams": { "name": "Вася" } } } },
+            { "type": "button", "name": "btnSay",    "caption": "Вася говорит",         "icon": "/apps/general_icons/resources/public/16x16/send.png",
+              "events": { "onClick": { "fn": "say",                "fnParams": { "name": "Вася", "message": "Как дела?" } } } },
+            { "type": "button", "name": "btnStatus", "caption": "Статус брони",         "icon": "/apps/booking_icons/resources/public/16x16/booking_status.png",
+              "events": { "onClick": { "fn": "showBookingStatus",  "fnParams": { "bookingId": "{data.UID}" } } } },
+            { "type": "button", "name": "btnCalc",   "caption": "Рассчитать стоимость", "icon": "/apps/booking_icons/resources/public/16x16/calculate.png",
+              "events": { "onClick": "calculateCost" } },
+            { "type": "button", "name": "btnPrint",  "caption": "Печать счёта",         "icon": "/apps/booking_icons/resources/public/16x16/invoice_print.png",
+              "events": { "onClick": "printInvoice" } }
+        ]
+    }
+]
