@@ -1,3 +1,223 @@
 {
+    "Chat with AI (Chrome Gemini Nano)": {
+        "en": "Chat with AI (Chrome Gemini Nano)",
+        "ru": "Чат с ИИ (Chrome Gemini Nano)",
+        "de": "Chat mit KI (Chrome Gemini Nano)"
+    },
+    "Enter message... (Ctrl+Enter — send)": {
+        "en": "Enter message... (Ctrl+Enter — send)",
+        "ru": "Введите сообщение... (Ctrl+Enter — отправить)",
+        "de": "Nachricht eingeben... (Ctrl+Enter — senden)"
+    },
+    "Send": {
+        "en": "Send",
+        "ru": "Отправить",
+        "de": "Senden"
+    },
+    "You": {
+        "en": "You",
+        "ru": "Вы",
+        "de": "Sie"
+    },
+    "AI": {
+        "en": "AI",
+        "ru": "ИИ",
+        "de": "KI"
+    },
+    "Click to copy address": {
+        "en": "Click to copy address",
+        "ru": "Нажмите, чтобы скопировать адрес",
+        "de": "Klicken zum Kopieren der Adresse"
+    },
+    "✓ copied": {
+        "en": "✓ copied",
+        "ru": "✓ скопировано",
+        "de": "✓ kopiert"
+    },
+    "✗ Unsupported browser.\nGoogle Chrome is required.": {
+        "en": "✗ Unsupported browser.\nGoogle Chrome is required.",
+        "ru": "✗ Неподдерживаемый браузер.\nДля работы требуется Google Chrome.",
+        "de": "✗ Nicht unterstützter Browser.\nGoogle Chrome wird benötigt."
+    },
+    "● Browser: Google Chrome ": {
+        "en": "● Browser: Google Chrome ",
+        "ru": "● Браузер: Google Chrome ",
+        "de": "● Browser: Google Chrome "
+    },
+    "✗ Chrome version is too old (": {
+        "en": "✗ Chrome version is too old (",
+        "ru": "✗ Версия Chrome слишком старая (",
+        "de": "✗ Chrome-Version ist zu alt ("
+    },
+    ", required: 127+).\nUpdate: ": {
+        "en": ", required: 127+).\nUpdate: ",
+        "ru": ", нужно: 127+).\nОбновите: ",
+        "de": ", benötigt: 127+).\nAktualisieren: "
+    },
+    "✗ Prompt API not found (window.ai and window.LanguageModel are absent).\n\nStep 1 — enable the optimization flag:\n  ": {
+        "en": "✗ Prompt API not found (window.ai and window.LanguageModel are absent).\n\nStep 1 — enable the optimization flag:\n  ",
+        "ru": "✗ Prompt API не найден (window.ai и window.LanguageModel отсутствуют).\n\nШаг 1 — включите флаг оптимизации:\n  ",
+        "de": "✗ Prompt API nicht gefunden (window.ai und window.LanguageModel fehlen).\n\nSchritt 1 — Optimierungsflag aktivieren:\n  "
+    },
+    " → Enabled BypassPerfRequirement\n\nStep 2 — enable Prompt API:\n  ": {
+        "en": " → Enabled BypassPerfRequirement\n\nStep 2 — enable Prompt API:\n  ",
+        "ru": " → Enabled BypassPerfRequirement\n\nШаг 2 — включите Prompt API:\n  ",
+        "de": " → Enabled BypassPerfRequirement\n\nSchritt 2 — Prompt API aktivieren:\n  "
+    },
+    " → Enabled\n\nStep 3 — restart Chrome and reopen the app.": {
+        "en": " → Enabled\n\nStep 3 — restart Chrome and reopen the app.",
+        "ru": " → Enabled\n\nШаг 3 — перезапустите Chrome и откройте приложение снова.",
+        "de": " → Enabled\n\nSchritt 3 — Chrome neu starten und App erneut öffnen."
+    },
+    "✗ window.ai found, but window.ai.languageModel is absent.\nEnable flag: ": {
+        "en": "✗ window.ai found, but window.ai.languageModel is absent.\nEnable flag: ",
+        "ru": "✗ window.ai найден, но window.ai.languageModel отсутствует.\nВключите флаг: ",
+        "de": "✗ window.ai gefunden, aber window.ai.languageModel fehlt.\nFlag aktivieren: "
+    },
+    " → Enabled\nThen restart Chrome.": {
+        "en": " → Enabled\nThen restart Chrome.",
+        "ru": " → Enabled\nЗатем перезапустите Chrome.",
+        "de": " → Enabled\nDann Chrome neu starten."
+    },
+    "✗ Prompt API not detected. Restart Chrome after enabling the flags.": {
+        "en": "✗ Prompt API not detected. Restart Chrome after enabling the flags.",
+        "ru": "✗ Prompt API не обнаружен. Перезапустите Chrome после включения флагов.",
+        "de": "✗ Prompt API nicht erkannt. Chrome nach Aktivierung der Flags neu starten."
+    },
+    "● Prompt API detected. Checking model availability...": {
+        "en": "● Prompt API detected. Checking model availability...",
+        "ru": "● Prompt API обнаружен. Проверка доступности модели...",
+        "de": "● Prompt API erkannt. Modellverfügbarkeit wird geprüft..."
+    },
+    "Availability check error: ": {
+        "en": "Availability check error: ",
+        "ru": "Ошибка проверки доступности: ",
+        "de": "Fehler bei der Verfügbarkeitsprüfung: "
+    },
+    "● Model status: ": {
+        "en": "● Model status: ",
+        "ru": "● Статус модели: ",
+        "de": "● Modellstatus: "
+    },
+    "✗ Gemini Nano model is unavailable.\nOpen ": {
+        "en": "✗ Gemini Nano model is unavailable.\nOpen ",
+        "ru": "✗ Модель Gemini Nano недоступна.\nОткройте ",
+        "de": "✗ Gemini Nano Modell ist nicht verfügbar.\nÖffnen Sie "
+    },
+    " → find \"Optimization Guide On Device Model\"\n→ click «Check for updates» and wait for download.\nThen restart Chrome and reopen the app.": {
+        "en": " → find \"Optimization Guide On Device Model\"\n→ click «Check for updates» and wait for download.\nThen restart Chrome and reopen the app.",
+        "ru": " → найдите \"Optimization Guide On Device Model\"\n→ нажмите «Проверить наличие обновлений» и дождитесь загрузки.\nЗатем перезапустите Chrome и откройте приложение снова.",
+        "de": " → \"Optimization Guide On Device Model\" suchen\n→ «Nach Updates suchen» klicken und Download abwarten.\nDann Chrome neu starten und App erneut öffnen."
+    },
+    "⬇ Gemini Nano model (~1.5–2 GB) is not yet downloaded.": {
+        "en": "⬇ Gemini Nano model (~1.5–2 GB) is not yet downloaded.",
+        "ru": "⬇ Модель Gemini Nano (~1.5–2 ГБ) ещё не загружена.",
+        "de": "⬇ Gemini Nano Modell (~1.5–2 GB) noch nicht heruntergeladen."
+    },
+    "📌 Step 1: make sure the flag is set correctly:\n  ": {
+        "en": "📌 Step 1: make sure the flag is set correctly:\n  ",
+        "ru": "📌 Шаг 1: убедитесь что флаг выставлен правильно:\n  ",
+        "de": "📌 Schritt 1: Flag korrekt setzen:\n  "
+    },
+    "\n  → value: Enabled BypassPerfRequirement\n  (not just Enabled — specifically BypassPerfRequirement)\n\n": {
+        "en": "\n  → value: Enabled BypassPerfRequirement\n  (not just Enabled — specifically BypassPerfRequirement)\n\n",
+        "ru": "\n  → значение: Enabled BypassPerfRequirement\n  (не просто Enabled — именно BypassPerfRequirement)\n\n",
+        "de": "\n  → Wert: Enabled BypassPerfRequirement\n  (nicht nur Enabled — speziell BypassPerfRequirement)\n\n"
+    },
+    "📌 Step 2: start the download manually:\n  ": {
+        "en": "📌 Step 2: start the download manually:\n  ",
+        "ru": "📌 Шаг 2: запустите загрузку вручную:\n  ",
+        "de": "📌 Schritt 2: Download manuell starten:\n  "
+    },
+    "\n  → find «Optimization Guide On Device Model»\n": {
+        "en": "\n  → find «Optimization Guide On Device Model»\n",
+        "ru": "\n  → найдите «Optimization Guide On Device Model»\n",
+        "de": "\n  → «Optimization Guide On Device Model» suchen\n"
+    },
+    "  → click «Check for updates»\n": {
+        "en": "  → click «Check for updates»\n",
+        "ru": "  → нажмите «Проверить обновления»\n",
+        "de": "  → «Nach Updates suchen» klicken\n"
+    },
+    "  → if status stays at 0.0.0.0 and «No update required» —\n": {
+        "en": "  → if status stays at 0.0.0.0 and «No update required» —\n",
+        "ru": "  → если статус висит на 0.0.0.0 и «Обновление не требуется» —\n",
+        "de": "  → wenn Status bei 0.0.0.0 bleibt und «Kein Update erforderlich» —\n"
+    },
+    "    click the button again after 30–60 sec (Chrome sometimes does not respond immediately)\n\n": {
+        "en": "    click the button again after 30–60 sec (Chrome sometimes does not respond immediately)\n\n",
+        "ru": "    нажмите кнопку ещё раз через 30–60 сек (Chrome иногда не реагирует с первого раза)\n\n",
+        "de": "    Button nach 30–60 Sek erneut klicken (Chrome reagiert manchmal nicht sofort)\n\n"
+    },
+    "📌 Step 3: if the button does not help — open DevTools (F12) on\n": {
+        "en": "📌 Step 3: if the button does not help — open DevTools (F12) on\n",
+        "ru": "📌 Шаг 3: если кнопка не помогает — откройте DevTools (F12) на\n",
+        "de": "📌 Schritt 3: Wenn der Button nicht hilft — DevTools (F12) öffnen\n"
+    },
+    "  any tab and run in console:\n": {
+        "en": "  any tab and run in console:\n",
+        "ru": "  любой вкладке и выполните в консоли:\n",
+        "de": "  auf beliebigem Tab und in Konsole ausführen:\n"
+    },
+    "  This will force the download.\n\n": {
+        "en": "  This will force the download.\n\n",
+        "ru": "  Это принудительно инициирует загрузку.\n\n",
+        "de": "  Das erzwingt den Download.\n\n"
+    },
+    "The app will activate automatically after download.": {
+        "en": "The app will activate automatically after download.",
+        "ru": "Приложение автоматически активируется после загрузки.",
+        "de": "Die App aktiviert sich automatisch nach dem Download."
+    },
+    "  ⏳ Waiting: 0 sec": {
+        "en": "  ⏳ Waiting: 0 sec",
+        "ru": "  ⏳ Ожидание: 0 сек",
+        "de": "  ⏳ Warten: 0 Sek"
+    },
+    "  ⏳ Waiting: ": {
+        "en": "  ⏳ Waiting: ",
+        "ru": "  ⏳ Ожидание: ",
+        "de": "  ⏳ Warten: "
+    },
+    " min ": {
+        "en": " min ",
+        "ru": " мин ",
+        "de": " Min "
+    },
+    " sec": {
+        "en": " sec",
+        "ru": " сек",
+        "de": " Sek"
+    },
+    "  Downloaded: ": {
+        "en": "  Downloaded: ",
+        "ru": "  Загружено: ",
+        "de": "  Heruntergeladen: "
+    },
+    "  [████████████████████] 100%  — download complete.": {
+        "en": "  [████████████████████] 100%  — download complete.",
+        "ru": "  [████████████████████] 100%  — загрузка завершена.",
+        "de": "  [████████████████████] 100%  — Download abgeschlossen."
+    },
+    "  ✓ Download complete (waited: ": {
+        "en": "  ✓ Download complete (waited: ",
+        "ru": "  ✓ Загрузка завершена (ожидание: ",
+        "de": "  ✓ Download abgeschlossen (Wartezeit: "
+    },
+    "✓ Gemini Nano ready. Enter a message and click «Send» (or Ctrl+Enter).": {
+        "en": "✓ Gemini Nano ready. Enter a message and click «Send» (or Ctrl+Enter).",
+        "ru": "✓ Gemini Nano готов. Введите сообщение и нажмите «Отправить» (или Ctrl+Enter).",
+        "de": "✓ Gemini Nano bereit. Nachricht eingeben und «Senden» klicken (oder Ctrl+Enter)."
+    },
+    "Initialization error: ": {
+        "en": "Initialization error: ",
+        "ru": "Ошибка инициализации: ",
+        "de": "Initialisierungsfehler: "
+    },
+    "Error: ": {
+        "en": "Error: ",
+        "ru": "Ошибка: ",
+        "de": "Fehler: "
+    }
 }
 

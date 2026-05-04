@@ -15,7 +15,7 @@ MySpace.register('ai_chat', {
 
         // ── DataForm — стандартный контейнер формы ──────────────────────
         const appForm = new DataForm(APP_NAME);
-        appForm.setTitle('Чат с ИИ (Chrome Gemini Nano)');
+        appForm.setTitle(__t('Chat with AI (Chrome Gemini Nano)'));
         appForm.setWidth(560);
         appForm.setHeight(620);
         appForm.setAnchorToWindow('center');
@@ -72,7 +72,7 @@ MySpace.register('ai_chat', {
 
             // MultilineTextBox — поле ввода пользователя
             _inputControl = new MultilineTextBox(inputRow);
-            _inputControl.setPlaceholder('Введите сообщение... (Ctrl+Enter — отправить)');
+            _inputControl.setPlaceholder(__t('Enter message... (Ctrl+Enter — send)'));
             _inputControl.Draw(inputRow);
 
             if (_inputControl.element) {
@@ -94,7 +94,7 @@ MySpace.register('ai_chat', {
 
             // Button — кнопка «Отправить»
             _sendBtn = new Button(inputRow);
-            _sendBtn.setCaption('Отправить');
+            _sendBtn.setCaption(__t('Send'));
             _sendBtn.setIcon('/apps/general_icons/resources/public/16x16/send.png');
             _sendBtn.setWidth(90);
             _sendBtn.Draw(inputRow);
@@ -156,7 +156,7 @@ MySpace.register('ai_chat', {
                 nameSpan.style.marginBottom = '2px';
                 nameSpan.style.fontSize = '10px';
                 nameSpan.style.color = role === 'user' ? '#336699' : '#555555';
-                nameSpan.textContent = role === 'user' ? 'Вы' : 'ИИ';
+                nameSpan.textContent = role === 'user' ? __t('You') : __t('AI');
                 div.appendChild(nameSpan);
             }
 
@@ -195,11 +195,11 @@ MySpace.register('ai_chat', {
             span.style.cursor = 'pointer';
             span.style.fontFamily = 'monospace';
             span.style.fontStyle = 'normal';
-            span.title = 'Нажмите, чтобы скопировать адрес';
+            span.title = __t('Click to copy address');
             span.addEventListener('click', function () {
                 try {
                     navigator.clipboard.writeText(url).then(function () {
-                        span.textContent = '✓ скопировано';
+                        span.textContent = __t('✓ copied');
                         span.style.color = '#007700';
                         setTimeout(function () {
                             span.textContent = url;
@@ -236,17 +236,15 @@ MySpace.register('ai_chat', {
 
                 if (!chromeMajor) {
                     addMessage('system',
-                        '✗ Неподдерживаемый браузер.\n' +
-                        'Для работы требуется Google Chrome.');
+                        __t('✗ Unsupported browser.\nGoogle Chrome is required.'));
                     return;
                 }
 
-                addMessage('system', '● Браузер: Google Chrome ' + chromeMajor);
+                addMessage('system', __t('● Browser: Google Chrome ') + chromeMajor);
 
                 if (chromeMajor < 127) {
                     addMessage('system', [
-                        '✗ Версия Chrome слишком старая (' + chromeMajor + ', нужно: 127+).\n' +
-                        'Обновите: ', chromeFlagLink('chrome://settings/help')
+                        __t('✗ Chrome version is too old (') + chromeMajor + __t(', required: 127+).\nUpdate: '), chromeFlagLink('chrome://settings/help')
                     ]);
                     return;
                 }
@@ -268,28 +266,24 @@ MySpace.register('ai_chat', {
                     // Ни один API не найден — разбираемся почему
                     if (!window.ai && !window.LanguageModel) {
                         addMessage('system', [
-                            '✗ Prompt API не найден (window.ai и window.LanguageModel отсутствуют).\n\n' +
-                            'Шаг 1 — включите флаг оптимизации на устройстве:\n  ',
+                            __t('✗ Prompt API not found (window.ai and window.LanguageModel are absent).\n\nStep 1 — enable the optimization flag:\n  '),
                             chromeFlagLink('chrome://flags/#optimization-guide-on-device-model'),
-                            ' → Enabled BypassPerfRequirement\n\n' +
-                            'Шаг 2 — включите Prompt API:\n  ',
+                            __t(' → Enabled BypassPerfRequirement\n\nStep 2 — enable Prompt API:\n  '),
                             chromeFlagLink('chrome://flags/#prompt-api-for-gemini-nano'),
-                            ' → Enabled\n\n' +
-                            'Шаг 3 — перезапустите Chrome и откройте приложение снова.'
+                            __t(' → Enabled\n\nStep 3 — restart Chrome and reopen the app.')
                         ]);
                     } else if (window.ai && !window.ai.languageModel) {
                         addMessage('system', [
-                            '✗ window.ai найден, но window.ai.languageModel отсутствует.\n' +
-                            'Включите флаг: ', chromeFlagLink('chrome://flags/#prompt-api-for-gemini-nano'),
-                            ' → Enabled\nЗатем перезапустите Chrome.'
+                            __t('✗ window.ai found, but window.ai.languageModel is absent.\nEnable flag: '), chromeFlagLink('chrome://flags/#prompt-api-for-gemini-nano'),
+                            __t(' → Enabled\nThen restart Chrome.')
                         ]);
                     } else {
-                        addMessage('system', '✗ Prompt API не обнаружен. Перезапустите Chrome после включения флагов.');
+                        addMessage('system', __t('✗ Prompt API not detected. Restart Chrome after enabling the flags.'));
                     }
                     return;
                 }
 
-                addMessage('system', '● Prompt API обнаружен. Проверка доступности модели...');
+                addMessage('system', __t('● Prompt API detected. Checking model availability...'));
 
                 // ── Получаем статус модели ───────────────────────────────
                 // Старый API: .capabilities() → { available: "readily"|"after-download"|"no" }
@@ -307,19 +301,16 @@ MySpace.register('ai_chat', {
                                     (caps.available || 'unavailable');
                     }
                 } catch (e) {
-                    addMessage('system', '✗ Ошибка проверки доступности: ' + (e && e.message ? e.message : String(e)));
+                    addMessage('system', '✗ ' + __t('Availability check error: ') + (e && e.message ? e.message : String(e)));
                     return;
                 }
 
-                addMessage('system', '● Статус модели: ' + statusRaw);
+                addMessage('system', __t('● Model status: ') + statusRaw);
 
                 if (statusRaw === 'unavailable') {
                     addMessage('system', [
-                        '✗ Модель Gemini Nano недоступна.\n' +
-                        'Откройте ', chromeFlagLink('chrome://components'),
-                        ' → найдите "Optimization Guide On Device Model"\n' +
-                        '→ нажмите «Проверить наличие обновлений» и дождитесь загрузки.\n' +
-                        'Затем перезапустите Chrome и откройте приложение снова.'
+                        __t('✗ Gemini Nano model is unavailable.\nOpen '), chromeFlagLink('chrome://components'),
+                        __t(' → find "Optimization Guide On Device Model"\n→ click «Check for updates» and wait for download.\nThen restart Chrome and reopen the app.')
                     ]);
                     return;
                 }
@@ -332,27 +323,27 @@ MySpace.register('ai_chat', {
 
                 const needsDownload = (statusRaw === 'downloadable' || statusRaw === 'downloading' || statusRaw === 'after-download');
                 if (needsDownload) {
-                    addMessage('system', '⬇ Модель Gemini Nano (~1.5–2 ГБ) ещё не загружена.');
+                    addMessage('system', __t('⬇ Gemini Nano model (~1.5–2 GB) is not yet downloaded.'));
                     addMessage('system', [
                         '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n',
-                        '📌 Шаг 1: убедитесь что флаг выставлен правильно:\n  ',
+                        __t('📌 Step 1: make sure the flag is set correctly:\n  '),
                         chromeFlagLink('chrome://flags/#optimization-guide-on-device-model'),
-                        '\n  → значение: Enabled BypassPerfRequirement\n  (не просто Enabled — именно BypassPerfRequirement)\n\n',
-                        '📌 Шаг 2: запустите загрузку вручную:\n  ',
+                        __t('\n  → value: Enabled BypassPerfRequirement\n  (not just Enabled — specifically BypassPerfRequirement)\n\n'),
+                        __t('📌 Step 2: start the download manually:\n  '),
                         chromeFlagLink('chrome://components'),
-                        '\n  → найдите «Optimization Guide On Device Model»\n',
-                        '  → нажмите «Проверить обновления»\n',
-                        '  → если статус висит на 0.0.0.0 и «Обновление не требуется» —\n',
-                        '    нажмите кнопку ещё раз через 30–60 сек (Chrome иногда не реагирует с первого раза)\n\n',
-                        '📌 Шаг 3: если кнопка не помогает — откройте DevTools (F12) на\n',
-                        '  любой вкладке и выполните в консоли:\n',
+                        __t('\n  → find «Optimization Guide On Device Model»\n'),
+                        __t('  → click «Check for updates»\n'),
+                        __t('  → if status stays at 0.0.0.0 and «No update required» —\n'),
+                        __t('    click the button again after 30–60 sec (Chrome sometimes does not respond immediately)\n\n'),
+                        __t('📌 Step 3: if the button does not help — open DevTools (F12) on\n'),
+                        __t('  any tab and run in console:\n'),
                         '    await LanguageModel.create()\n',
-                        '  Это принудительно инициирует загрузку.\n\n',
+                        __t('  This will force the download.\n\n'),
                         '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n',
-                        'Приложение автоматически активируется после загрузки.'
+                        __t('The app will activate automatically after download.')
                     ]);
 
-                    progressResult = addMessage('system', '  ⏳ Ожидание: 0 сек');
+                    progressResult = addMessage('system', __t('  ⏳ Waiting: 0 sec'));
                     _dlStart = Date.now();
 
                     // Таймер: показывает сколько ждём
@@ -362,8 +353,8 @@ MySpace.register('ai_chat', {
                             const elapsed = Math.round((Date.now() - _dlStart) / 1000);
                             const min = Math.floor(elapsed / 60);
                             const sec = elapsed % 60;
-                            const timeStr = min > 0 ? min + ' мин ' + sec + ' сек' : sec + ' сек';
-                            progressResult.textSpan.textContent = '  ⏳ Ожидание: ' + timeStr;
+                            const timeStr = min > 0 ? min + __t(' min ') + sec + __t(' sec') : sec + __t(' sec');
+                            progressResult.textSpan.textContent = __t('  ⏳ Waiting: ') + timeStr;
                             if (_messagesArea) _messagesArea.scrollTop = _messagesArea.scrollHeight;
                         } catch (_) {}
                     }, 1000);
@@ -394,10 +385,10 @@ MySpace.register('ai_chat', {
                                                     const totalMb = (total / 1048576).toFixed(1);
                                                     const filled = Math.floor(pct / 5);
                                                     const bar = '[' + '█'.repeat(filled) + '░'.repeat(20 - filled) + ']';
-                                                    line = '  ' + bar + ' ' + pct + '%  (' + mb + ' / ' + totalMb + ' МБ)';
+                                                    line = '  ' + bar + ' ' + pct + '%  (' + mb + ' / ' + totalMb + ' MB)';
                                                 } else {
                                                     const mb = (loaded / 1048576).toFixed(1);
-                                                    line = '  Загружено: ' + mb + ' МБ...';
+                                                    line = __t('  Downloaded: ') + mb + ' MB...';
                                                 }
                                                 progressResult.textSpan.textContent = line;
                                                 if (_messagesArea) _messagesArea.scrollTop = _messagesArea.scrollHeight;
@@ -420,10 +411,10 @@ MySpace.register('ai_chat', {
                         const elapsed = _dlStart ? Math.round((Date.now() - _dlStart) / 1000) : 0;
                         const min = Math.floor(elapsed / 60);
                         const sec = elapsed % 60;
-                        const timeStr = min > 0 ? min + ' мин ' + sec + ' сек' : sec + ' сек';
+                        const timeStr = min > 0 ? min + __t(' min ') + sec + __t(' sec') : sec + __t(' sec');
                         progressResult.textSpan.textContent = _dlHadProgress
-                            ? '  [████████████████████] 100%  — загрузка завершена.'
-                            : '  ✓ Загрузка завершена (ожидание: ' + timeStr + ')';
+                            ? __t('  [████████████████████] 100%  — download complete.')
+                            : __t('  ✓ Download complete (waited: ') + timeStr + ')';
                         if (_messagesArea) _messagesArea.scrollTop = _messagesArea.scrollHeight;
                     }
                 } else {
@@ -431,14 +422,14 @@ MySpace.register('ai_chat', {
                     aiSession = await apiObj.create();
                 }
 
-                addMessage('system', '✓ Gemini Nano готов. Введите сообщение и нажмите «Отправить» (или Ctrl+Enter).');
+                addMessage('system', __t('✓ Gemini Nano ready. Enter a message and click «Send» (or Ctrl+Enter).'));
                 setInputEnabled(true);
                 if (_inputControl && _inputControl.element) {
                     try { _inputControl.element.focus(); } catch (_) {}
                 }
 
             } catch (e) {
-                addMessage('system', '✗ Ошибка инициализации: ' + (e && e.message ? e.message : String(e)));
+                addMessage('system', '✗ ' + __t('Initialization error: ') + (e && e.message ? e.message : String(e)));
             }
         }
 
@@ -476,7 +467,7 @@ MySpace.register('ai_chat', {
                     if (_messagesArea) _messagesArea.scrollTop = _messagesArea.scrollHeight;
                 }
             } catch (e) {
-                textSpan.textContent = 'Ошибка: ' + (e && e.message ? e.message : String(e));
+                textSpan.textContent = __t('Error: ') + (e && e.message ? e.message : String(e));
             } finally {
                 if (_sendBtn && _sendBtn.element) _sendBtn.element.disabled = false;
                 if (_inputControl && _inputControl.element) {
