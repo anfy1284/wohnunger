@@ -68,7 +68,7 @@ async function printInvoice(ev, ctx) {
     if (result.error) { showAlert(__t('Error: ') + result.error); return; }
 
     if (window.MySpace && typeof window.MySpace.open === 'function') {
-        await window.MySpace.open('printPreview', { html: result.html });
+        await window.MySpace.open('printPreview', { html: result.html, autoPrint: true });
     }
 }
 
