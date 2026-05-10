@@ -229,6 +229,12 @@
                     "allowNull": false,
                     "defaultValue": 0,
                     "caption": "Ставка налога"
+                },
+                "displayOrder": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "defaultValue": 50,
+                    "caption": "Порядок в счёте"
                 }
             },
             "options": {
@@ -395,6 +401,11 @@
                     "type": "INTEGER",
                     "allowNull": true,
                     "caption": "Возраст до"
+                },
+                "displayOrder": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "caption": "Порядок в счёте"
                 }
             },
             "options": {

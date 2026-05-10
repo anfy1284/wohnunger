@@ -48,5 +48,28 @@ module.exports = {
      */
     onDatabasePostInit: async function(context) {
         console.log('[events_handler] Database post-initialization hook executed.');
+        // Проставить displayOrder предопределённым типам гостей (только если ещё null)
+        try {
+            const { sequelize } = context;
+            const GuestTypes = sequelize && sequelize.models && sequelize.models.GuestTypes;
+            if (GuestTypes) {
+                const updates = [
+                    { UID: '000000000-guest-type-0003', displayOrder: 20 }, // Kinder 3-5 → доп. плата
+                    { UID: '000000000-guest-type-0005', displayOrder: 25 }, // Kind 2 J. → доп. плата
+                    { UID: '000000000-guest-type-0004', displayOrder: 30 }, // Kleinkind → доп. плата
+                    { UID: '000000000-guest-type-0001', displayOrder: 40 }, // Erwachsener → Kurtaxe
+                    { UID: '000000000-guest-type-0002', displayOrder: 42 }, // Kind 6-15 → Kurtaxe
+                ];
+                for (const u of updates) {
+                    await GuestTypes.update(
+                        { displayOrder: u.displayOrder },
+                        { where: { UID: u.UID, displayOrder: null } }
+                    );
+                }
+                console.log('[events_handler] Guest type displayOrder initialized.');
+            }
+        } catch (e) {
+            console.warn('[events_handler] Could not set guest type displayOrder:', e && e.message);
+        }
     },
 };

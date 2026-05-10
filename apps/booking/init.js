@@ -39,6 +39,7 @@ module.exports = async function (modelsDB) {
             roles:        'user',
             layout:       require('./forms/bookings.layout.json'),
             clientScript: clientUID,
+            windowState:  'maximized',
             events: {
                 onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' }
             }

@@ -160,71 +160,28 @@
         "ru": "Отмена",
         "de": "Abbrechen"
     },
-    "hello_vasya_btn": {
-        "en": "Hello Vasya",
-        "ru": "Привет Васе",
-        "de": "Hallo Vasya"
-    },
-    "vasya_says_btn": {
-        "en": "Vasya says",
-        "ru": "Вася говорит",
-        "de": "Vasya sagt"
-    },
-    "booking_status_btn": {
-        "en": "Booking status",
-        "ru": "Статус брони",
-        "de": "Buchungsstatus"
-    },
-    "calculate_cost_btn": {
-        "en": "Calculate cost",
-        "ru": "Рассчитать стоимость",
-        "de": "Kosten berechnen"
-    },
+
     "print_invoice_btn": {
         "en": "Print invoice",
         "ru": "Печать счёта",
         "de": "Rechnung drucken"
     },
 
-    "Hello, ": {
-        "en": "Hello, ",
-        "ru": "Привет, ",
-        "de": "Hallo, "
-    },
-    "stranger": {
-        "en": "stranger",
-        "ru": "незнакомец",
-        "de": "Unbekannter"
-    },
     "Error: ": {
         "en": "Error: ",
         "ru": "Ошибка: ",
         "de": "Fehler: "
     },
-    "Booking: ": {
-        "en": "Booking: ",
-        "ru": "Бронирование: ",
-        "de": "Buchung: "
-    },
-    "Status: ": {
-        "en": "Status: ",
-        "ru": "Статус: ",
-        "de": "Status: "
-    },
+
     "Please save the booking first": {
         "en": "Please save the booking first",
         "ru": "Сначала сохраните бронирование",
         "de": "Bitte speichern Sie die Buchung zuerst"
     },
-    "Calculation complete: ": {
-        "en": "Calculation complete: ",
-        "ru": "Расчёт выполнен: ",
-        "de": "Berechnung abgeschlossen: "
-    },
-    "lines": {
-        "en": "lines",
-        "ru": "позиций",
-        "de": "Positionen"
+    "Save before printing?": {
+        "en": "Save before printing?",
+        "ru": "Сохранить перед печатью?",
+        "de": "Vor dem Drucken speichern?"
     },
 
     "room_line_label": {
@@ -243,14 +200,14 @@
         "de": "Kinder 2 J. ({{count}} Pers.) × {{nights}} Nacht/Nächte"
     },
     "adults_resort_fee_label": {
-        "en": "Adults ({{count}}) × {{nights}} night(s.)",
-        "ru": "Взрослые ({{count}}) × {{nights}} ноч.",
-        "de": "Erwachsene ({{count}}) × {{nights}} Nacht/Nächte"
+        "en": "Resort fee – adults ({{count}}) × {{nights}} night(s.)",
+        "ru": "Курортный сбор – взрослые ({{count}}) × {{nights}} ноч.",
+        "de": "Kurtaxe – Erwachsene ({{count}}) × {{nights}} Nacht/Nächte"
     },
     "children_6_15_resort_fee_label": {
-        "en": "Children 6–15 ({{count}}) × {{nights}} night(s.)",
-        "ru": "Дети 6–15 ({{count}}) × {{nights}} ноч.",
-        "de": "Kinder 6–15 ({{count}}) × {{nights}} Nacht/Nächte"
+        "en": "Resort fee – children 6–15 ({{count}}) × {{nights}} night(s.)",
+        "ru": "Курортный сбор – дети 6–15 ({{count}}) × {{nights}} ноч.",
+        "de": "Kurtaxe – Kinder 6–15 ({{count}}) × {{nights}} Nacht/Nächte"
     },
     "final_cleaning_label": {
         "en": "Final cleaning – room {{room}}",
