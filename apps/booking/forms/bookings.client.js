@@ -10,9 +10,46 @@
 // Файл должен заканчиваться return { ... } — этого требует loadScript().
 
 // Вызывается при активации строки в таблице номеров.
-// rowIndex — аргумент от onRowActivate, ctx — контекст формы.
-function onRoomActivated(rowIndex, ctx) {
-    console.log('Выбран номер, строка:', rowIndex);
+// Автоматически добавляет дефолтные услуги для номера, если их ещё нет.
+async function onRoomActivated(rowIndex, ctx) {
+    var form = ctx.form;
+    var hotelEntry = form._dataMap && form._dataMap['hotelId'];
+    var hotelId = hotelEntry && hotelEntry.value;
+    if (!hotelId) return;
+
+    // rowIndex — индекс активированного номера прямо в этой таблице
+    var roomsTbl = form.controlsMap && form.controlsMap['ts_booking_rooms'];
+    if (!roomsTbl) return;
+    var roomRows = roomsTbl.data_getRows(roomsTbl.dataKey);
+    var activeRoom = roomRows[rowIndex];
+    if (!activeRoom || !activeRoom.UID) return;
+    var bookingRoomId = activeRoom.UID;
+
+    // Идемпотентность: если услуги для этого номера уже есть — выходим
+    var svcTbl = form.controlsMap && form.controlsMap['ts_booking_room_services'];
+    if (!svcTbl) return;
+    var existingRows = svcTbl.data_getRows(svcTbl.dataKey);
+    var alreadyHas = existingRows.some(function(r) { return r.bookingRoomId === bookingRoomId; });
+    if (alreadyHas) return;
+
+    var result = await callServer('__SERVER_SCRIPT__', 'getDefaultServices', { hotelId: hotelId, bookingRoomId: bookingRoomId });
+    if (!result || !result.services || !result.services.length) return;
+
+    for (var i = 0; i < result.services.length; i++) {
+        var svc = result.services[i];
+        var uidResp = await callServerMethod('drive_api', 'getNewUID', { tableName: 'booking_room_services' });
+        existingRows.push({
+            UID: uidResp && uidResp.uid,
+            bookingRoomId: bookingRoomId,
+            serviceId: svc.serviceId,
+            __serviceId_display: svc.serviceName,
+            count: false
+        });
+    }
+
+    svcTbl.data_updateValue(svcTbl.dataKey, existingRows);
+    try { if (typeof svcTbl._invokeRenderBodyRows === 'function') svcTbl._invokeRenderBodyRows(); } catch(_) {}
+    try { if (typeof form.setModified === 'function') form.setModified(true); } catch(_) {}
 }
 
 async function printInvoice(ev, ctx) {

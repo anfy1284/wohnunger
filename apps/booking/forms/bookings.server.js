@@ -144,7 +144,8 @@ module.exports = function (modelsDB, Utilities) {
             for (const rs of rSvcs) {
                 const svc = svcMap[rs.serviceId];
                 if (!svc) continue;
-                const cnt       = rs.count || 1;
+                const cnt = Number(rs.count);
+                if (!cnt) continue;
                 const agePrices = svcPrices.filter(sp =>
                     sp.serviceId === rs.serviceId && sp.ageFrom != null
                 );
@@ -291,6 +292,11 @@ module.exports = function (modelsDB, Utilities) {
                     s => s.bookingRoomId && survivingRoomUIDs.has(s.bookingRoomId)
                 );
 
+                // Нормализуем checkbox boolean → 0/1 для count в услугах
+                for (const rs of tabularSections.booking_room_services) {
+                    if (typeof rs.count === 'boolean') rs.count = rs.count ? 1 : 0;
+                }
+
                 const guests       = tabularSections.booking_guests;
                 const roomServices = tabularSections.booking_room_services;
 
@@ -306,6 +312,30 @@ module.exports = function (modelsDB, Utilities) {
             } catch (e) {
                 console.error('[booking/onBeforeSave] Invoice calculation failed:', e && e.message || e);
             }
+        },
+
+        // ── Возвращает дефолтные услуги для отеля (для автозаполнения при выборе гостя) ──
+        async getDefaultServices({ hotelId, bookingRoomId }, ctx) {
+            if (!hotelId) return { services: [] };
+            // Если для этого номера услуги уже есть в БД — не добавляем повторно
+            if (bookingRoomId) {
+                const existing = await modelsDB.BookingRoomServices.count({ where: { bookingRoomId } });
+                if (existing > 0) return { services: [] };
+            }
+            const defaults = await modelsDB.HotelDefaultServices.findAll({
+                where: { hotelId }, order: [['displayOrder', 'ASC']], raw: true
+            });
+            if (!defaults.length) return { services: [] };
+            const serviceIds = defaults.map(d => d.serviceId);
+            const services = await modelsDB.Services.findAll({ where: { UID: serviceIds }, raw: true });
+            const svcMap2 = {};
+            for (const s of services) svcMap2[s.UID] = s;
+            return {
+                services: defaults.map(d => ({
+                    serviceId: d.serviceId,
+                    serviceName: (svcMap2[d.serviceId] && svcMap2[d.serviceId].name) || ''
+                }))
+            };
         },
 
     };

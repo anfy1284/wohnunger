@@ -451,6 +451,35 @@
             "options": {
                 "timestamps": true
             }
+        },
+        {
+            "name": "HotelDefaultServices",
+            "tableName": "hotel_default_services",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organizations", "key": "UID" }
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "hotels", "key": "UID" }
+                },
+                "serviceId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "services", "key": "UID" }
+                },
+                "displayOrder": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "defaultValue": 50
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
         }
     ],
     "associations": [
@@ -607,6 +636,30 @@
         {
             "type": "belongsTo",
             "source": "Clients",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Hotels",
+            "target": "HotelDefaultServices",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "HotelDefaultServices",
+            "target": "Hotels",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "HotelDefaultServices",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "HotelDefaultServices",
             "target": "Organizations",
             "foreignKey": "organizationId"
         }

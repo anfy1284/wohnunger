@@ -110,6 +110,11 @@
         "ru": "Кол-во",
         "de": "Anz."
     },
+    "Included": {
+        "en": "Incl.",
+        "ru": "Вкл.",
+        "de": "Inkl."
+    },
     "Service": {
         "en": "Service",
         "ru": "Услуга",

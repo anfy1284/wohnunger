@@ -178,7 +178,7 @@
                                 "selection": { "table": "services", "idField": "UID", "displayField": "name" }
                             }
                         },
-                        { "caption": { "i18n": "Quantity" }, "data": "count", "width": 80, "inputType": "number" }
+                        { "caption": { "i18n": "Included" }, "data": "count", "width": 60, "inputType": "checkbox" }
                     ],
                     "properties": {
                         "editMode": "cell-immediate",
