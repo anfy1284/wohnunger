@@ -172,6 +172,7 @@
                             "caption": { "i18n": "Service" },
                             "data": "serviceId",
                             "width": 200,
+                            "readOnly": true,
                             "inputType": "recordSelector",
                             "properties": {
                                 "showSelectionButton": true,
