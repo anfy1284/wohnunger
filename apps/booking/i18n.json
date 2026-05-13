@@ -31,9 +31,14 @@
         "de": "Buchung"
     },
     "booking_name_field": {
-        "en": "Room / name",
-        "ru": "Номер / название",
-        "de": "Zimmernummer / Name"
+        "en": "Booking number",
+        "ru": "Номер брони",
+        "de": "Buchungsnummer"
+    },
+    "prepayment_field": {
+        "en": "Prepayment",
+        "ru": "Предоплата",
+        "de": "Anzahlung"
     },
     "Client": {
         "en": "Client",

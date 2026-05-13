@@ -3,11 +3,25 @@
         {
             "name": "Bookings",
             "tableName": "bookings",
+            "entityConfig": {
+                "entityType": "document",
+                "hooks": {
+                    "beforeCreate": [
+                        {
+                            "handler": "default.autoNumber",
+                            "params": { "field": "name", "length": 5, "prefix": "", "period": null }
+                        },
+                        {
+                            "handler": "booking.onBeforeCreate"
+                        }
+                    ]
+                }
+            },
             "fields": {
                 "name": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Номер / Название брони"
+                    "caption": "Номер брони"
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -62,6 +76,12 @@
                     "type": "TEXT",
                     "allowNull": true,
                     "caption": "Примечания"
+                },
+                "prepayment": {
+                    "type": "FLOAT",
+                    "allowNull": true,
+                    "defaultValue": null,
+                    "caption": "Предоплата"
                 }
             },
             "options": {

@@ -16,6 +16,12 @@
                         "caption": { "i18n": "booking_name_field" }
                     },
                     {
+                        "type": "number",
+                        "name": "prepayment",
+                        "data": "prepayment",
+                        "caption": { "i18n": "prepayment_field" }
+                    },
+                    {
                         "type": "recordSelector",
                         "name": "clientId",
                         "data": "clientId",

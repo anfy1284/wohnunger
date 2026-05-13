@@ -18,6 +18,11 @@ module.exports = async function (modelsDB) {
     try {
         const { loadScript, loadServerScript, Utilities } = require('../../node_modules/my-old-space');
         const layoutMemory = require('../../node_modules/my-old-space/drive_root/layoutMemory');
+        const entityHooks  = require('../../node_modules/my-old-space/drive_root/entityHooks');
+
+        // ── Регистрация пользовательских хуков таблицы bookings ──────────────
+        const bookingHooks = require('./hooks/bookingHooks');
+        entityHooks.register('booking.onBeforeCreate', bookingHooks.onBeforeCreate);
 
         // ── Форма «Бронирование» (таблица bookings) ──────────────────────
 
