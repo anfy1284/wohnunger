@@ -124,7 +124,8 @@
                         "tabularFilter": { "bookingId": "{UID}" },
                         "masterFor":   ["ts_booking_guests", "ts_booking_room_services"],
                         "masterField": "UID",
-                        "detailField": "bookingRoomId"
+                        "detailField": "bookingRoomId",
+                        "hiddenButtons": ["listSettings", "recordOpen"]
                     },
                     "events": {
                         "onRowActivate": "onRoomActivated"
@@ -155,7 +156,8 @@
                     "properties": {
                         "editMode": "cell-immediate",
                         "visibleRows": 8,
-                        "tabularFilter": { "bookingId": "{UID}" }
+                        "tabularFilter": { "bookingId": "{UID}" },
+                        "hiddenButtons": ["listSettings", "recordOpen"]
                     }
                 }]
             },
@@ -184,7 +186,8 @@
                     "properties": {
                         "editMode": "cell-immediate",
                         "visibleRows": 8,
-                        "tabularFilter": { "bookingId": "{UID}" }
+                        "tabularFilter": { "bookingId": "{UID}" },
+                        "hiddenButtons": ["listSettings", "recordOpen"]
                     }
                 }]
             }
