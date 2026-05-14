@@ -170,6 +170,11 @@
         "ru": "Отмена",
         "de": "Abbrechen"
     },
+    "OK": {
+        "en": "OK",
+        "ru": "ОК",
+        "de": "OK"
+    },
 
     "print_invoice_btn": {
         "en": "Print invoice",

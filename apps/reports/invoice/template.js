@@ -24,6 +24,7 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
     const invoiceDate = fmtDate(new Date());
     const checkIn     = fmtDate(booking.checkIn);
     const checkOut    = fmtDate(booking.checkOut);
+    const prepayment  = Number(booking.prepayment) || 0;
 
     // Суммы по ставкам MwSt
     let totalBrutto = 0;
@@ -187,6 +188,14 @@ ${taxSummaryHtml}
     <td colspan="3" class="num">Gesamtbetrag</td>
     <td class="num">${fmtNum(totalBrutto)} &euro;</td>
   </tr>
+${prepayment > 0 ? `  <tr class="tax-row">
+    <td colspan="3" class="num">abzgl. Anzahlung</td>
+    <td class="num">&minus;${fmtNum(prepayment)} &euro;</td>
+  </tr>
+  <tr class="grand-total">
+    <td colspan="3" class="num">Restbetrag</td>
+    <td class="num">${fmtNum(Math.round((totalBrutto - prepayment) * 100) / 100)} &euro;</td>
+  </tr>` : ''}
 </tbody>
 </table>
 

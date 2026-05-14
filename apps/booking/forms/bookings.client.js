@@ -74,4 +74,13 @@ async function printInvoice(ev, ctx) {
     }
 }
 
-return { onRoomActivated, printInvoice };
+async function okAction(ev, ctx) {
+    var form = ctx.form;
+    await form.doAction('save');
+    if (!form._modified) {
+        form._closing = true;
+        form.close();
+    }
+}
+
+return { onRoomActivated, printInvoice, okAction };

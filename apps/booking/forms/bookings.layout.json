@@ -1,6 +1,18 @@
 [
     {
         "type": "group",
+        "caption": "",
+        "orientation": "horizontal",
+        "layout": [
+            { "type": "button", "name": "btnOK",    "caption": { "i18n": "OK" },             "icon": "/apps/general_icons/resources/public/16x16/select.png",   "events": { "onClick": "okAction" } },
+            { "type": "button", "action": "save",    "caption": { "i18n": "Save" },           "icon": "/apps/general_icons/resources/public/16x16/save.png" },
+            { "type": "button", "action": "cancel",  "caption": { "i18n": "Cancel" },         "icon": "/apps/general_icons/resources/public/16x16/cancel.png" },
+            { "type": "button", "name": "btnPrint",  "caption": { "i18n": "print_invoice_btn" }, "icon": "/apps/booking_icons/resources/public/16x16/invoice_print.png",
+              "events": { "onClick": "printInvoice" } }
+        ]
+    },
+    {
+        "type": "group",
         "caption": { "i18n": "Booking" },
         "orientation": "horizontal",
         "layout": [
@@ -210,17 +222,6 @@
                 "data": "notes",
                 "caption": ""
             }
-        ]
-    },
-    {
-        "type": "group",
-        "caption": "",
-        "orientation": "horizontal",
-        "layout": [
-            { "type": "button", "action": "save",    "caption": { "i18n": "Save" },           "icon": "/apps/general_icons/resources/public/16x16/save.png" },
-            { "type": "button", "action": "cancel",  "caption": { "i18n": "Cancel" },              "icon": "/apps/general_icons/resources/public/16x16/cancel.png" },
-            { "type": "button", "name": "btnPrint",  "caption": { "i18n": "print_invoice_btn" },         "icon": "/apps/booking_icons/resources/public/16x16/invoice_print.png",
-              "events": { "onClick": "printInvoice" } }
         ]
     }
 ]
