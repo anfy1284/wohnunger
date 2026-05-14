@@ -8,6 +8,10 @@
 //   ctx.fnParams — параметры из лейаута (с резолвом {data.field})
 //
 // Файл должен заканчиваться return { ... } — этого требует loadScript().
+//
+// Стандартные кнопки OK / Save / Cancel рендерятся через тип "commandBar" в лейауте —
+// их обработчики встроены в DataForm (doAction 'ok' / 'save' / 'cancel').
+// Здесь остаются только специфические для booking функции.
 
 // Вызывается при активации строки в таблице номеров.
 // Автоматически добавляет дефолтные услуги для номера, если их ещё нет.
@@ -74,13 +78,4 @@ async function printInvoice(ev, ctx) {
     }
 }
 
-async function okAction(ev, ctx) {
-    var form = ctx.form;
-    await form.doAction('save');
-    if (!form._modified) {
-        form._closing = true;
-        form.close();
-    }
-}
-
-return { onRoomActivated, printInvoice, okAction };
+return { onRoomActivated, printInvoice };
