@@ -268,5 +268,66 @@
         "en": "0–1",
         "ru": "0–1",
         "de": "0–1"
+    },
+
+    "booking_ref": {
+        "en": "Booking",
+        "ru": "Бронь",
+        "de": "Buchung"
+    },
+    "booking_room_ref": {
+        "en": "Booking room",
+        "ru": "Номер в брони",
+        "de": "Unterkunftszimmer"
+    },
+    "invoice_name": {
+        "en": "Invoice number",
+        "ru": "Номер счёта",
+        "de": "Rechnungsnummer"
+    },
+    "invoice_date": {
+        "en": "Invoice date",
+        "ru": "Дата счёта",
+        "de": "Rechnungsdatum"
+    },
+    "due_date": {
+        "en": "Due date",
+        "ru": "Оплатить до",
+        "de": "Fälligkeitsdatum"
+    },
+    "Invoice": {
+        "en": "Invoice",
+        "ru": "Счёт",
+        "de": "Rechnung"
+    },
+    "section_label": {
+        "en": "Section label",
+        "ru": "Заголовок секции",
+        "de": "Abschnittsbezeichnung"
+    },
+    "unit_price": {
+        "en": "Unit price",
+        "ru": "Цена за ед.",
+        "de": "Einzelpreis"
+    },
+    "sort_order": {
+        "en": "Sort order",
+        "ru": "Порядок",
+        "de": "Reihenfolge"
+    },
+    "booking_services_tab": {
+        "en": "Booking services",
+        "ru": "Услуги бронирования",
+        "de": "Buchungsleistungen"
+    },
+    "booking_guests_tab": {
+        "en": "Booking guests",
+        "ru": "Гости бронирования",
+        "de": "Buchungsgäste"
+    },
+    "invoices_tab": {
+        "en": "Invoices",
+        "ru": "Счета",
+        "de": "Rechnungen"
     }
 }

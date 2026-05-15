@@ -7,12 +7,12 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": "Тип размещения"
+                    "caption": { "i18n": "accommodation_type_name" }
                 },
                 "description": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Описание"
+                    "caption": { "i18n": "Description" }
                 }
             },
             "options": {
@@ -26,48 +26,48 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": "Название организации"
+                    "caption": { "i18n": "Name" }
                 },
                 "address": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Адрес"
+                    "caption": { "i18n": "Address" }
                 },
                 "phone": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Телефон"
+                    "caption": { "i18n": "Phone" }
                 },
                 "email": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "E-Mail"
+                    "caption": { "i18n": "Email" }
                 },
                 "taxNumber": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Steuernummer"
+                    "caption": { "i18n": "TaxNumber" }
                 },
                 "iban": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "IBAN"
+                    "caption": { "i18n": "IBAN" }
                 },
                 "bic": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "BIC"
+                    "caption": { "i18n": "BIC" }
                 },
                 "description": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Описание"
+                    "caption": { "i18n": "Description" }
                 },
                 "isActive": {
                     "type": "BOOLEAN",
                     "allowNull": false,
                     "defaultValue": true,
-                    "caption": "Активна"
+                    "caption": { "i18n": "is_active" }
                 },
                 "accommodationTypeId": {
                     "type": "STRING",
@@ -79,7 +79,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": "Тип размещения"
+                    "caption": { "i18n": "accommodation_type_name" }
                 }
             },
             "options": {
@@ -100,7 +100,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 }
             }
         },
@@ -117,7 +117,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Пользователь"
+                    "caption": { "i18n": "User" }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -128,7 +128,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 }
             },
             "options": {
@@ -142,12 +142,12 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": "Название гостиницы"
+                    "caption": { "i18n": "Name" }
                 },
                 "address": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Адрес"
+                    "caption": { "i18n": "Address" }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -158,7 +158,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 }
             },
             "options": {
@@ -172,7 +172,7 @@
                 "number": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": "Номер комнаты"
+                    "caption": { "i18n": "room_number" }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -183,7 +183,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Гостиница"
+                    "caption": { "i18n": "Hotel" }
                 }
             },
             "options": {
@@ -203,7 +203,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -212,29 +212,29 @@
                         "model": "hotels",
                         "key": "UID"
                     },
-                    "caption": "Гостиница"
+                    "caption": { "i18n": "Hotel" }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": "Название услуги"
+                    "caption": { "i18n": "Name" }
                 },
                 "chargeType": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": "Тип начисления (per_night, per_stay)"
+                    "caption": { "i18n": "charge_type" }
                 },
                 "taxRate": {
                     "type": "INTEGER",
                     "allowNull": false,
                     "defaultValue": 0,
-                    "caption": "Ставка налога"
+                    "caption": { "i18n": "tax_rate" }
                 },
                 "displayOrder": {
                     "type": "INTEGER",
                     "allowNull": true,
                     "defaultValue": 50,
-                    "caption": "Порядок в счёте"
+                    "caption": { "i18n": "display_order" }
                 }
             },
             "options": {
@@ -254,7 +254,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -263,7 +263,7 @@
                         "model": "hotels",
                         "key": "UID"
                     },
-                    "caption": "Гостиница"
+                    "caption": { "i18n": "Hotel" }
                 },
                 "serviceId": {
                     "type": "STRING",
@@ -274,7 +274,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Услуга"
+                    "caption": { "i18n": "Service" }
                 },
                 "roomId": {
                     "type": "STRING",
@@ -283,22 +283,22 @@
                         "model": "rooms",
                         "key": "UID"
                     },
-                    "caption": "Комната"
+                    "caption": { "i18n": "Room" }
                 },
                 "ageFrom": {
                     "type": "INTEGER",
                     "allowNull": true,
-                    "caption": "Возраст ОТ"
+                    "caption": { "i18n": "age_from" }
                 },
                 "ageTo": {
                     "type": "INTEGER",
                     "allowNull": true,
-                    "caption": "Возраст ДО"
+                    "caption": { "i18n": "age_to" }
                 },
                 "price": {
                     "type": "FLOAT",
                     "allowNull": false,
-                    "caption": "Стоимость"
+                    "caption": { "i18n": "Price" }
                 }
             },
             "options": {
@@ -318,7 +318,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -327,7 +327,7 @@
                         "model": "hotels",
                         "key": "UID"
                     },
-                    "caption": "Гостиница"
+                    "caption": { "i18n": "Hotel" }
                 },
                 "roomId": {
                     "type": "STRING",
@@ -338,33 +338,33 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Комната"
+                    "caption": { "i18n": "Room" }
                 },
                 "dateFrom": {
                     "type": "DATEONLY",
                     "allowNull": false,
-                    "caption": "Начало периода"
+                    "caption": { "i18n": "date_from" }
                 },
                 "dateTo": {
                     "type": "DATEONLY",
                     "allowNull": false,
-                    "caption": "Конец периода"
+                    "caption": { "i18n": "date_to" }
                 },
                 "guestsCount": {
                     "type": "INTEGER",
                     "allowNull": false,
-                    "caption": "Количество гостей"
+                    "caption": { "i18n": "guests_count" }
                 },
                 "price": {
                     "type": "FLOAT",
                     "allowNull": false,
-                    "caption": "Цена базового тарифа"
+                    "caption": { "i18n": "base_rate_price" }
                 },
                 "taxRate": {
                     "type": "INTEGER",
                     "allowNull": false,
                     "defaultValue": 7,
-                    "caption": "Ставка налога"
+                    "caption": { "i18n": "tax_rate" }
                 }
             },
             "options": {
@@ -384,28 +384,28 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
                     "translatable": true,
-                    "caption": "Тип гостя"
+                    "caption": { "i18n": "guest_type_field" }
                 },
                 "ageFrom": {
                     "type": "INTEGER",
                     "allowNull": true,
-                    "caption": "Возраст от"
+                    "caption": { "i18n": "age_from" }
                 },
                 "ageTo": {
                     "type": "INTEGER",
                     "allowNull": true,
-                    "caption": "Возраст до"
+                    "caption": { "i18n": "age_to" }
                 },
                 "displayOrder": {
                     "type": "INTEGER",
                     "allowNull": true,
-                    "caption": "Порядок в счёте"
+                    "caption": { "i18n": "display_order" }
                 }
             },
             "options": {
@@ -425,27 +425,27 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": "Имя / Название"
+                    "caption": { "i18n": "Name" }
                 },
                 "address": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Адрес"
+                    "caption": { "i18n": "Address" }
                 },
                 "email": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Email"
+                    "caption": { "i18n": "Email" }
                 },
                 "phone": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Телефон"
+                    "caption": { "i18n": "Phone" }
                 }
             },
             "options": {

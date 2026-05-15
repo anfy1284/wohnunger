@@ -1,0 +1,152 @@
+{
+    "Name": {
+        "en": "Name",
+        "ru": "Название",
+        "de": "Name"
+    },
+    "accommodation_type_name": {
+        "en": "Accommodation type",
+        "ru": "Тип размещения",
+        "de": "Unterkunftsart"
+    },
+    "Description": {
+        "en": "Description",
+        "ru": "Описание",
+        "de": "Beschreibung"
+    },
+    "Organization": {
+        "en": "Organization",
+        "ru": "Организация",
+        "de": "Organisation"
+    },
+    "Hotel": {
+        "en": "Hotel",
+        "ru": "Гостиница",
+        "de": "Hotel"
+    },
+    "Address": {
+        "en": "Address",
+        "ru": "Адрес",
+        "de": "Adresse"
+    },
+    "Phone": {
+        "en": "Phone",
+        "ru": "Телефон",
+        "de": "Telefon"
+    },
+    "Email": {
+        "en": "E-Mail",
+        "ru": "E-Mail",
+        "de": "E-Mail"
+    },
+    "TaxNumber": {
+        "en": "Tax number",
+        "ru": "Steuernummer",
+        "de": "Steuernummer"
+    },
+    "IBAN": {
+        "en": "IBAN",
+        "ru": "IBAN",
+        "de": "IBAN"
+    },
+    "BIC": {
+        "en": "BIC",
+        "ru": "BIC",
+        "de": "BIC"
+    },
+    "is_active": {
+        "en": "Active",
+        "ru": "Активна",
+        "de": "Aktiv"
+    },
+    "User": {
+        "en": "User",
+        "ru": "Пользователь",
+        "de": "Benutzer"
+    },
+    "room_number": {
+        "en": "Room number",
+        "ru": "Номер комнаты",
+        "de": "Zimmernummer"
+    },
+    "Service": {
+        "en": "Service",
+        "ru": "Услуга",
+        "de": "Leistung"
+    },
+    "Room": {
+        "en": "Room",
+        "ru": "Номер",
+        "de": "Zimmer"
+    },
+    "Price": {
+        "en": "Price",
+        "ru": "Цена",
+        "de": "Preis"
+    },
+    "charge_type": {
+        "en": "Charge type",
+        "ru": "Тип начисления",
+        "de": "Abrechnungsart"
+    },
+    "tax_rate": {
+        "en": "Tax rate",
+        "ru": "Ставка налога",
+        "de": "Steuersatz"
+    },
+    "display_order": {
+        "en": "Display order",
+        "ru": "Порядок",
+        "de": "Reihenfolge"
+    },
+    "age_from": {
+        "en": "Age from",
+        "ru": "Возраст от",
+        "de": "Alter von"
+    },
+    "age_to": {
+        "en": "Age to",
+        "ru": "Возраст до",
+        "de": "Alter bis"
+    },
+    "date_from": {
+        "en": "From",
+        "ru": "Начало периода",
+        "de": "Von"
+    },
+    "date_to": {
+        "en": "To",
+        "ru": "Конец периода",
+        "de": "Bis"
+    },
+    "guests_count": {
+        "en": "Guests count",
+        "ru": "Кол-во гостей",
+        "de": "Anzahl Gäste"
+    },
+    "base_rate_price": {
+        "en": "Base price",
+        "ru": "Базовая цена",
+        "de": "Grundpreis"
+    },
+    "guest_type_field": {
+        "en": "Guest type",
+        "ru": "Тип гостя",
+        "de": "Gästetyp"
+    },
+    "Quantity": {
+        "en": "Qty",
+        "ru": "Кол-во",
+        "de": "Anz."
+    },
+    "Status": {
+        "en": "Status",
+        "ru": "Статус",
+        "de": "Status"
+    },
+    "Notes": {
+        "en": "Notes",
+        "ru": "Примечания",
+        "de": "Anmerkungen"
+    }
+}

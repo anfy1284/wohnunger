@@ -21,7 +21,7 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Номер брони"
+                    "caption": { "i18n": "booking_name_field" }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -32,7 +32,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -43,7 +43,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": "Гостиница"
+                    "caption": { "i18n": "Hotel" }
                 },
                 "clientId": {
                     "type": "STRING",
@@ -54,34 +54,34 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": "Клиент"
+                    "caption": { "i18n": "Client" }
                 },
                 "checkIn": {
                     "type": "DATEONLY",
                     "allowNull": false,
-                    "caption": "Дата заезда"
+                    "caption": { "i18n": "check_in" }
                 },
                 "checkOut": {
                     "type": "DATEONLY",
                     "allowNull": false,
-                    "caption": "Дата выезда"
+                    "caption": { "i18n": "check_out" }
                 },
                 "status": {
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "draft",
-                    "caption": "Статус"
+                    "caption": { "i18n": "Status" }
                 },
                 "notes": {
                     "type": "TEXT",
                     "allowNull": true,
-                    "caption": "Примечания"
+                    "caption": { "i18n": "Notes" }
                 },
                 "prepayment": {
                     "type": "FLOAT",
                     "allowNull": true,
                     "defaultValue": null,
-                    "caption": "Предоплата"
+                    "caption": { "i18n": "prepayment_field" }
                 }
             },
             "options": {
@@ -101,7 +101,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "bookingId": {
                     "type": "STRING",
@@ -112,7 +112,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Бронь"
+                    "caption": { "i18n": "booking_ref" }
                 },
                 "roomId": {
                     "type": "STRING",
@@ -123,13 +123,13 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": "Номер"
+                    "caption": { "i18n": "Room" }
                 }
             },
             "tabularSection": {
                 "parentTable": "bookings",
                 "parentField": "bookingId",
-                "caption": "Номера размещения"
+                "caption": { "i18n": "booking_rooms_tab" }
             },
             "options": {
                 "timestamps": true
@@ -148,7 +148,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "bookingId": {
                     "type": "STRING",
@@ -159,7 +159,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Бронь"
+                    "caption": { "i18n": "booking_ref" }
                 },
                 "bookingRoomId": {
                     "type": "STRING",
@@ -170,7 +170,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Номер в брони"
+                    "caption": { "i18n": "booking_room_ref" }
                 },
                 "serviceId": {
                     "type": "STRING",
@@ -181,19 +181,19 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": "Услуга"
+                    "caption": { "i18n": "Service" }
                 },
                 "count": {
                     "type": "INTEGER",
                     "allowNull": false,
                     "defaultValue": 1,
-                    "caption": "Количество"
+                    "caption": { "i18n": "Quantity" }
                 }
             },
             "tabularSection": {
                 "parentTable": "bookings",
                 "parentField": "bookingId",
-                "caption": "Услуги бронирования"
+                "caption": { "i18n": "booking_services_tab" }
             },
             "options": {
                 "timestamps": false
@@ -212,7 +212,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "bookingRoomId": {
                     "type": "STRING",
@@ -223,7 +223,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Номер в брони"
+                    "caption": { "i18n": "booking_room_ref" }
                 },
                 "bookingId": {
                     "type": "STRING",
@@ -234,7 +234,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Бронь"
+                    "caption": { "i18n": "booking_ref" }
                 },
                 "guestTypeId": {
                     "type": "STRING",
@@ -245,19 +245,19 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": "Тип гостя"
+                    "caption": { "i18n": "guest_type_field" }
                 },
                 "count": {
                     "type": "INTEGER",
                     "allowNull": false,
                     "defaultValue": 1,
-                    "caption": "Количество"
+                    "caption": { "i18n": "Quantity" }
                 }
             },
             "tabularSection": {
                 "parentTable": "bookings",
                 "parentField": "bookingId",
-                "caption": "Гости бронирования"
+                "caption": { "i18n": "booking_guests_tab" }
             },
             "options": {
                 "timestamps": false
@@ -270,7 +270,7 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": "Номер счёта"
+                    "caption": { "i18n": "invoice_name" }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -281,7 +281,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -292,7 +292,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": "Гостиница"
+                    "caption": { "i18n": "Hotel" }
                 },
                 "bookingId": {
                     "type": "STRING",
@@ -303,7 +303,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": "Бронь"
+                    "caption": { "i18n": "booking_ref" }
                 },
                 "clientId": {
                     "type": "STRING",
@@ -314,40 +314,40 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": "Клиент"
+                    "caption": { "i18n": "Client" }
                 },
                 "invoiceDate": {
                     "type": "DATEONLY",
                     "allowNull": false,
-                    "caption": "Дата счёта"
+                    "caption": { "i18n": "invoice_date" }
                 },
                 "dueDate": {
                     "type": "DATEONLY",
                     "allowNull": true,
-                    "caption": "Оплатить до"
+                    "caption": { "i18n": "due_date" }
                 },
                 "status": {
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "draft",
-                    "caption": "Статус"
+                    "caption": { "i18n": "Status" }
                 },
                 "prepayment": {
                     "type": "FLOAT",
                     "allowNull": false,
                     "defaultValue": 0,
-                    "caption": "Предоплата (Anzahlung)"
+                    "caption": { "i18n": "prepayment_field" }
                 },
                 "notes": {
                     "type": "TEXT",
                     "allowNull": true,
-                    "caption": "Примечания"
+                    "caption": { "i18n": "Notes" }
                 }
             },
             "tabularSection": {
                 "parentTable": "bookings",
                 "parentField": "bookingId",
-                "caption": "Счета"
+                "caption": { "i18n": "invoices_tab" }
             },
             "options": {
                 "timestamps": true
@@ -360,7 +360,7 @@
                 "label": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": "Описание позиции"
+                    "caption": { "i18n": "Description" }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -371,7 +371,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Организация"
+                    "caption": { "i18n": "Organization" }
                 },
                 "bookingId": {
                     "type": "STRING",
@@ -382,7 +382,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": "Бронь"
+                    "caption": { "i18n": "booking_ref" }
                 },
                 "invoiceId": {
                     "type": "STRING",
@@ -393,7 +393,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": "Счёт"
+                    "caption": { "i18n": "Invoice" }
                 },
                 "bookingRoomId": {
                     "type": "STRING",
@@ -404,12 +404,12 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": "Номер (секция)"
+                    "caption": { "i18n": "booking_room_ref" }
                 },
                 "sectionLabel": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": "Заголовок секции (снимок)"
+                    "caption": { "i18n": "section_label" }
                 },
                 "serviceId": {
                     "type": "STRING",
@@ -420,7 +420,7 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": "Услуга (справочно)"
+                    "caption": { "i18n": "Service" }
                 },
                 "guestTypeId": {
                     "type": "STRING",
@@ -431,40 +431,40 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": "Тип гостя (справочно)"
+                    "caption": { "i18n": "guest_type_field" }
                 },
                 "quantity": {
                     "type": "FLOAT",
                     "allowNull": false,
-                    "caption": "Количество"
+                    "caption": { "i18n": "Quantity" }
                 },
                 "unitPrice": {
                     "type": "FLOAT",
                     "allowNull": false,
-                    "caption": "Цена за единицу (брутто)"
+                    "caption": { "i18n": "unit_price" }
                 },
                 "taxRate": {
                     "type": "INTEGER",
                     "allowNull": false,
                     "defaultValue": 0,
-                    "caption": "Ставка налога %"
+                    "caption": { "i18n": "vat_rate_field" }
                 },
                 "amount": {
                     "type": "FLOAT",
                     "allowNull": false,
-                    "caption": "Сумма (брутто)"
+                    "caption": { "i18n": "Amount" }
                 },
                 "sortOrder": {
                     "type": "INTEGER",
                     "allowNull": false,
                     "defaultValue": 0,
-                    "caption": "Порядок"
+                    "caption": { "i18n": "sort_order" }
                 }
             },
             "tabularSection": {
                 "parentTable": "bookings",
                 "parentField": "bookingId",
-                "caption": "Спецификация счёта"
+                "caption": { "i18n": "invoice_lines_tab" }
             },
             "options": {
                 "timestamps": false
