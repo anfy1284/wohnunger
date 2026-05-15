@@ -616,7 +616,8 @@ module.exports = async function (modelsDB) {
         ];
 
         await layoutMemory.saveLayout({
-            appName: 'uniRecordForm',
+            appName: 'uniForm',
+            mode:    'record',
             tableName: 'bookings',
             roles: 'user',
             layout: bookingsLayout,

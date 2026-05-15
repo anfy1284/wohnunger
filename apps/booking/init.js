@@ -39,7 +39,8 @@ module.exports = async function (modelsDB) {
         const clientUID = await loadScript(clientSource, 'user');
 
         await layoutMemory.saveLayout({
-            appName:      'uniRecordForm',
+            appName:      'uniForm',
+            mode:         'record',
             tableName:    'bookings',
             roles:        'user',
             layout:       require('./forms/bookings.layout.json'),
