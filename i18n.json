@@ -218,6 +218,21 @@
         "en": "Error: ",
         "ru": "Ошибка: ",
         "de": "Fehler: "
+    },
+    "User settings": {
+        "en": "User settings",
+        "ru": "Настройки пользователя",
+        "de": "Benutzereinstellungen"
+    },
+    "Apply": {
+        "en": "Apply",
+        "ru": "Применить",
+        "de": "Anwenden"
+    },
+    "Language": {
+        "en": "Language",
+        "ru": "Язык",
+        "de": "Sprache"
     }
 }
 
