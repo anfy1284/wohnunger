@@ -233,6 +233,51 @@
         "en": "Language",
         "ru": "Язык",
         "de": "Sprache"
+    },
+    "Settings saved": {
+        "en": "Settings saved",
+        "ru": "Настройки сохранены",
+        "de": "Einstellungen gespeichert"
+    },
+    "Autofill": {
+        "en": "Autofill",
+        "ru": "Автозаполнение",
+        "de": "Autovervollständigung"
+    },
+    "Table": {
+        "en": "Table",
+        "ru": "Таблица",
+        "de": "Tabelle"
+    },
+    "Record": {
+        "en": "Record",
+        "ru": "Запись",
+        "de": "Datensatz"
+    },
+    "Select table": {
+        "en": "Select table",
+        "ru": "Выберите таблицу",
+        "de": "Tabelle auswählen"
+    },
+    "Default value": {
+        "en": "Default value",
+        "ru": "Значение по умолчанию",
+        "de": "Standardwert"
+    },
+    "Table not selected": {
+        "en": "Table not selected",
+        "ru": "Таблица не выбрана",
+        "de": "Tabelle nicht ausgewählt"
+    },
+    "Record not selected": {
+        "en": "Record not selected",
+        "ru": "Запись не выбрана",
+        "de": "Datensatz nicht ausgewählt"
+    },
+    "Database models not available": {
+        "en": "Database models not available",
+        "ru": "Модели базы данных недоступны",
+        "de": "Datenbankmodelle nicht verfügbar"
     }
 }
 
