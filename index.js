@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { start } = require('my-old-space');
 const path = require('path');
 

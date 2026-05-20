@@ -435,7 +435,8 @@
                 "address": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Address" }
+                    "caption": { "i18n": "Address" },
+                    "isAddress": true
                 },
                 "email": {
                     "type": "STRING",
