@@ -14,6 +14,8 @@
 const path = require('path');
 const fs   = require('fs');
 
+const APP_ICON = '/apps/booking_icons/resources/public/16x16/booking_status.png';
+
 module.exports = async function (modelsDB) {
     try {
         const { loadScript, loadServerScript, Utilities } = require('../../node_modules/my-old-space');
@@ -46,7 +48,7 @@ module.exports = async function (modelsDB) {
             layout:       require('./forms/bookings.layout.json'),
             clientScript: clientUID,
             windowState:  'maximized',
-            formIcon:     '/apps/booking_icons/resources/public/16x16/booking_status.png',
+            formIcon:     APP_ICON,
             appCaption:   { i18n: 'bookings_app_caption' },
             events: {
                 onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' }
@@ -57,6 +59,19 @@ module.exports = async function (modelsDB) {
         // const invoicesServerName = loadServerScript('booking.invoiceActions',
         //     require('./forms/invoices.server')(modelsDB, Utilities), 'user');
         // ...
+
+        // ── Пункт главного меню ─────────────────────────────────────────
+        const mainMenu = require('../../node_modules/my-old-space/apps/main_menu/server.js');
+        mainMenu.addMenuItems([
+            {
+                id: 'bookings',
+                caption: { i18n: 'bookings_app_caption' },
+                action: 'open',
+                singleton: true,
+                appName: 'uniForm',
+                params: { mode: 'list', dbTable: 'bookings' }
+            }
+        ]);
 
         console.log('[booking/init] Layouts registered');
     } catch (e) {

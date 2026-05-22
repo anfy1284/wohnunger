@@ -6,7 +6,7 @@
     "dependencies": {},
     "mainMenuCommands": [
         {"id": "main", "items": [
-            { "caption": "apps", "items": [
+            { "caption": "apps", "roles": ["admin"], "items": [
                 { "caption": "Чат с ИИ", "action": "open", "icon": "/apps/general_icons/resources/public/16x16/send.png" }
             ]}
         ]}
