@@ -46,6 +46,8 @@ module.exports = async function (modelsDB) {
             layout:       require('./forms/bookings.layout.json'),
             clientScript: clientUID,
             windowState:  'maximized',
+            formIcon:     '/apps/booking_icons/resources/public/16x16/booking_status.png',
+            appCaption:   { i18n: 'bookings_app_caption' },
             events: {
                 onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' }
             }

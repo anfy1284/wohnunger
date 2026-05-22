@@ -1,4 +1,9 @@
 {
+    "bookings_app_caption": {
+        "en": "Bookings",
+        "ru": "Бронирования",
+        "de": "Buchungen"
+    },
     "bookingId required": {
         "en": "bookingId is required",
         "ru": "bookingId обязателен",
