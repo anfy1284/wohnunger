@@ -224,11 +224,13 @@
                     "allowNull": false,
                     "caption": { "i18n": "charge_type" }
                 },
-                "taxRate": {
-                    "type": "INTEGER",
+                "taxCategoryId": {
+                    "type": "STRING",
                     "allowNull": false,
-                    "defaultValue": 0,
-                    "caption": { "i18n": "tax_rate" }
+                    "references": { "model": "tax_categories", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "tax_category" }
                 },
                 "displayOrder": {
                     "type": "INTEGER",
@@ -359,12 +361,6 @@
                     "type": "FLOAT",
                     "allowNull": false,
                     "caption": { "i18n": "base_rate_price" }
-                },
-                "taxRate": {
-                    "type": "INTEGER",
-                    "allowNull": false,
-                    "defaultValue": 7,
-                    "caption": { "i18n": "tax_rate" }
                 }
             },
             "options": {
@@ -480,6 +476,123 @@
             },
             "options": {
                 "timestamps": true
+            }
+        },
+        {
+            "name": "ServiceTaxComponents",
+            "tableName": "service_tax_components",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organizations", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Organization" }
+                },
+                "serviceId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "services", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Service" }
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": { "i18n": "tax_component_name" }
+                },
+                "taxCategoryId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "tax_categories", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "tax_category" }
+                },
+                "splitMode": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "percent",
+                    "caption": { "i18n": "tax_split_mode" }
+                },
+                "splitValue": {
+                    "type": "FLOAT",
+                    "allowNull": true,
+                    "caption": { "i18n": "tax_split_value" }
+                },
+                "validFrom": {
+                    "type": "DATEONLY",
+                    "allowNull": true,
+                    "caption": { "i18n": "date_from" }
+                },
+                "validTo": {
+                    "type": "DATEONLY",
+                    "allowNull": true,
+                    "caption": { "i18n": "date_to" }
+                },
+                "displayOrder": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "defaultValue": 50,
+                    "caption": { "i18n": "display_order" }
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "TaxCategories",
+            "tableName": "tax_categories",
+            "fields": {
+                "code": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": { "i18n": "tax_category_code" }
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "translatable": true,
+                    "caption": { "i18n": "tax_category_name" }
+                }
+            },
+            "options": {
+                "timestamps": false
+            }
+        },
+        {
+            "name": "TaxRates",
+            "tableName": "tax_rates",
+            "fields": {
+                "taxCategoryId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "tax_categories", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "tax_category" }
+                },
+                "rate": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": { "i18n": "tax_rate" }
+                },
+                "validFrom": {
+                    "type": "DATEONLY",
+                    "allowNull": true,
+                    "caption": { "i18n": "date_from" }
+                },
+                "validTo": {
+                    "type": "DATEONLY",
+                    "allowNull": true,
+                    "caption": { "i18n": "date_to" }
+                }
+            },
+            "options": {
+                "timestamps": false
             }
         }
     ],
@@ -663,6 +776,66 @@
             "source": "HotelDefaultServices",
             "target": "Organizations",
             "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Services",
+            "target": "ServiceTaxComponents",
+            "foreignKey": "serviceId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "ServiceTaxComponents",
+            "target": "Services",
+            "foreignKey": "serviceId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "ServiceTaxComponents",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "ServiceTaxComponents",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "TaxCategories",
+            "target": "TaxRates",
+            "foreignKey": "taxCategoryId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "TaxRates",
+            "target": "TaxCategories",
+            "foreignKey": "taxCategoryId"
+        },
+        {
+            "type": "hasMany",
+            "source": "TaxCategories",
+            "target": "ServiceTaxComponents",
+            "foreignKey": "taxCategoryId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "ServiceTaxComponents",
+            "target": "TaxCategories",
+            "foreignKey": "taxCategoryId"
+        },
+        {
+            "type": "hasMany",
+            "source": "TaxCategories",
+            "target": "Services",
+            "foreignKey": "taxCategoryId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Services",
+            "target": "TaxCategories",
+            "foreignKey": "taxCategoryId"
         }
     ]
 }

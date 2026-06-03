@@ -1,4 +1,21 @@
 {
+    "tax_categories": [
+        { "UID": "000000000-tax-cat-0001", "code": "accommodation", "name": "Beherbergung" },
+        { "UID": "000000000-tax-cat-0002", "code": "food",          "name": "Speisen" },
+        { "UID": "000000000-tax-cat-0003", "code": "beverage",      "name": "Getränke" },
+        { "UID": "000000000-tax-cat-0004", "code": "standard",      "name": "Regelsatz" },
+        { "UID": "000000000-tax-cat-0005", "code": "reduced",       "name": "Ermäßigt" },
+        { "UID": "000000000-tax-cat-0006", "code": "exempt",        "name": "Steuerfrei" }
+    ],
+    "tax_rates": [
+        { "UID": "000000000-tax-rate-0001", "taxCategoryId": "000000000-tax-cat-0001", "rate": 7,  "validFrom": null,         "validTo": null },
+        { "UID": "000000000-tax-rate-0002", "taxCategoryId": "000000000-tax-cat-0002", "rate": 19, "validFrom": null,         "validTo": "2025-12-31" },
+        { "UID": "000000000-tax-rate-0003", "taxCategoryId": "000000000-tax-cat-0002", "rate": 7,  "validFrom": "2026-01-01", "validTo": null },
+        { "UID": "000000000-tax-rate-0004", "taxCategoryId": "000000000-tax-cat-0003", "rate": 19, "validFrom": null,         "validTo": null },
+        { "UID": "000000000-tax-rate-0005", "taxCategoryId": "000000000-tax-cat-0004", "rate": 19, "validFrom": null,         "validTo": null },
+        { "UID": "000000000-tax-rate-0006", "taxCategoryId": "000000000-tax-cat-0005", "rate": 7,  "validFrom": null,         "validTo": null },
+        { "UID": "000000000-tax-rate-0007", "taxCategoryId": "000000000-tax-cat-0006", "rate": 0,  "validFrom": null,         "validTo": null }
+    ],
     "guest_types": [
         {
             "UID": "000000000-guest-type-0001",

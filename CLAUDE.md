@@ -8,10 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Practical consequence: editing `node_modules/my-old-space/` is the **main activity, not a workaround**. When the booking app hits a limitation or a bug, the fix almost always belongs in a framework base class (so every app benefits), not in app-level code. Treat a local patch in `apps/` as a smell — find the root cause in the framework. (Caveat: `scripts/update-my-old-space.cmd` reinstalls from GitHub and overwrites local framework edits, so framework changes must eventually land upstream in the `anfy1284/my-old-space` repo.)
 
-The most authoritative docs live inside the framework package and should be consulted for non-trivial work:
-- `node_modules/my-old-space/ИНСТРУКЦИИ_ДЛЯ_AI.md` — coding rules, anti-patterns, self-check checklist (Russian).
-- `node_modules/my-old-space/АРХИТЕКТУРА_ПРОЕКТА.md` — full architecture reference (173 KB, Russian).
+The most authoritative docs live inside the framework package and should be consulted for non-trivial work. They are **far more detailed than this CLAUDE.md** (which is only a high-level entry point) and currently describe **both the framework and this wonunger project** (the user plans to split them by concern later). They also ship with the framework package, so they apply to its own repo / other consumers too:
+- `node_modules/my-old-space/ИНСТРУКЦИИ_ДЛЯ_AI.md` — coding rules, ~50-item anti-pattern catalog, ~64-item self-check checklist, deep i18n/UI/DB specifics (Russian). **Not auto-loaded, but read it in full proactively at the start of any non-trivial code/framework task — don't wait to be told.** It's only ~330 lines and the rules apply to almost all work here.
+- `node_modules/my-old-space/АРХИТЕКТУРА_ПРОЕКТА.md` — full technical architecture reference: classes, methods, call chains, protocols (Russian). It's large (~2666 lines / 173 KB) — **consult the relevant section on demand (grep/read by topic); do NOT read it whole every session.**
 - `FRAMEWORK_SETUP.md` (repo root) — bootstrap/deployment steps.
+
+**Maintenance triggers (user commands, in Russian):**
+- **«обнови инструкцию»** (or «дополни инструкции») → immediately review the *entire* current dialog, find your own mistakes and any newly-learned rules, and update these two framework docs accordingly — rules/anti-patterns/processes go in `ИНСТРУКЦИИ_ДЛЯ_AI.md`, technical structure (classes, methods, call chains) goes in `АРХИТЕКТУРА_ПРОЕКТА.md`, removing duplication between them. Do it without asking permission. Keep this CLAUDE.md in sync when a convention here is affected.
+- **«сначала прочти инструкции»** → just an explicit re-read command; reading `ИНСТРУКЦИИ_ДЛЯ_AI.md` is already the default above. On this command also pull in the relevant `АРХИТЕКТУРА_ПРОЕКТА.md` sections for the task at hand.
 
 ## Commands
 
@@ -32,6 +36,7 @@ Key DB conventions (violating these breaks things silently):
 - **Never declare a `UID` field in `db.json`.** The primary key is a string `UID`, injected centrally by `events_handler.js#onModelsPostCollect` before `sequelize.define`. Adding it manually, or adding any other `primaryKey`, conflicts with the injection (Sequelize will otherwise invent a phantom `id` column).
 - **Always use `user.UID`, never `user.id`** anywhere in project or framework code. `user.id` returns `undefined` and silently destroys the access-control context.
 - Empty-string FK values (`""`) are auto-converted to `null` for PostgreSQL — done in `dbGateway.js`.
+- **Never hardcode VAT/tax rates as numbers.** Rates are data: global reference tables `tax_categories` + `tax_rates` (effective-dated via `validFrom`/`validTo`, both `excluded_tables`, seeded in `apps/common/db/defaultValues.json`). Models reference a category (`services.taxCategoryId`, `service_tax_components.taxCategoryId`); the rate is resolved by service date (`resolveRate`/`rateByCode`/`svcRate` in `apps/booking/forms/bookings.server.js`). A rate reform = one row in `tax_rates`, never a code edit. Exception: `invoice_lines.taxRate` keeps the resolved % as a point-in-time snapshot on the issued invoice. A service can split into several VAT rates via `service_tax_components` (`splitMode` = `percent`/`amount`/`remainder`, e.g. breakfast → Speisen 7% + Getränke 19% from 2026-01-01). Full pricing/VAT rules live in `ПРАВИЛА_ЦЕНООБРАЗОВАНИЯ.md`.
 
 ## Architecture
 

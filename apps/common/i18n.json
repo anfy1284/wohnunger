@@ -94,6 +94,36 @@
         "ru": "Ставка налога",
         "de": "Steuersatz"
     },
+    "tax_component_name": {
+        "en": "Component name",
+        "ru": "Название компонента",
+        "de": "Komponentenbezeichnung"
+    },
+    "tax_category": {
+        "en": "Tax category",
+        "ru": "Налоговая группа",
+        "de": "Steuerkategorie"
+    },
+    "tax_category_code": {
+        "en": "Category code",
+        "ru": "Код группы",
+        "de": "Kategorie-Code"
+    },
+    "tax_category_name": {
+        "en": "Category name",
+        "ru": "Название группы",
+        "de": "Kategoriebezeichnung"
+    },
+    "tax_split_mode": {
+        "en": "Split mode",
+        "ru": "Способ деления",
+        "de": "Aufteilungsart"
+    },
+    "tax_split_value": {
+        "en": "Split value",
+        "ru": "Значение деления",
+        "de": "Aufteilungswert"
+    },
     "display_order": {
         "en": "Display order",
         "ru": "Порядок",

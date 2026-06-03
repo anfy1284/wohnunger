@@ -41,12 +41,115 @@ module.exports = function (modelsDB, Utilities) {
         const svcPrices = serviceIds.length
             ? await modelsDB.ServicePrices.findAll({ where: { serviceId: serviceIds }, raw: true }) : [];
 
+        // Налоговые компоненты услуг (дробление одной услуги на несколько ставок НДС,
+        // напр. завтрак → Speisen 7% + Getränke 19%). Если у услуги компонентов нет,
+        // строка счёта остаётся одной (старое поведение). См. splitLineByComponents.
+        const svcComponents = serviceIds.length
+            ? await modelsDB.ServiceTaxComponents.findAll({ where: { serviceId: serviceIds }, raw: true }) : [];
+        const compMap = {};
+        for (const c of svcComponents) (compMap[c.serviceId] = compMap[c.serviceId] || []).push(c);
+        for (const k of Object.keys(compMap)) {
+            compMap[k].sort((a, b) => (a.displayOrder != null ? a.displayOrder : 50) - (b.displayOrder != null ? b.displayOrder : 50));
+        }
+
+        // Налоговые группы и ставки с датами действия (ставка — это ДАННЫЕ, не число в коде).
+        const taxCats     = await modelsDB.TaxCategories.findAll({ raw: true });
+        const taxRatesAll = await modelsDB.TaxRates.findAll({ raw: true });
+        const catCodeToId = {};
+        for (const c of taxCats) catCodeToId[c.code] = c.UID;
+
         const cleaningPrices = roomIds.length
             ? await modelsDB.ServicePrices.findAll({ where: { roomId: roomIds }, raw: true }) : [];
 
         const lines = [];
         let sortOrd = 0;
         const r2 = v => Math.round(v * 100) / 100;
+
+        // Возвращает ставку налоговой группы, действующую на дату (берём дату заезда).
+        // Если группа/ставка не найдена — fallback (для обратной совместимости).
+        function resolveRate(categoryId, fallback) {
+            if (!categoryId) return fallback;
+            let best = null;
+            for (const r of taxRatesAll) {
+                if (r.taxCategoryId !== categoryId) continue;
+                if (r.validFrom && new Date(r.validFrom) > checkInDate) continue;
+                if (r.validTo   && new Date(r.validTo)   < checkInDate) continue;
+                if (!best || new Date(r.validFrom || 0) > new Date(best.validFrom || 0)) best = r;
+            }
+            return best ? best.rate : fallback;
+        }
+        const rateByCode = (code, fallback) => resolveRate(catCodeToId[code], fallback);
+        // Ставка услуги — из её налоговой группы по дате заезда.
+        const svcRate = svc => resolveRate(svc.taxCategoryId, 0);
+
+        // Делит готовую строку услуги на несколько строк по налоговым компонентам.
+        // Расчёт ведётся на уровне цены за единицу (unitPrice), поэтому корректен
+        // и для "за ночь", и для возрастных групп. splitMode:
+        //   percent   — splitValue % от unitPrice
+        //   amount    — splitValue € (брутто) за единицу
+        //   remainder — остаток (unitPrice − сумма прочих); поглощает округление
+        // Если remainder-компонента нет, копеечный остаток уходит в последний компонент,
+        // а итоговый дрейф суммы — в самый крупный, чтобы Σ частей == исходной строке.
+        function splitLineByComponents(base, comps) {
+            const qty  = base.quantity;
+            const unit = base.unitPrice;
+            const parts = comps.map(c => ({ c, unitPart: 0 }));
+            let assigned = 0, remIdx = -1;
+            for (let i = 0; i < parts.length; i++) {
+                const c = parts[i].c;
+                if (c.splitMode === 'remainder') { remIdx = i; continue; }
+                const up = c.splitMode === 'amount'
+                    ? r2(Number(c.splitValue) || 0)
+                    : r2(unit * (Number(c.splitValue) || 0) / 100);
+                parts[i].unitPart = up;
+                assigned = r2(assigned + up);
+            }
+            if (remIdx >= 0) parts[remIdx].unitPart = r2(unit - assigned);
+            else if (parts.length) {
+                const last = parts[parts.length - 1];
+                last.unitPart = r2(last.unitPart + (unit - assigned));
+            }
+            const out = [];
+            let amtSum = 0;
+            for (const { c, unitPart } of parts) {
+                const amount = r2(unitPart * qty);
+                out.push(Object.assign({}, base, {
+                    UID: Utilities.generateUID('InvoiceLines'),
+                    label: (base.label || '') + ' – ' + c.name,
+                    unitPrice: unitPart,
+                    taxRate: resolveRate(c.taxCategoryId, base.taxRate),
+                    amount
+                }));
+                amtSum = r2(amtSum + amount);
+            }
+            const drift = r2(base.amount - amtSum);
+            if (drift !== 0 && out.length) {
+                let mx = 0;
+                for (let i = 1; i < out.length; i++) if (out[i].amount > out[mx].amount) mx = i;
+                out[mx].amount = r2(out[mx].amount + drift);
+            }
+            return out;
+        }
+
+        // Компонент действует на дату оказания услуги (validFrom/validTo, обе границы включительно).
+        // Дата услуги для гейтинга — дата заезда (checkInDate). Пограничные брони, у которых
+        // ночи попадают по разные стороны от даты реформы, считаются по дате заезда целиком —
+        // помесячная/поночёвочная точность отложена (см. project-vat-component-splitting).
+        function componentApplies(c) {
+            if (c.validFrom && new Date(c.validFrom) > checkInDate) return false;
+            if (c.validTo   && new Date(c.validTo)   < checkInDate) return false;
+            return true;
+        }
+
+        // Кладёт строку услуги в счёт: либо как есть, либо разбитой на действующие на дату
+        // налоговые компоненты. Если на дату услуги ни один компонент не действует
+        // (напр. завтрак до 01.01.2026) — строка остаётся одной, со ставкой из группы услуги.
+        function emitServiceLine(base, serviceId) {
+            const all = compMap[serviceId];
+            const comps = all ? all.filter(componentApplies) : null;
+            if (!comps || comps.length === 0) { lines.push(base); return; }
+            for (const ln of splitLineByComponents(base, comps)) lines.push(ln);
+        }
 
         for (const room of rooms) {
             if (!room.UID) continue;
@@ -81,7 +184,7 @@ module.exports = function (modelsDB, Utilities) {
                     sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
                     label:    await tfForSession('room_line_label', ctx.sessionID, { room: rLabel, guests: billingGuests, nights }),
                     quantity: nights, unitPrice: rp.price,
-                    taxRate:  rp.taxRate != null ? rp.taxRate : 7,
+                    taxRate:  rateByCode('accommodation', 0),
                     amount:   r2(rp.price * nights), sortOrder: ++sortOrd
                 });
             }
@@ -95,7 +198,7 @@ module.exports = function (modelsDB, Utilities) {
                     guestTypeId: '000000000-guest-type-0003',
                     sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
                     label:    await tfForSession('children_3_5_line_label', ctx.sessionID, { count: kids3_5, nights }),
-                    quantity: qty, unitPrice: 10, taxRate: 7,
+                    quantity: qty, unitPrice: 10, taxRate: rateByCode('accommodation', 0),
                     amount:   r2(qty * 10), sortOrder: ++sortOrd
                 });
             }
@@ -109,7 +212,7 @@ module.exports = function (modelsDB, Utilities) {
                     guestTypeId: '000000000-guest-type-0005',
                     sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
                     label:    await tfForSession('children_2_line_label', ctx.sessionID, { count: kids2, nights }),
-                    quantity: qty2, unitPrice: 10, taxRate: 7,
+                    quantity: qty2, unitPrice: 10, taxRate: rateByCode('accommodation', 0),
                     amount:   r2(qty2 * 10), sortOrder: ++sortOrd
                 });
             }
@@ -123,7 +226,7 @@ module.exports = function (modelsDB, Utilities) {
                     guestTypeId: '000000000-guest-type-0001',
                     sectionLabel: await tForSession('resort_fee_section', ctx.sessionID),
                     label:    await tfForSession('adults_resort_fee_label', ctx.sessionID, { count: adults, nights }),
-                    quantity: qty, unitPrice: 2.10, taxRate: 0,
+                    quantity: qty, unitPrice: 2.10, taxRate: rateByCode('exempt', 0),
                     amount:   r2(qty * 2.10), sortOrder: ++sortOrd
                 });
             }
@@ -135,7 +238,7 @@ module.exports = function (modelsDB, Utilities) {
                     guestTypeId: '000000000-guest-type-0002',
                     sectionLabel: await tForSession('resort_fee_section', ctx.sessionID),
                     label:    await tfForSession('children_6_15_resort_fee_label', ctx.sessionID, { count: kids6_15, nights }),
-                    quantity: qty, unitPrice: 1.00, taxRate: 0,
+                    quantity: qty, unitPrice: 1.00, taxRate: rateByCode('exempt', 0),
                     amount:   r2(qty * 1.00), sortOrder: ++sortOrd
                 });
             }
@@ -168,15 +271,15 @@ module.exports = function (modelsDB, Utilities) {
                         );
                         if (!sp || sp.price === 0) continue;
                         const qty = ag.n * cnt * nights;
-                        lines.push({
+                        emitServiceLine({
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             serviceId: rs.serviceId, guestTypeId: ag.gtId,
                             sectionLabel: svc.name,
                             label:    await tfForSession('service_age_group_per_night_label', ctx.sessionID, { name: svc.name, ageGroup: await tForSession(ag.lblKey, ctx.sessionID), count: ag.n, perRoom: cnt, nights }),
-                            quantity: qty, unitPrice: sp.price, taxRate: svc.taxRate,
+                            quantity: qty, unitPrice: sp.price, taxRate: svcRate(svc),
                             amount:   r2(qty * sp.price), sortOrder: ++sortOrd
-                        });
+                        }, rs.serviceId);
                     }
                 } else {
                     const sp    = svcPrices.find(p => p.serviceId === rs.serviceId && p.ageFrom == null);
@@ -186,14 +289,14 @@ module.exports = function (modelsDB, Utilities) {
                         const svcLabel = svc.chargeType === 'per_night'
                             ? await tfForSession('service_per_night_label', ctx.sessionID, { name: svc.name, count: cnt, nights })
                             : await tfForSession('service_once_label',      ctx.sessionID, { name: svc.name, count: cnt });
-                        lines.push({
+                        emitServiceLine({
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             serviceId: rs.serviceId, sectionLabel: svc.name,
                             label:    svcLabel,
-                            quantity: qty, unitPrice: price, taxRate: svc.taxRate,
+                            quantity: qty, unitPrice: price, taxRate: svcRate(svc),
                             amount:   r2(qty * price), sortOrder: ++sortOrd
-                        });
+                        }, rs.serviceId);
                     }
                 }
             }
@@ -208,7 +311,7 @@ module.exports = function (modelsDB, Utilities) {
                         serviceId: csp.serviceId || null,
                         sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
                         label:    await tfForSession('final_cleaning_label', ctx.sessionID, { room: rLabel }),
-                        quantity: 1, unitPrice: csp.price, taxRate: 7,
+                        quantity: 1, unitPrice: csp.price, taxRate: rateByCode('accommodation', 0),
                         amount:   csp.price, sortOrder: ++sortOrd
                     });
                 }

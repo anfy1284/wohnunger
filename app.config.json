@@ -13,6 +13,8 @@
     "accommodation_types",
     "organizations",
     "guest_types",
-    "translations"
+    "translations",
+    "tax_categories",
+    "tax_rates"
   ]
 }
