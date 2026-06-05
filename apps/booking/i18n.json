@@ -75,21 +75,6 @@
         "ru": "Статус",
         "de": "Status"
     },
-    "Draft": {
-        "en": "Draft",
-        "ru": "Черновик",
-        "de": "Entwurf"
-    },
-    "Confirmed": {
-        "en": "Confirmed",
-        "ru": "Подтверждено",
-        "de": "Bestätigt"
-    },
-    "Cancelled": {
-        "en": "Cancelled",
-        "ru": "Отменено",
-        "de": "Storniert"
-    },
     "booking_rooms_tab": {
         "en": "Accommodation rooms",
         "ru": "Номера размещения",

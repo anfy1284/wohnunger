@@ -15,6 +15,7 @@
     "guest_types",
     "translations",
     "tax_categories",
-    "tax_rates"
+    "tax_rates",
+    "booking_statuses"
   ]
 }

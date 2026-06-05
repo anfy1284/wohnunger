@@ -94,17 +94,18 @@
                         "caption": { "i18n": "check_out" }
                     },
                     {
-                        "type": "emunList",
-                        "name": "status",
-                        "data": "status",
+                        "type": "recordSelector",
+                        "name": "statusId",
+                        "data": "statusId",
                         "caption": { "i18n": "Status" },
-                        "options": [
-                            { "value": "draft",      "caption": { "i18n": "Draft" } },
-                            { "value": "confirmed",  "caption": { "i18n": "Confirmed" } },
-                            { "value": "checkedIn",  "caption": { "i18n": "check_in" } },
-                            { "value": "checkedOut", "caption": { "i18n": "check_out" } },
-                            { "value": "cancelled",  "caption": { "i18n": "Cancelled" } }
-                        ]
+                        "properties": {
+                            "showSelectionButton": true,
+                            "selection": {
+                                "table": "booking_statuses",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
                     }
                 ]
             }

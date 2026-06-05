@@ -66,10 +66,15 @@
                     "allowNull": false,
                     "caption": { "i18n": "check_out" }
                 },
-                "status": {
+                "statusId": {
                     "type": "STRING",
-                    "allowNull": false,
-                    "defaultValue": "draft",
+                    "allowNull": true,
+                    "references": {
+                        "model": "booking_statuses",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
                     "caption": { "i18n": "Status" }
                 },
                 "notes": {
@@ -507,6 +512,18 @@
             "source": "Bookings",
             "target": "Organizations",
             "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "BookingStatuses",
+            "target": "Bookings",
+            "foreignKey": "statusId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Bookings",
+            "target": "BookingStatuses",
+            "foreignKey": "statusId"
         },
         {
             "type": "hasMany",

@@ -16,6 +16,13 @@
         { "UID": "000000000-tax-rate-0006", "taxCategoryId": "000000000-tax-cat-0005", "rate": 7,  "validFrom": null,         "validTo": null },
         { "UID": "000000000-tax-rate-0007", "taxCategoryId": "000000000-tax-cat-0006", "rate": 0,  "validFrom": null,         "validTo": null }
     ],
+    "booking_statuses": [
+        { "UID": "000000000-bk-status-0001", "code": "draft",      "name": "Draft",      "displayOrder": 10 },
+        { "UID": "000000000-bk-status-0002", "code": "confirmed",  "name": "Confirmed",  "displayOrder": 20 },
+        { "UID": "000000000-bk-status-0003", "code": "checkedIn",  "name": "Checked in",  "displayOrder": 30 },
+        { "UID": "000000000-bk-status-0004", "code": "checkedOut", "name": "Checked out", "displayOrder": 40 },
+        { "UID": "000000000-bk-status-0005", "code": "cancelled",  "name": "Cancelled",  "displayOrder": 50 }
+    ],
     "guest_types": [
         {
             "UID": "000000000-guest-type-0001",
@@ -58,6 +65,17 @@
         { "UID": "tr-gt-de-0002", "recordId": "000000000-guest-type-0002", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Kind 6–15 Jahre" },
         { "UID": "tr-gt-de-0003", "recordId": "000000000-guest-type-0003", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Kind 3–5 Jahre" },
         { "UID": "tr-gt-de-0004", "recordId": "000000000-guest-type-0004", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Kleinkind (unter 2 Jahre)" },
-        { "UID": "tr-gt-de-0005", "recordId": "000000000-guest-type-0005", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Kind 2 Jahre" }
+        { "UID": "tr-gt-de-0005", "recordId": "000000000-guest-type-0005", "tableName": "guest_types", "fieldName": "name", "language": "de", "value": "Kind 2 Jahre" },
+
+        { "UID": "tr-bks-ru-0001", "recordId": "000000000-bk-status-0001", "tableName": "booking_statuses", "fieldName": "name", "language": "ru", "value": "Черновик" },
+        { "UID": "tr-bks-ru-0002", "recordId": "000000000-bk-status-0002", "tableName": "booking_statuses", "fieldName": "name", "language": "ru", "value": "Подтверждено" },
+        { "UID": "tr-bks-ru-0003", "recordId": "000000000-bk-status-0003", "tableName": "booking_statuses", "fieldName": "name", "language": "ru", "value": "Заселён" },
+        { "UID": "tr-bks-ru-0004", "recordId": "000000000-bk-status-0004", "tableName": "booking_statuses", "fieldName": "name", "language": "ru", "value": "Выселен" },
+        { "UID": "tr-bks-ru-0005", "recordId": "000000000-bk-status-0005", "tableName": "booking_statuses", "fieldName": "name", "language": "ru", "value": "Отменено" },
+        { "UID": "tr-bks-de-0001", "recordId": "000000000-bk-status-0001", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Entwurf" },
+        { "UID": "tr-bks-de-0002", "recordId": "000000000-bk-status-0002", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Bestätigt" },
+        { "UID": "tr-bks-de-0003", "recordId": "000000000-bk-status-0003", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Eingecheckt" },
+        { "UID": "tr-bks-de-0004", "recordId": "000000000-bk-status-0004", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Ausgecheckt" },
+        { "UID": "tr-bks-de-0005", "recordId": "000000000-bk-status-0005", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Storniert" }
     ]
 }

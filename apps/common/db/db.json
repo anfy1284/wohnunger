@@ -594,6 +594,32 @@
             "options": {
                 "timestamps": false
             }
+        },
+        {
+            "name": "BookingStatuses",
+            "tableName": "booking_statuses",
+            "fields": {
+                "code": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": { "i18n": "booking_status_code" }
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "translatable": true,
+                    "caption": { "i18n": "booking_status_name" }
+                },
+                "displayOrder": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "defaultValue": 50,
+                    "caption": { "i18n": "display_order" }
+                }
+            },
+            "options": {
+                "timestamps": false
+            }
         }
     ],
     "associations": [
