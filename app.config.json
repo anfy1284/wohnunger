@@ -16,6 +16,9 @@
     "translations",
     "tax_categories",
     "tax_rates",
-    "booking_statuses"
+    "tax_category_rates",
+    "booking_statuses",
+    "organization_settings_types",
+    "organization_settings_fields"
   ]
 }

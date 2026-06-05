@@ -94,6 +94,16 @@
         "ru": "Ставка налога",
         "de": "Steuersatz"
     },
+    "tax_rate_name": {
+        "en": "Name",
+        "ru": "Название",
+        "de": "Bezeichnung"
+    },
+    "tax_rate_value": {
+        "en": "Rate, %",
+        "ru": "Ставка, %",
+        "de": "Satz, %"
+    },
     "tax_component_name": {
         "en": "Component name",
         "ru": "Название компонента",

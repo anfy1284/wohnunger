@@ -29,6 +29,31 @@
         "ru": "Курортный сбор",
         "de": "Kurtaxe"
     },
+    "extra_lines_section": {
+        "en": "Additional services",
+        "ru": "Дополнительные услуги",
+        "de": "Zusatzleistungen"
+    },
+    "booking_extra_lines_tab": {
+        "en": "Additional services",
+        "ru": "Дополнительные услуги",
+        "de": "Zusatzleistungen"
+    },
+    "extra_line_name": {
+        "en": "Description",
+        "ru": "Наименование",
+        "de": "Bezeichnung"
+    },
+    "amount_gross": {
+        "en": "Amount (incl. tax)",
+        "ru": "Сумма (с налогом)",
+        "de": "Betrag (inkl. Steuer)"
+    },
+    "tax_rate": {
+        "en": "Tax rate",
+        "ru": "Ставка налога",
+        "de": "Steuersatz"
+    },
 
     "Booking": {
         "en": "Booking",

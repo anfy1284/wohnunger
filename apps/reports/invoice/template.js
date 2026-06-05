@@ -11,8 +11,6 @@
 // Работает одинаково в превью (iframe, непрерывный скролл) и при печати.
 // ─────────────────────────────────────────────────────────────────────
 
-const fmtDate = d => { const dt = new Date(d); return dt.toLocaleDateString('de-DE'); };
-const fmtNum  = (v, dec) => Number(v).toLocaleString('de-DE', { minimumFractionDigits: dec || 2, maximumFractionDigits: dec || 2 });
 const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
@@ -23,9 +21,18 @@ const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'
  * @param {object|null} opts.hotel  — запись из таблицы hotels   (raw)
  * @param {object|null} opts.org    — запись из таблицы organizations (raw)
  * @param {Array}  opts.lines      — строки InvoiceLines (raw, sorted by sortOrder)
+ * @param {function} [opts.t]      — переводчик t(key) уже для нужного языка
+ * @param {string} [opts.locale]  — локаль форматирования дат/чисел (напр. 'de-DE')
+ * @param {string} [opts.lang]    — код языка документа (для <html lang>)
  * @returns {string} HTML-документ
  */
-function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
+function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang }) {
+    if (typeof t !== 'function') t = (k) => k;
+    locale = locale || 'de-DE';
+    lang   = lang || 'de';
+    const fmtDate = d => { const dt = new Date(d); return dt.toLocaleDateString(locale); };
+    const fmtNum  = (v, dec) => Number(v).toLocaleString(locale, { minimumFractionDigits: dec || 2, maximumFractionDigits: dec || 2 });
+
     const invoiceNum  = booking.name || booking.UID.slice(0, 8);
     const invoiceDate = fmtDate(new Date());
     const checkIn     = fmtDate(booking.checkIn);
@@ -70,7 +77,7 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
         if (Number(rate) === 0) continue; // 0% не выводим — нет смысла
         const g = taxGroups[rate];
         taxSummaryHtml += '<tr class="tax-row">'
-            + '<td colspan="3" class="num">davon MwSt. ' + rate + '%</td>'
+            + '<td colspan="3" class="num">' + t('invoice_of_which_vat') + ' ' + rate + '%</td>'
             + '<td class="num">' + fmtNum(g.mwst) + ' &euro;</td>'
             + '</tr>\n';
     }
@@ -78,25 +85,25 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
     // Блок итогов (не должен рваться между листами)
     const totalsHtml =
         '<tr class="subtotal">'
-        + '<td colspan="3" class="num">Zwischensumme</td>'
+        + '<td colspan="3" class="num">' + t('invoice_subtotal') + '</td>'
         + '<td class="num">' + fmtNum(totalBrutto) + ' &euro;</td>'
         + '</tr>\n'
         + '<tr class="tax-row">'
-        + '<td colspan="3" class="num">Nettobetrag</td>'
+        + '<td colspan="3" class="num">' + t('invoice_net_amount') + '</td>'
         + '<td class="num">' + fmtNum(totalNetto) + ' &euro;</td>'
         + '</tr>\n'
         + taxSummaryHtml
         + '<tr class="grand-total">'
-        + '<td colspan="3" class="num">Gesamtbetrag</td>'
+        + '<td colspan="3" class="num">' + t('invoice_total_amount') + '</td>'
         + '<td class="num">' + fmtNum(totalBrutto) + ' &euro;</td>'
         + '</tr>\n'
         + (prepayment > 0
             ? '<tr class="tax-row">'
-              + '<td colspan="3" class="num">abzgl. Anzahlung</td>'
+              + '<td colspan="3" class="num">' + t('invoice_less_prepayment') + '</td>'
               + '<td class="num">&minus;' + fmtNum(prepayment) + ' &euro;</td>'
               + '</tr>\n'
               + '<tr class="grand-total">'
-              + '<td colspan="3" class="num">Restbetrag</td>'
+              + '<td colspan="3" class="num">' + t('invoice_balance_due') + '</td>'
               + '<td class="num">' + fmtNum(Math.round((totalBrutto - prepayment) * 100) / 100) + ' &euro;</td>'
               + '</tr>\n'
             : '');
@@ -116,7 +123,7 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
     const footerInner =
         '<div class="ft-col ft-org">' + orgName + (orgAddress ? '<br/>' + orgAddress : '') + '</div>'
         + '<div class="ft-col ft-center">'
-        + (orgTaxNumber ? 'Steuernr.: ' + orgTaxNumber + '<br/>' : '')
+        + (orgTaxNumber ? t('invoice_tax_number_label') + ': ' + orgTaxNumber + '<br/>' : '')
         + '<span class="page-num"></span></div>'
         + '<div class="ft-col ft-bank">'
         + (orgIban ? 'IBAN:&nbsp;' + orgIban : '')
@@ -124,7 +131,7 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
 
     // ── Бегущая шапка на листах со 2-го (повтор номера счёта/клиента) ──
     const runHeadInner =
-        '<div class="rh-left"><strong>Rechnung Nr. ' + esc(invoiceNum) + '</strong></div>'
+        '<div class="rh-left"><strong>' + t('invoice_no_label') + ' ' + esc(invoiceNum) + '</strong></div>'
         + '<div class="rh-right">' + (clientName ? clientName + ' &middot; ' : '')
         + checkIn + ' &ndash; ' + checkOut + '</div>';
 
@@ -136,8 +143,8 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
   </div>
   <div class="contact">
     ${orgAddress ? orgAddress + '<br/>' : ''}${hotelAddress && hotelAddress !== orgAddress ? hotelAddress + '<br/>' : ''}
-    ${orgPhone ? 'Tel.: ' + orgPhone + '<br/>' : ''}
-    ${orgEmail ? 'E-Mail: ' + orgEmail : ''}
+    ${orgPhone ? t('invoice_phone_label') + ': ' + orgPhone + '<br/>' : ''}
+    ${orgEmail ? t('invoice_email_label') + ': ' + orgEmail : ''}
   </div>
 </div>
 
@@ -151,33 +158,33 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
 
 <div class="inv-meta">
 <table><tr>
-  <td><strong>Rechnungsdatum:</strong></td><td>${invoiceDate}</td>
-  <td style="padding-left:10mm;"><strong>Zeitraum:</strong></td>
+  <td><strong>${t('invoice_date_label')}:</strong></td><td>${invoiceDate}</td>
+  <td style="padding-left:10mm;"><strong>${t('invoice_period_label')}:</strong></td>
   <td>${checkIn} &ndash; ${checkOut}</td>
 </tr></table>
 </div>
 
-<h2>Rechnung Nr. ${esc(invoiceNum)}</h2>`;
+<h2>${t('invoice_no_label')} ${esc(invoiceNum)}</h2>`;
 
     const noteInner = `
-Wir danken f&uuml;r Ihren Aufenthalt und w&uuml;nschen Ihnen eine gute Heimreise.<br/>
-Bitte &uuml;berweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.`;
+${esc(t('invoice_note_thanks'))}<br/>
+${esc(t('invoice_note_payment'))}`;
 
     const colgroupHtml = '<colgroup>'
         + '<col class="col-desc"/><col class="col-rate"/><col class="col-mwst"/><col class="col-price"/>'
         + '</colgroup>';
     const theadHtml = '<thead><tr>'
-        + '<th>Leistung / Beschreibung</th>'
-        + '<th class="num">MwSt.&#8209;Satz</th>'
-        + '<th class="num">MwSt.</th>'
-        + '<th class="num">Gesamtpreis</th>'
+        + '<th>' + t('invoice_col_description') + '</th>'
+        + '<th class="num">' + t('invoice_col_vat_rate') + '</th>'
+        + '<th class="num">' + t('invoice_col_vat') + '</th>'
+        + '<th class="num">' + t('invoice_col_total') + '</th>'
         + '</tr></thead>';
 
     return `<!DOCTYPE html>
-<html lang="de">
+<html lang="${lang}">
 <head>
 <meta charset="utf-8"/>
-<title>Rechnung ${esc(invoiceNum)}</title>
+<title>${t('invoice_title')} ${esc(invoiceNum)}</title>
 <style>
 @page { size: A4; margin: 0; }
 * { box-sizing: border-box; }
@@ -344,7 +351,7 @@ ${totalsHtml}    </tbody>
     var pages = pagesRoot.querySelectorAll('.page');
     for (var p = 0; p < pages.length; p++) {
       var el = pages[p].querySelector('.page-num');
-      if (el) el.textContent = 'Seite ' + (p + 1) + ' von ' + pages.length;
+      if (el) el.textContent = ${JSON.stringify(t('invoice_page_label'))} + ' ' + (p + 1) + ' ' + ${JSON.stringify(t('invoice_page_of'))} + ' ' + pages.length;
     }
 
     src.parentNode.removeChild(src);

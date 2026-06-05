@@ -36,7 +36,30 @@ module.exports = async function (modelsDB) {
                 });
                 if (!lines.length) return { error: await tForSession('No invoice lines. Calculate cost first.', ctx.sessionID) };
 
-                const html = renderInvoiceHTML({ booking, client, hotel, org, lines });
+                // Язык печати — из настроек организации (organizationSettings → reportLanguage).
+                // Значение ссылается на справочник languages; берём из него код (de/en/ru).
+                // По умолчанию немецкий. Счёт формируется на этом языке.
+                let lang = 'de';
+                try {
+                    if (org && modelsDB.OrganizationSettingsFields) {
+                        const langField = await modelsDB.OrganizationSettingsFields.findOne({ where: { name: 'reportLanguage' }, raw: true });
+                        if (langField) {
+                            const rec = await modelsDB.OrganizationSettingsStringValues.findOne({
+                                where: { organizationId: org.UID, settingsFieldId: langField.UID }, raw: true
+                            });
+                            if (rec && rec.value && modelsDB.Languages) {
+                                const langRow = await modelsDB.Languages.findByPk(rec.value, { raw: true });
+                                if (langRow && langRow.code) lang = langRow.code;
+                            }
+                        }
+                    }
+                } catch (e) { console.warn('[reports] reportLanguage resolve:', e && e.message); }
+
+                const i18n = require('../../node_modules/my-old-space/drive_root/i18n');
+                const t = (key) => i18n.t(key, lang);
+                const locale = lang === 'en' ? 'en-GB' : (lang === 'ru' ? 'ru-RU' : 'de-DE');
+
+                const html = renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang });
                 return { html };
             },
 

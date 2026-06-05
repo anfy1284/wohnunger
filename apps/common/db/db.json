@@ -567,6 +567,31 @@
             "name": "TaxRates",
             "tableName": "tax_rates",
             "fields": {
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": { "i18n": "tax_rate_name" }
+                },
+                "rate": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": { "i18n": "tax_rate_value" }
+                },
+                "displayOrder": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "defaultValue": 50,
+                    "caption": { "i18n": "display_order" }
+                }
+            },
+            "options": {
+                "timestamps": false
+            }
+        },
+        {
+            "name": "TaxCategoryRates",
+            "tableName": "tax_category_rates",
+            "fields": {
                 "taxCategoryId": {
                     "type": "STRING",
                     "allowNull": false,
@@ -575,9 +600,12 @@
                     "onDelete": "CASCADE",
                     "caption": { "i18n": "tax_category" }
                 },
-                "rate": {
-                    "type": "FLOAT",
+                "rateId": {
+                    "type": "STRING",
                     "allowNull": false,
+                    "references": { "model": "tax_rates", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
                     "caption": { "i18n": "tax_rate" }
                 },
                 "validFrom": {
@@ -830,14 +858,26 @@
         {
             "type": "hasMany",
             "source": "TaxCategories",
-            "target": "TaxRates",
+            "target": "TaxCategoryRates",
             "foreignKey": "taxCategoryId"
         },
         {
             "type": "belongsTo",
-            "source": "TaxRates",
+            "source": "TaxCategoryRates",
             "target": "TaxCategories",
             "foreignKey": "taxCategoryId"
+        },
+        {
+            "type": "hasMany",
+            "source": "TaxRates",
+            "target": "TaxCategoryRates",
+            "foreignKey": "rateId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "TaxCategoryRates",
+            "target": "TaxRates",
+            "foreignKey": "rateId"
         },
         {
             "type": "hasMany",

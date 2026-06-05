@@ -474,6 +474,69 @@
             "options": {
                 "timestamps": false
             }
+        },
+        {
+            "name": "BookingExtraLines",
+            "tableName": "booking_extra_lines",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Organization" }
+                },
+                "bookingId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "booking_ref" }
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": { "i18n": "extra_line_name" }
+                },
+                "amount": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": { "i18n": "amount_gross" }
+                },
+                "taxRateId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "tax_rates",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "tax_rate" }
+                },
+                "displayOrder": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "defaultValue": 50,
+                    "caption": { "i18n": "display_order" }
+                }
+            },
+            "tabularSection": {
+                "parentTable": "bookings",
+                "parentField": "bookingId",
+                "caption": { "i18n": "booking_extra_lines_tab" }
+            },
+            "options": {
+                "timestamps": false
+            }
         }
     ],
     "associations": [
@@ -680,6 +743,42 @@
             "source": "InvoiceLines",
             "target": "BookingRooms",
             "foreignKey": "bookingRoomId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Bookings",
+            "target": "BookingExtraLines",
+            "foreignKey": "bookingId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "BookingExtraLines",
+            "target": "Bookings",
+            "foreignKey": "bookingId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "BookingExtraLines",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "BookingExtraLines",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "TaxRates",
+            "target": "BookingExtraLines",
+            "foreignKey": "taxRateId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "BookingExtraLines",
+            "target": "TaxRates",
+            "foreignKey": "taxRateId"
         }
     ]
 }

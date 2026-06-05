@@ -213,6 +213,39 @@
     },
     {
         "type": "group",
+        "caption": { "i18n": "booking_extra_lines_tab" },
+        "orientation": "vertical",
+        "layout": [{
+            "type": "table",
+            "name": "ts_booking_extra_lines",
+            "data": "booking_extra_lines",
+            "columns": [
+                { "caption": { "i18n": "extra_line_name" }, "data": "name", "width": 300, "inputType": "textbox" },
+                { "caption": { "i18n": "amount_gross" }, "data": "amount", "width": 120, "inputType": "number" },
+                {
+                    "caption": { "i18n": "tax_rate" },
+                    "data": "taxRateId",
+                    "width": 120,
+                    "inputType": "recordSelector",
+                    "properties": {
+                        "showSelectionButton": true,
+                        "selection": { "table": "tax_rates", "idField": "UID", "displayField": "name" }
+                    }
+                }
+            ],
+            "properties": {
+                "editMode": "cell-immediate",
+                "visibleRows": 5,
+                "tabularFilter": { "bookingId": "{UID}" },
+                "hiddenButtons": ["listSettings", "recordOpen"]
+            },
+            "events": {
+                "onRowActivate": "onExtraLineActivated"
+            }
+        }]
+    },
+    {
+        "type": "group",
         "caption": { "i18n": "Notes" },
         "orientation": "vertical",
         "layout": [

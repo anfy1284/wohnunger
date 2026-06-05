@@ -14,7 +14,7 @@ module.exports = function (modelsDB, Utilities) {
     // ── Внутренний хелпер: строит строки счёта из данных ТЧ в памяти ────
     // Принимает уже загруженные массивы rooms/guests/roomServices (из tabularSections),
     // остальные справочники загружает из БД сам.
-    async function _buildInvoiceLines({ bookingId, checkIn, checkOut, rooms, guests, roomServices, orgId }, ctx) {
+    async function _buildInvoiceLines({ bookingId, checkIn, checkOut, rooms, guests, roomServices, extraLines, orgId }, ctx) {
         const checkInDate  = new Date(checkIn);
         const checkOutDate = new Date(checkOut);
         const nights       = Math.round((checkOutDate - checkInDate) / 86400000);
@@ -52,11 +52,17 @@ module.exports = function (modelsDB, Utilities) {
             compMap[k].sort((a, b) => (a.displayOrder != null ? a.displayOrder : 50) - (b.displayOrder != null ? b.displayOrder : 50));
         }
 
-        // Налоговые группы и ставки с датами действия (ставка — это ДАННЫЕ, не число в коде).
+        // Налоговые группы, справочник ставок-значений и привязки групп к ставкам
+        // с датами действия (ставка — это ДАННЫЕ, не число в коде).
+        // tax_rates           — плоский справочник значений (name «19%», rate 19)
+        // tax_category_rates  — какая группа какую ставку имеет и с какой даты (rateId → tax_rates)
         const taxCats     = await modelsDB.TaxCategories.findAll({ raw: true });
-        const taxRatesAll = await modelsDB.TaxRates.findAll({ raw: true });
+        const taxCatRates = await modelsDB.TaxCategoryRates.findAll({ raw: true });
+        const taxRateVals = await modelsDB.TaxRates.findAll({ raw: true });
         const catCodeToId = {};
         for (const c of taxCats) catCodeToId[c.code] = c.UID;
+        const rateValById = {};
+        for (const v of taxRateVals) rateValById[v.UID] = v.rate;
 
         const cleaningPrices = roomIds.length
             ? await modelsDB.ServicePrices.findAll({ where: { roomId: roomIds }, raw: true }) : [];
@@ -66,17 +72,20 @@ module.exports = function (modelsDB, Utilities) {
         const r2 = v => Math.round(v * 100) / 100;
 
         // Возвращает ставку налоговой группы, действующую на дату (берём дату заезда).
-        // Если группа/ставка не найдена — fallback (для обратной совместимости).
+        // Привязка группа→ставка ищется в tax_category_rates по датам, само число — из tax_rates.
+        // Если группа/привязка/значение не найдены — fallback (для обратной совместимости).
         function resolveRate(categoryId, fallback) {
             if (!categoryId) return fallback;
             let best = null;
-            for (const r of taxRatesAll) {
+            for (const r of taxCatRates) {
                 if (r.taxCategoryId !== categoryId) continue;
                 if (r.validFrom && new Date(r.validFrom) > checkInDate) continue;
                 if (r.validTo   && new Date(r.validTo)   < checkInDate) continue;
                 if (!best || new Date(r.validFrom || 0) > new Date(best.validFrom || 0)) best = r;
             }
-            return best ? best.rate : fallback;
+            if (!best) return fallback;
+            const val = rateValById[best.rateId];
+            return (val != null) ? val : fallback;
         }
         const rateByCode = (code, fallback) => resolveRate(catCodeToId[code], fallback);
         // Ставка услуги — из её налоговой группы по дате заезда.
@@ -318,9 +327,30 @@ module.exports = function (modelsDB, Utilities) {
             }
         }
 
+        // 6. Доп.услуги (booking_extra_lines): добавляются прямо в счёт отдельными
+        // строками. Сумма задаётся брутто, ставка — из справочника tax_rates (поле taxRateId).
+        for (const el of (extraLines || [])) {
+            if (!el || !el.name) continue;
+            const amount = Number(el.amount);
+            if (!Number.isFinite(amount) || amount === 0) continue;
+            const rate = el.taxRateId && rateValById[el.taxRateId] != null ? rateValById[el.taxRateId] : 0;
+            lines.push({
+                UID: Utilities.generateUID('InvoiceLines'),
+                bookingId, organizationId: orgId,
+                sectionLabel: await tForSession('extra_lines_section', ctx.sessionID),
+                label:    el.name,
+                quantity: 1, unitPrice: r2(amount),
+                taxRate:  rate,
+                amount:   r2(amount), sortOrder: ++sortOrd,
+                _isExtra: true
+            });
+        }
+
         // Назначаем приоритет сортировки из displayOrder справочников
         for (const ln of lines) {
-            if (ln.serviceId != null) {
+            if (ln._isExtra) {
+                ln._sortPriority = 95; // доп.услуги — в самом конце счёта
+            } else if (ln.serviceId != null) {
                 const svc = svcMap[ln.serviceId];
                 ln._sortPriority = (svc && svc.displayOrder != null) ? svc.displayOrder : 50;
             } else if (ln.guestTypeId != null) {
@@ -337,6 +367,7 @@ module.exports = function (modelsDB, Utilities) {
         lines.forEach((ln, i) => {
             ln.sortOrder = i + 1;
             delete ln._sortPriority;
+            delete ln._isExtra;
         });
         return { lines };
     }
@@ -402,10 +433,11 @@ module.exports = function (modelsDB, Utilities) {
 
                 const guests       = tabularSections.booking_guests;
                 const roomServices = tabularSections.booking_room_services;
+                const extraLines   = tabularSections.booking_extra_lines || [];
 
-                if (bookingId && checkIn && checkOut && rooms.length > 0) {
+                if (bookingId && checkIn && checkOut && (rooms.length > 0 || extraLines.length > 0)) {
                     const { lines } = await _buildInvoiceLines(
-                        { bookingId, checkIn, checkOut, rooms, guests, roomServices, orgId },
+                        { bookingId, checkIn, checkOut, rooms, guests, roomServices, extraLines, orgId },
                         ctx
                     );
                     tabularSections.invoice_lines = lines;
@@ -439,6 +471,41 @@ module.exports = function (modelsDB, Utilities) {
                     serviceName: (svcMap2[d.serviceId] && svcMap2[d.serviceId].name) || ''
                 }))
             };
+        },
+
+        // ── Налоговая ставка по умолчанию из настроек организации ──────────
+        // Читает настройку defaultTaxRate (organizationSettings) для организации
+        // брони и возвращает UID ставки + отображаемое имя для новой строки доп.услуг.
+        async getOrgDefaultTaxRate({ organizationId }, ctx) {
+            try {
+                let orgId = organizationId;
+                if (!orgId) {
+                    const globalCtx = require('../../../node_modules/my-old-space/drive_root/globalServerContext');
+                    const user = await globalCtx.getUserBySessionID(ctx.sessionID);
+                    orgId = user && user.organizationId;
+                    // users.organizationId может быть пустым — берём первую из user_organizations
+                    if (!orgId && user && modelsDB.UserOrganizations) {
+                        const orgs = await modelsDB.UserOrganizations.findAll({ where: { userId: user.UID }, raw: true });
+                        if (orgs && orgs.length) orgId = orgs[0].organizationId;
+                    }
+                }
+                if (!orgId || !modelsDB.OrganizationSettingsFields) return { taxRateId: null, taxRateName: '' };
+
+                const field = await modelsDB.OrganizationSettingsFields.findOne({ where: { name: 'defaultTaxRate' }, raw: true });
+                if (!field) return { taxRateId: null, taxRateName: '' };
+
+                const rec = await modelsDB.OrganizationSettingsStringValues.findOne({
+                    where: { organizationId: orgId, settingsFieldId: field.UID }, raw: true
+                });
+                const taxRateId = rec ? rec.value : null;
+                if (!taxRateId) return { taxRateId: null, taxRateName: '' };
+
+                const rate = await modelsDB.TaxRates.findByPk(taxRateId, { raw: true });
+                return { taxRateId, taxRateName: rate ? rate.name : '' };
+            } catch (e) {
+                console.warn('[booking/getOrgDefaultTaxRate]', e && e.message);
+                return { taxRateId: null, taxRateName: '' };
+            }
         },
 
     };

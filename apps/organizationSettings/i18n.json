@@ -1,0 +1,32 @@
+{
+    "organization_settings_app_caption": {
+        "en": "Organization Settings",
+        "ru": "Настройки организации",
+        "de": "Organisationseinstellungen"
+    },
+    "default_tax_rate": {
+        "en": "Default tax rate",
+        "ru": "Налоговая ставка по умолчанию",
+        "de": "Standard-Steuersatz"
+    },
+    "report_language": {
+        "en": "Report printing language",
+        "ru": "Язык печати отчётов",
+        "de": "Sprache für Berichtsdruck"
+    },
+    "Apply": {
+        "en": "Apply",
+        "ru": "Применить",
+        "de": "Übernehmen"
+    },
+    "Settings saved": {
+        "en": "Settings saved",
+        "ru": "Настройки сохранены",
+        "de": "Einstellungen gespeichert"
+    },
+    "Error: ": {
+        "en": "Error: ",
+        "ru": "Ошибка: ",
+        "de": "Fehler: "
+    }
+}

@@ -56,6 +56,31 @@ async function onRoomActivated(rowIndex, ctx) {
     try { if (typeof form.setModified === 'function') form.setModified(true); } catch(_) {}
 }
 
+// Вызывается при активации строки в таблице доп.услуг.
+// Если в строке ещё не выбрана налоговая ставка — подставляет ставку по умолчанию
+// из настроек организации (organizationSettings → defaultTaxRate).
+async function onExtraLineActivated(rowIndex, ctx) {
+    var form = ctx.form;
+    var tbl = form.controlsMap && form.controlsMap['ts_booking_extra_lines'];
+    if (!tbl) return;
+    var rows = tbl.data_getRows(tbl.dataKey);
+    var row = rows[rowIndex];
+    if (!row) return;
+    if (row.taxRateId) return; // ставка уже задана — не трогаем
+
+    var orgEntry = form._dataMap && form._dataMap['organizationId'];
+    var organizationId = orgEntry && orgEntry.value;
+
+    var result = await callServer('__SERVER_SCRIPT__', 'getOrgDefaultTaxRate', { organizationId: organizationId });
+    if (!result || !result.taxRateId) return; // дефолт не настроен
+
+    row.taxRateId = result.taxRateId;
+    row.__taxRateId_display = result.taxRateName;
+    tbl.data_updateValue(tbl.dataKey, rows);
+    try { if (typeof tbl._invokeRenderBodyRows === 'function') tbl._invokeRenderBodyRows(); } catch(_) {}
+    try { if (typeof form.setModified === 'function') form.setModified(true); } catch(_) {}
+}
+
 async function printInvoice(ev, ctx) {
     var form = ctx.form;
     var uidEntry = form._dataMap && form._dataMap['UID'];
@@ -78,4 +103,4 @@ async function printInvoice(ev, ctx) {
     }
 }
 
-return { onRoomActivated, printInvoice };
+return { onRoomActivated, onExtraLineActivated, printInvoice };

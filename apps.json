@@ -9,6 +9,10 @@
             "path": "/booking"
         },
         {
+            "name": "organizationSettings",
+            "path": "/organizationSettings"
+        },
+        {
             "name": "ai_chat",
             "path": "/ai_chat"
         },

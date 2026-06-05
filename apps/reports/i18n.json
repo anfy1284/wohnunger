@@ -3,5 +3,110 @@
         "en": "No invoice lines. Calculate cost first.",
         "ru": "Нет строк спецификации. Сначала рассчитайте стоимость.",
         "de": "Keine Rechnungszeilen. Bitte zuerst die Kosten berechnen."
+    },
+    "invoice_no_label": {
+        "en": "Invoice No.",
+        "ru": "Счёт №",
+        "de": "Rechnung Nr."
+    },
+    "invoice_title": {
+        "en": "Invoice",
+        "ru": "Счёт",
+        "de": "Rechnung"
+    },
+    "invoice_date_label": {
+        "en": "Invoice date",
+        "ru": "Дата счёта",
+        "de": "Rechnungsdatum"
+    },
+    "invoice_period_label": {
+        "en": "Period",
+        "ru": "Период",
+        "de": "Zeitraum"
+    },
+    "invoice_col_description": {
+        "en": "Service / Description",
+        "ru": "Услуга / Описание",
+        "de": "Leistung / Beschreibung"
+    },
+    "invoice_col_vat_rate": {
+        "en": "VAT rate",
+        "ru": "Ставка НДС",
+        "de": "MwSt.-Satz"
+    },
+    "invoice_col_vat": {
+        "en": "VAT",
+        "ru": "НДС",
+        "de": "MwSt."
+    },
+    "invoice_col_total": {
+        "en": "Total price",
+        "ru": "Сумма",
+        "de": "Gesamtpreis"
+    },
+    "invoice_of_which_vat": {
+        "en": "incl. VAT",
+        "ru": "в т.ч. НДС",
+        "de": "davon MwSt."
+    },
+    "invoice_subtotal": {
+        "en": "Subtotal",
+        "ru": "Промежуточный итог",
+        "de": "Zwischensumme"
+    },
+    "invoice_net_amount": {
+        "en": "Net amount",
+        "ru": "Сумма нетто",
+        "de": "Nettobetrag"
+    },
+    "invoice_total_amount": {
+        "en": "Total amount",
+        "ru": "Итого",
+        "de": "Gesamtbetrag"
+    },
+    "invoice_less_prepayment": {
+        "en": "less prepayment",
+        "ru": "минус предоплата",
+        "de": "abzgl. Anzahlung"
+    },
+    "invoice_balance_due": {
+        "en": "Balance due",
+        "ru": "К доплате",
+        "de": "Restbetrag"
+    },
+    "invoice_tax_number_label": {
+        "en": "Tax no.",
+        "ru": "Налог. №",
+        "de": "Steuernr."
+    },
+    "invoice_phone_label": {
+        "en": "Phone",
+        "ru": "Тел.",
+        "de": "Tel."
+    },
+    "invoice_email_label": {
+        "en": "E-Mail",
+        "ru": "E-Mail",
+        "de": "E-Mail"
+    },
+    "invoice_page_label": {
+        "en": "Page",
+        "ru": "Стр.",
+        "de": "Seite"
+    },
+    "invoice_page_of": {
+        "en": "of",
+        "ru": "из",
+        "de": "von"
+    },
+    "invoice_note_thanks": {
+        "en": "Thank you for your stay and we wish you a safe journey home.",
+        "ru": "Благодарим вас за пребывание и желаем счастливой дороги домой.",
+        "de": "Wir danken für Ihren Aufenthalt und wünschen Ihnen eine gute Heimreise."
+    },
+    "invoice_note_payment": {
+        "en": "Please transfer the invoice amount within 14 days.",
+        "ru": "Пожалуйста, оплатите сумму счёта в течение 14 дней.",
+        "de": "Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen."
     }
 }

@@ -1,0 +1,27 @@
+{
+    "organization_settings_types": [
+        { "UID": "000000000-orgset-type-str",  "name": "string",  "valueTableName": "organization_settings_string_values" },
+        { "UID": "000000000-orgset-type-num",  "name": "number",  "valueTableName": "organization_settings_number_values" },
+        { "UID": "000000000-orgset-type-bool", "name": "boolean", "valueTableName": "organization_settings_boolean_values" },
+        { "UID": "000000000-orgset-type-date", "name": "date",    "valueTableName": "organization_settings_date_values" },
+        { "UID": "000000000-orgset-type-enum", "name": "enum",    "valueTableName": "organization_settings_string_values" }
+    ],
+    "organization_settings_fields": [
+        {
+            "UID": "000000000-orgset-fld-deftax",
+            "name": "defaultTaxRate",
+            "displayName": "default_tax_rate",
+            "typeId": "000000000-orgset-type-str",
+            "options": { "referenceTable": "tax_rates", "displayField": "name" },
+            "displayOrder": 10
+        },
+        {
+            "UID": "000000000-orgset-fld-replang",
+            "name": "reportLanguage",
+            "displayName": "report_language",
+            "typeId": "000000000-orgset-type-str",
+            "options": { "referenceTable": "languages", "displayField": "name" },
+            "displayOrder": 20
+        }
+    ]
+}

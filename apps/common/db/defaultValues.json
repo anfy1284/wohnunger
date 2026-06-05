@@ -8,13 +8,18 @@
         { "UID": "000000000-tax-cat-0006", "code": "exempt",        "name": "Steuerfrei" }
     ],
     "tax_rates": [
-        { "UID": "000000000-tax-rate-0001", "taxCategoryId": "000000000-tax-cat-0001", "rate": 7,  "validFrom": null,         "validTo": null },
-        { "UID": "000000000-tax-rate-0002", "taxCategoryId": "000000000-tax-cat-0002", "rate": 19, "validFrom": null,         "validTo": "2025-12-31" },
-        { "UID": "000000000-tax-rate-0003", "taxCategoryId": "000000000-tax-cat-0002", "rate": 7,  "validFrom": "2026-01-01", "validTo": null },
-        { "UID": "000000000-tax-rate-0004", "taxCategoryId": "000000000-tax-cat-0003", "rate": 19, "validFrom": null,         "validTo": null },
-        { "UID": "000000000-tax-rate-0005", "taxCategoryId": "000000000-tax-cat-0004", "rate": 19, "validFrom": null,         "validTo": null },
-        { "UID": "000000000-tax-rate-0006", "taxCategoryId": "000000000-tax-cat-0005", "rate": 7,  "validFrom": null,         "validTo": null },
-        { "UID": "000000000-tax-rate-0007", "taxCategoryId": "000000000-tax-cat-0006", "rate": 0,  "validFrom": null,         "validTo": null }
+        { "UID": "000000000-taxrate-v007", "name": "7%",  "rate": 7,  "displayOrder": 10 },
+        { "UID": "000000000-taxrate-v019", "name": "19%", "rate": 19, "displayOrder": 20 },
+        { "UID": "000000000-taxrate-v000", "name": "0%",  "rate": 0,  "displayOrder": 30 }
+    ],
+    "tax_category_rates": [
+        { "UID": "000000000-tax-rate-0001", "taxCategoryId": "000000000-tax-cat-0001", "rateId": "000000000-taxrate-v007", "validFrom": null,         "validTo": null },
+        { "UID": "000000000-tax-rate-0002", "taxCategoryId": "000000000-tax-cat-0002", "rateId": "000000000-taxrate-v019", "validFrom": null,         "validTo": "2025-12-31" },
+        { "UID": "000000000-tax-rate-0003", "taxCategoryId": "000000000-tax-cat-0002", "rateId": "000000000-taxrate-v007", "validFrom": "2026-01-01", "validTo": null },
+        { "UID": "000000000-tax-rate-0004", "taxCategoryId": "000000000-tax-cat-0003", "rateId": "000000000-taxrate-v019", "validFrom": null,         "validTo": null },
+        { "UID": "000000000-tax-rate-0005", "taxCategoryId": "000000000-tax-cat-0004", "rateId": "000000000-taxrate-v019", "validFrom": null,         "validTo": null },
+        { "UID": "000000000-tax-rate-0006", "taxCategoryId": "000000000-tax-cat-0005", "rateId": "000000000-taxrate-v007", "validFrom": null,         "validTo": null },
+        { "UID": "000000000-tax-rate-0007", "taxCategoryId": "000000000-tax-cat-0006", "rateId": "000000000-taxrate-v000", "validFrom": null,         "validTo": null }
     ],
     "booking_statuses": [
         { "UID": "000000000-bk-status-0001", "code": "draft",      "name": "Draft",      "displayOrder": 10 },

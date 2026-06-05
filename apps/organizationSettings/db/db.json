@@ -1,0 +1,192 @@
+{
+    "models": [
+        {
+            "name": "OrganizationSettingsTypes",
+            "tableName": "organization_settings_types",
+            "fields": {
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "unique": true
+                },
+                "valueTableName": {
+                    "type": "STRING",
+                    "allowNull": false
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "OrganizationSettingsFields",
+            "tableName": "organization_settings_fields",
+            "fields": {
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "unique": true
+                },
+                "displayName": {
+                    "type": "STRING",
+                    "allowNull": false
+                },
+                "typeId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organization_settings_types", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT"
+                },
+                "options": {
+                    "type": "JSON",
+                    "allowNull": true,
+                    "defaultValue": null
+                },
+                "displayOrder": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "defaultValue": 50
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "OrganizationSettingsStringValues",
+            "tableName": "organization_settings_string_values",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organizations", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE"
+                },
+                "settingsFieldId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organization_settings_fields", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE"
+                },
+                "value": {
+                    "type": "STRING",
+                    "allowNull": true
+                }
+            },
+            "options": {
+                "timestamps": true,
+                "indexes": [
+                    { "unique": true, "fields": ["organizationId", "settingsFieldId"] }
+                ]
+            }
+        },
+        {
+            "name": "OrganizationSettingsNumberValues",
+            "tableName": "organization_settings_number_values",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organizations", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE"
+                },
+                "settingsFieldId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organization_settings_fields", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE"
+                },
+                "value": {
+                    "type": "FLOAT",
+                    "allowNull": true
+                }
+            },
+            "options": {
+                "timestamps": true,
+                "indexes": [
+                    { "unique": true, "fields": ["organizationId", "settingsFieldId"] }
+                ]
+            }
+        },
+        {
+            "name": "OrganizationSettingsBooleanValues",
+            "tableName": "organization_settings_boolean_values",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organizations", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE"
+                },
+                "settingsFieldId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organization_settings_fields", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE"
+                },
+                "value": {
+                    "type": "BOOLEAN",
+                    "allowNull": true
+                }
+            },
+            "options": {
+                "timestamps": true,
+                "indexes": [
+                    { "unique": true, "fields": ["organizationId", "settingsFieldId"] }
+                ]
+            }
+        },
+        {
+            "name": "OrganizationSettingsDateValues",
+            "tableName": "organization_settings_date_values",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organizations", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE"
+                },
+                "settingsFieldId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organization_settings_fields", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE"
+                },
+                "value": {
+                    "type": "DATEONLY",
+                    "allowNull": true
+                }
+            },
+            "options": {
+                "timestamps": true,
+                "indexes": [
+                    { "unique": true, "fields": ["organizationId", "settingsFieldId"] }
+                ]
+            }
+        }
+    ],
+    "associations": [
+        {
+            "type": "hasMany",
+            "source": "OrganizationSettingsTypes",
+            "target": "OrganizationSettingsFields",
+            "foreignKey": "typeId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "OrganizationSettingsFields",
+            "target": "OrganizationSettingsTypes",
+            "foreignKey": "typeId",
+            "options": { "as": "type" }
+        }
+    ]
+}
