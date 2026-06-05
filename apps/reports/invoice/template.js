@@ -3,6 +3,12 @@
 // ─────────────────────────────────────────────────────────────────────
 // Шаблон HTML-счёта (Rechnung) для печати.
 // Получает данные бронирования и возвращает полный HTML-документ A4.
+//
+// Многостраничность: документ САМ пагинируется встроенным скриптом.
+// Контент раскладывается по настоящим листам A4 (.page), на каждом листе
+// повторяются шапка таблицы и нижний колонтитул с обязательными реквизитами
+// (Pflichtangaben) + «Seite X von Y». Блок итогов и примечание не рвутся.
+// Работает одинаково в превью (iframe, непрерывный скролл) и при печати.
 // ─────────────────────────────────────────────────────────────────────
 
 const fmtDate = d => { const dt = new Date(d); return dt.toLocaleDateString('de-DE'); };
@@ -43,7 +49,7 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
     totalMwSt = Math.round(totalMwSt * 100) / 100;
     const totalNetto = Math.round((totalBrutto - totalMwSt) * 100) / 100;
 
-    // Строки таблицы
+    // Строки таблицы услуг
     let rowsHtml = '';
     for (const ln of lines) {
         const rate = ln.taxRate || 0;
@@ -69,9 +75,34 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
             + '</tr>\n';
     }
 
+    // Блок итогов (не должен рваться между листами)
+    const totalsHtml =
+        '<tr class="subtotal">'
+        + '<td colspan="3" class="num">Zwischensumme</td>'
+        + '<td class="num">' + fmtNum(totalBrutto) + ' &euro;</td>'
+        + '</tr>\n'
+        + '<tr class="tax-row">'
+        + '<td colspan="3" class="num">Nettobetrag</td>'
+        + '<td class="num">' + fmtNum(totalNetto) + ' &euro;</td>'
+        + '</tr>\n'
+        + taxSummaryHtml
+        + '<tr class="grand-total">'
+        + '<td colspan="3" class="num">Gesamtbetrag</td>'
+        + '<td class="num">' + fmtNum(totalBrutto) + ' &euro;</td>'
+        + '</tr>\n'
+        + (prepayment > 0
+            ? '<tr class="tax-row">'
+              + '<td colspan="3" class="num">abzgl. Anzahlung</td>'
+              + '<td class="num">&minus;' + fmtNum(prepayment) + ' &euro;</td>'
+              + '</tr>\n'
+              + '<tr class="grand-total">'
+              + '<td colspan="3" class="num">Restbetrag</td>'
+              + '<td class="num">' + fmtNum(Math.round((totalBrutto - prepayment) * 100) / 100) + ' &euro;</td>'
+              + '</tr>\n'
+            : '');
+
     const clientName    = client ? esc(client.name) : '';
     const clientAddress = client && client.address ? esc(client.address).replace(/\n/g, '<br/>') : '';
-    const hotelName     = hotel  ? esc(hotel.name)  : '';
     const hotelAddress  = hotel  && hotel.address ? esc(hotel.address) : '';
     const orgName       = org    ? esc(org.name)    : '';
     const orgAddress    = org    && org.address ? esc(org.address) : '';
@@ -81,57 +112,24 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines }) {
     const orgIban       = org    && org.iban   ? esc(org.iban)   : '';
     const orgBic        = org    && org.bic    ? esc(org.bic)    : '';
 
-    return `<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="utf-8"/>
-<title>Rechnung ${esc(invoiceNum)}</title>
-<style>
-@page { size: A4; margin: 0; }
-* { box-sizing: border-box; }
-body { margin: 0; padding: 0;
-       font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #000; }
-.page { position: relative; min-height: 297mm;
-        padding: 15mm 20mm 32mm 20mm; color: #000; }
-.header { display: flex; justify-content: space-between; align-items: flex-start;
-          margin-bottom: 3mm; }
-.header .logo-area { max-width: 320px; }
-.header .logo-area img { max-width: 300px; }
-.header .contact { text-align: right; font-size: 8.5pt; color: #000; line-height: 1.5; }
-.fold-mark { border-top: 1px solid #ccc; margin: 0 0 8mm 0; }
-.addr-block { font-size: 10pt; min-height: 25mm; margin-bottom: 5mm; }
-.addr-sender { font-size: 7pt; color: #000; margin-bottom: 2mm;
-               border-bottom: 0.5pt solid #888; display: inline-block; padding-bottom: 1px; }
-.inv-meta { margin-bottom: 6mm; }
-.inv-meta table td { padding: 1mm 4mm 1mm 0; }
-h2 { font-size: 13pt; margin: 4mm 0; }
-table.inv-table { width: 100%; border-collapse: collapse; margin: 3mm 0; table-layout: fixed; }
-table.inv-table colgroup col.col-desc    { width: 50%; }
-table.inv-table colgroup col.col-rate    { width: 15%; }
-table.inv-table colgroup col.col-mwst    { width: 15%; }
-table.inv-table colgroup col.col-price   { width: 20%; }
-table.inv-table th { text-align: left; font-weight: bold; padding: 2mm 3mm;
-                     border-bottom: 1.5pt solid #000; white-space: nowrap; overflow: hidden; }
-table.inv-table th.num { text-align: right; }
-table.inv-table td { padding: 2mm 3mm; border-bottom: 0.3pt solid #ccc; }
-table.inv-table td.num { text-align: right; }
-tr.subtotal td { border-top: 1pt solid #000; font-weight: bold; padding-top: 4mm; }
-tr.tax-row td { border-bottom: none; font-size: 9pt; color: #000; }
-tr.grand-total td { border-top: 1.5pt solid #000; border-bottom: none; font-weight: bold; font-size: 11pt; }
-.footer { position: absolute; bottom: 10mm; left: 20mm; right: 20mm;
-          padding-top: 3mm; border-top: 0.5pt solid #999;
-          font-size: 8pt; color: #000; display: flex; justify-content: space-between;
-          gap: 4mm; }
-.footer div { flex: 1; }
-.footer .footer-bank { white-space: nowrap; text-align: right; }
-.note { margin-top: 8mm; font-size: 9pt; color: #000; }
-@media print { .page { min-height: 0; } }
-</style>
-</head>
-<body>
+    // ── Колонтитул (Pflichtangaben), повторяется на каждом листе ──
+    const footerInner =
+        '<div class="ft-col ft-org">' + orgName + (orgAddress ? '<br/>' + orgAddress : '') + '</div>'
+        + '<div class="ft-col ft-center">'
+        + (orgTaxNumber ? 'Steuernr.: ' + orgTaxNumber + '<br/>' : '')
+        + '<span class="page-num"></span></div>'
+        + '<div class="ft-col ft-bank">'
+        + (orgIban ? 'IBAN:&nbsp;' + orgIban : '')
+        + (orgBic ? '<br/>BIC:&nbsp;' + orgBic : '') + '</div>';
 
-<div class="page">
+    // ── Бегущая шапка на листах со 2-го (повтор номера счёта/клиента) ──
+    const runHeadInner =
+        '<div class="rh-left"><strong>Rechnung Nr. ' + esc(invoiceNum) + '</strong></div>'
+        + '<div class="rh-right">' + (clientName ? clientName + ' &middot; ' : '')
+        + checkIn + ' &ndash; ' + checkOut + '</div>';
 
+    // ── «Шапка письма» — только на первом листе ──
+    const letterheadInner = `
 <div class="header">
   <div class="logo-area">
     <img src="/apps/reports/resources/public/beim_seiler_4c_logo_2021.png" alt="${orgName}" /><br/>
@@ -159,60 +157,203 @@ tr.grand-total td { border-top: 1.5pt solid #000; border-bottom: none; font-weig
 </tr></table>
 </div>
 
-<h2>Rechnung Nr. ${esc(invoiceNum)}</h2>
+<h2>Rechnung Nr. ${esc(invoiceNum)}</h2>`;
 
-<table class="inv-table">
-<colgroup>
-  <col class="col-desc"/><col class="col-rate"/><col class="col-mwst"/><col class="col-price"/>
-</colgroup>
-<thead>
-  <tr>
-    <th>Leistung / Beschreibung</th>
-    <th class="num">MwSt.&#8209;Satz</th>
-    <th class="num">MwSt.</th>
-    <th class="num">Gesamtpreis</th>
-  </tr>
-</thead>
-<tbody>
-${rowsHtml}
-  <tr class="subtotal">
-    <td colspan="3" class="num">Zwischensumme</td>
-    <td class="num">${fmtNum(totalBrutto)} &euro;</td>
-  </tr>
-  <tr class="tax-row">
-    <td colspan="3" class="num">Nettobetrag</td>
-    <td class="num">${fmtNum(totalNetto)} &euro;</td>
-  </tr>
-${taxSummaryHtml}
-  <tr class="grand-total">
-    <td colspan="3" class="num">Gesamtbetrag</td>
-    <td class="num">${fmtNum(totalBrutto)} &euro;</td>
-  </tr>
-${prepayment > 0 ? `  <tr class="tax-row">
-    <td colspan="3" class="num">abzgl. Anzahlung</td>
-    <td class="num">&minus;${fmtNum(prepayment)} &euro;</td>
-  </tr>
-  <tr class="grand-total">
-    <td colspan="3" class="num">Restbetrag</td>
-    <td class="num">${fmtNum(Math.round((totalBrutto - prepayment) * 100) / 100)} &euro;</td>
-  </tr>` : ''}
-</tbody>
-</table>
-
-<div class="note">
+    const noteInner = `
 Wir danken f&uuml;r Ihren Aufenthalt und w&uuml;nschen Ihnen eine gute Heimreise.<br/>
-Bitte &uuml;berweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.
+Bitte &uuml;berweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.`;
+
+    const colgroupHtml = '<colgroup>'
+        + '<col class="col-desc"/><col class="col-rate"/><col class="col-mwst"/><col class="col-price"/>'
+        + '</colgroup>';
+    const theadHtml = '<thead><tr>'
+        + '<th>Leistung / Beschreibung</th>'
+        + '<th class="num">MwSt.&#8209;Satz</th>'
+        + '<th class="num">MwSt.</th>'
+        + '<th class="num">Gesamtpreis</th>'
+        + '</tr></thead>';
+
+    return `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<title>Rechnung ${esc(invoiceNum)}</title>
+<style>
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 9pt; line-height: 1.25; color: #000; }
+
+/* Лист A4 */
+.page { width: 210mm; height: 297mm; padding: 15mm 20mm;
+        display: flex; flex-direction: column; overflow: hidden;
+        background: #fff; position: relative; }
+.page-body   { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.page-footer { flex: 0 0 auto; margin-top: 4mm; padding-top: 3mm;
+               border-top: 0.5pt solid #999; font-size: 8pt; color: #000;
+               display: flex; justify-content: space-between; gap: 4mm; }
+.page-footer .ft-col { flex: 1; }
+.page-footer .ft-center { text-align: center; }
+.page-footer .ft-bank   { text-align: right; white-space: nowrap; }
+.page-footer .page-num  { color: #000; }
+
+/* Превью: серый фон, тени-листы. Печать: чистые листы с разрывом. */
+@media screen { body { background: #9a9a9a; }
+                .page { margin: 0 auto 6mm; box-shadow: 0 1px 6px rgba(0,0,0,.45); } }
+@media print  { body { background: #fff; }
+                .page { margin: 0; box-shadow: none; }
+                .page:not(:last-child) { break-after: page; page-break-after: always; } }
+
+/* Шапка письма (1-й лист) */
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3mm; }
+.header .logo-area { max-width: 320px; }
+.header .logo-area img { max-width: 300px; }
+.header .contact { text-align: right; font-size: 8.5pt; line-height: 1.5; }
+.fold-mark { border-top: 1px solid #ccc; margin: 0 0 5mm 0; }
+.addr-block { font-size: 10pt; min-height: 18mm; margin-bottom: 4mm; }
+.addr-sender { font-size: 7pt; margin-bottom: 2mm;
+               border-bottom: 0.5pt solid #888; display: inline-block; padding-bottom: 1px; }
+.inv-meta { margin-bottom: 4mm; }
+.inv-meta table td { padding: 0.6mm 4mm 0.6mm 0; }
+h2 { font-size: 12pt; margin: 2.5mm 0; }
+
+/* Бегущая шапка (листы со 2-го) */
+.run-head { display: flex; justify-content: space-between; align-items: baseline;
+            font-size: 8.5pt; color: #333; border-bottom: 0.3pt solid #bbb;
+            padding-bottom: 1.5mm; margin-bottom: 5mm; }
+
+/* Таблица услуг */
+table.inv-table { width: 100%; border-collapse: collapse; margin: 0 0 3mm 0; table-layout: fixed; }
+table.inv-table colgroup col.col-desc  { width: 58%; }
+table.inv-table colgroup col.col-rate  { width: 13%; }
+table.inv-table colgroup col.col-mwst  { width: 13%; }
+table.inv-table colgroup col.col-price { width: 16%; }
+table.inv-table th { text-align: left; font-weight: bold; padding: 1.4mm 2.5mm;
+                     border-bottom: 1.5pt solid #000; white-space: nowrap; overflow: hidden; }
+table.inv-table th.num { text-align: right; }
+table.inv-table td { padding: 1.1mm 2.5mm; border-bottom: 0.3pt solid #ccc; vertical-align: top; }
+table.inv-table td.num { text-align: right; white-space: nowrap; }
+tr.subtotal td { border-top: 1pt solid #000; font-weight: bold; padding-top: 2.5mm; }
+tr.tax-row td { border-bottom: none; font-size: 9pt; }
+tr.grand-total td { border-top: 1.5pt solid #000; border-bottom: none; font-weight: bold; font-size: 11pt; }
+
+.note { margin-top: 8mm; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<!-- Источник контента (скрыт): пагинатор разложит его по листам -->
+<div id="src-wrap" style="display:none">
+  <div id="src-letterhead">${letterheadInner}</div>
+  <table id="src-table" class="inv-table">
+    ${colgroupHtml}
+    ${theadHtml}
+    <tbody class="lines">
+${rowsHtml}    </tbody>
+    <tbody class="totals">
+${totalsHtml}    </tbody>
+  </table>
+  <div id="src-note" class="note">${noteInner}</div>
+  <div id="src-footer">${footerInner}</div>
+  <div id="src-runhead">${runHeadInner}</div>
 </div>
 
-</div>
+<div id="pages"></div>
 
-<div class="footer">
-  <div>${orgName}${orgAddress ? '<br/>' + orgAddress : ''}</div>
-  <div style="text-align:center;">${orgTaxNumber ? 'Steuernr.: ' + orgTaxNumber : ''}</div>
-  <div class="footer-bank">${orgIban ? 'IBAN:&nbsp;' + orgIban : ''}${orgBic ? '<br/>BIC:&nbsp;' + orgBic : ''}</div>
-</div>
+<script>
+(function () {
+  function paginate() {
+    var src = document.getElementById('src-wrap');
+    if (!src) return;
+    var pagesRoot = document.getElementById('pages');
+    var srcTable  = document.getElementById('src-table');
+    var colgroupHTML = srcTable.querySelector('colgroup').outerHTML;
+    var theadHTML    = srcTable.querySelector('thead').outerHTML;
+    var lineRows  = Array.prototype.slice.call(srcTable.querySelector('tbody.lines').children);
+    var totalRows = Array.prototype.slice.call(srcTable.querySelector('tbody.totals').children);
+    var letterhead = document.getElementById('src-letterhead');
+    var noteEl     = document.getElementById('src-note');
+    var footerHTML = document.getElementById('src-footer').innerHTML;
+    var runHeadHTML= document.getElementById('src-runhead').innerHTML;
 
-</div><!-- /.page -->
+    function makePage(first) {
+      var page = document.createElement('div'); page.className = 'page';
+      var body = document.createElement('div'); body.className = 'page-body';
+      if (first) {
+        var lh = document.createElement('div');
+        lh.innerHTML = letterhead.innerHTML;
+        body.appendChild(lh);
+      } else {
+        var rh = document.createElement('div'); rh.className = 'run-head';
+        rh.innerHTML = runHeadHTML;
+        body.appendChild(rh);
+      }
+      var footer = document.createElement('div'); footer.className = 'page-footer';
+      footer.innerHTML = footerHTML;
+      page.appendChild(body); page.appendChild(footer);
+      pagesRoot.appendChild(page);
+      return body;
+    }
+    function newTable(body) {
+      var t = document.createElement('table'); t.className = 'inv-table';
+      t.innerHTML = colgroupHTML + theadHTML + '<tbody class="lines"></tbody>';
+      body.appendChild(t);
+      return t.querySelector('tbody.lines');
+    }
+    function fits(body) { return body.scrollHeight <= body.clientHeight + 1; }
+
+    var body = makePage(true);
+    var tbody = newTable(body);
+
+    // 1. Строки услуг
+    for (var i = 0; i < lineRows.length; i++) {
+      var row = lineRows[i];
+      tbody.appendChild(row);
+      if (!fits(body)) {
+        tbody.removeChild(row);
+        body = makePage(false);
+        tbody = newTable(body);
+        tbody.appendChild(row); // на свежем листе помещается (иначе оставляем как есть)
+      }
+    }
+
+    // 2. Блок итогов — единым куском, не рвём
+    var totalsTbody = document.createElement('tbody'); totalsTbody.className = 'totals';
+    for (var j = 0; j < totalRows.length; j++) totalsTbody.appendChild(totalRows[j]);
+    tbody.parentNode.appendChild(totalsTbody);
+    if (!fits(body)) {
+      tbody.parentNode.removeChild(totalsTbody);
+      body = makePage(false);
+      tbody = newTable(body);
+      tbody.parentNode.appendChild(totalsTbody);
+    }
+
+    // 3. Примечание
+    if (noteEl) {
+      var note = document.createElement('div'); note.className = 'note';
+      note.innerHTML = noteEl.innerHTML;
+      body.appendChild(note);
+      if (!fits(body)) {
+        body.removeChild(note);
+        body = makePage(false);
+        body.appendChild(note);
+      }
+    }
+
+    // 4. Нумерация листов «Seite X von Y»
+    var pages = pagesRoot.querySelectorAll('.page');
+    for (var p = 0; p < pages.length; p++) {
+      var el = pages[p].querySelector('.page-num');
+      if (el) el.textContent = 'Seite ' + (p + 1) + ' von ' + pages.length;
+    }
+
+    src.parentNode.removeChild(src);
+  }
+
+  if (document.readyState === 'complete') paginate();
+  else window.addEventListener('load', paginate);
+})();
+</script>
 
 </body>
 </html>`;
