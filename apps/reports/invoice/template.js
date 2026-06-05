@@ -97,10 +97,10 @@ body { margin: 0; padding: 0;
           margin-bottom: 3mm; }
 .header .logo-area { max-width: 320px; }
 .header .logo-area img { max-width: 300px; }
-.header .contact { text-align: right; font-size: 8.5pt; color: #444; line-height: 1.5; }
+.header .contact { text-align: right; font-size: 8.5pt; color: #000; line-height: 1.5; }
 .fold-mark { border-top: 1px solid #ccc; margin: 0 0 8mm 0; }
 .addr-block { font-size: 10pt; min-height: 25mm; margin-bottom: 5mm; }
-.addr-sender { font-size: 7pt; color: #888; margin-bottom: 2mm;
+.addr-sender { font-size: 7pt; color: #000; margin-bottom: 2mm;
                border-bottom: 0.5pt solid #888; display: inline-block; padding-bottom: 1px; }
 .inv-meta { margin-bottom: 6mm; }
 .inv-meta table td { padding: 1mm 4mm 1mm 0; }
@@ -116,11 +116,11 @@ table.inv-table th.num { text-align: right; }
 table.inv-table td { padding: 2mm 3mm; border-bottom: 0.3pt solid #ccc; }
 table.inv-table td.num { text-align: right; }
 tr.subtotal td { border-top: 1pt solid #000; font-weight: bold; padding-top: 4mm; }
-tr.tax-row td { border-bottom: none; font-size: 9pt; color: #333; }
+tr.tax-row td { border-bottom: none; font-size: 9pt; color: #000; }
 tr.grand-total td { border-top: 1.5pt solid #000; border-bottom: none; font-weight: bold; font-size: 11pt; }
 .footer { position: absolute; bottom: 10mm; left: 20mm; right: 20mm;
           padding-top: 3mm; border-top: 0.5pt solid #999;
-          font-size: 8pt; color: #555; display: flex; justify-content: space-between;
+          font-size: 8pt; color: #000; display: flex; justify-content: space-between;
           gap: 4mm; }
 .footer div { flex: 1; }
 .footer .footer-bank { white-space: nowrap; text-align: right; }
