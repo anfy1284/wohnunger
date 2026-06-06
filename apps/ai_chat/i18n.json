@@ -1,0 +1,82 @@
+{
+    "AI Assistant": {
+        "en": "AI Assistant",
+        "ru": "Помощник ИИ",
+        "de": "KI-Assistent"
+    },
+    "Enter message... (Ctrl+Enter — send)": {
+        "en": "Enter message... (Ctrl+Enter — send)",
+        "ru": "Введите сообщение… (Ctrl+Enter — отправить)",
+        "de": "Nachricht eingeben… (Strg+Enter — senden)"
+    },
+    "Send": {
+        "en": "Send",
+        "ru": "Отправить",
+        "de": "Senden"
+    },
+    "You": {
+        "en": "You",
+        "ru": "Вы",
+        "de": "Sie"
+    },
+    "AI": {
+        "en": "AI",
+        "ru": "ИИ",
+        "de": "KI"
+    },
+    "Connected to Google Gemini. Ask in words or by voice — e.g. «open a new booking and fill in the dates».": {
+        "en": "Connected to Google Gemini. Ask in words or by voice — e.g. «open a new booking and fill in the dates».",
+        "ru": "Подключено к Google Gemini. Попросите словами или голосом — например «открой новую бронь и заполни даты».",
+        "de": "Mit Google Gemini verbunden. Bitten Sie per Text oder Sprache — z. B. «öffne eine neue Buchung und fülle die Daten aus»."
+    },
+    "Error: ": {
+        "en": "Error: ",
+        "ru": "Ошибка: ",
+        "de": "Fehler: "
+    },
+    "unknown error": {
+        "en": "unknown error",
+        "ru": "неизвестная ошибка",
+        "de": "unbekannter Fehler"
+    },
+    "Voice input": {
+        "en": "Voice input",
+        "ru": "Голосовой ввод",
+        "de": "Spracheingabe"
+    },
+    "Listening… (click to stop)": {
+        "en": "Listening… (click to stop)",
+        "ru": "Слушаю… (нажмите, чтобы остановить)",
+        "de": "Höre zu… (zum Stoppen klicken)"
+    },
+    "Voice input is not supported in this browser.": {
+        "en": "Voice input is not supported in this browser.",
+        "ru": "Голосовой ввод не поддерживается в этом браузере.",
+        "de": "Spracheingabe wird in diesem Browser nicht unterstützt."
+    },
+    "Microphone access denied.": {
+        "en": "Microphone access denied.",
+        "ru": "Доступ к микрофону запрещён.",
+        "de": "Mikrofonzugriff verweigert."
+    },
+    "Voice input error: ": {
+        "en": "Voice input error: ",
+        "ru": "Ошибка голосового ввода: ",
+        "de": "Spracheingabefehler: "
+    },
+    "Recognizing…": {
+        "en": "Recognizing…",
+        "ru": "Распознаю…",
+        "de": "Erkenne…"
+    },
+    "No speech recognized.": {
+        "en": "No speech recognized.",
+        "ru": "Речь не распознана.",
+        "de": "Keine Sprache erkannt."
+    },
+    "⚠ Too many steps, stopping.": {
+        "en": "⚠ Too many steps, stopping.",
+        "ru": "⚠ Слишком много шагов, останавливаюсь.",
+        "de": "⚠ Zu viele Schritte, Abbruch."
+    }
+}

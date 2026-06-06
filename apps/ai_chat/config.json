@@ -5,10 +5,13 @@
     "access": ["admin", "user"],
     "dependencies": {},
     "mainMenuCommands": [
-        {"id": "main", "items": [
-            { "caption": "apps", "roles": ["admin"], "items": [
-                { "caption": "Чат с ИИ", "action": "open", "icon": "/apps/general_icons/resources/public/16x16/send.png" }
-            ]}
-        ]}
+        {
+            "id": "ai_chat",
+            "caption": { "i18n": "AI Assistant" },
+            "action": "open",
+            "appName": "ai_chat",
+            "singleton": true,
+            "icon": "/apps/general_icons/resources/public/16x16/chat.png"
+        }
     ]
 }
