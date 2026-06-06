@@ -72,7 +72,7 @@
                     "onDelete": "CASCADE"
                 },
                 "value": {
-                    "type": "STRING",
+                    "type": "TEXT",
                     "allowNull": true
                 }
             },

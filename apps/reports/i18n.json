@@ -98,15 +98,5 @@
         "en": "of",
         "ru": "из",
         "de": "von"
-    },
-    "invoice_note_thanks": {
-        "en": "Thank you for your stay and we wish you a safe journey home.",
-        "ru": "Благодарим вас за пребывание и желаем счастливой дороги домой.",
-        "de": "Wir danken für Ihren Aufenthalt und wünschen Ihnen eine gute Heimreise."
-    },
-    "invoice_note_payment": {
-        "en": "Please transfer the invoice amount within 14 days.",
-        "ru": "Пожалуйста, оплатите сумму счёта в течение 14 дней.",
-        "de": "Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen."
     }
 }

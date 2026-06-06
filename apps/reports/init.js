@@ -55,11 +55,27 @@ module.exports = async function (modelsDB) {
                     }
                 } catch (e) { console.warn('[reports] reportLanguage resolve:', e && e.message); }
 
+                // Примечание в счёте — свободный текст из настроек организации
+                // (organizationSettings → invoiceNote). Печатается КАК ЕСТЬ, на том языке,
+                // на котором его ввёл пользователь (перевода нет). Пусто → блок не выводится.
+                let invoiceNote = '';
+                try {
+                    if (org && modelsDB.OrganizationSettingsFields) {
+                        const noteField = await modelsDB.OrganizationSettingsFields.findOne({ where: { name: 'invoiceNote' }, raw: true });
+                        if (noteField) {
+                            const rec = await modelsDB.OrganizationSettingsStringValues.findOne({
+                                where: { organizationId: org.UID, settingsFieldId: noteField.UID }, raw: true
+                            });
+                            if (rec && rec.value) invoiceNote = String(rec.value);
+                        }
+                    }
+                } catch (e) { console.warn('[reports] invoiceNote resolve:', e && e.message); }
+
                 const i18n = require('../../node_modules/my-old-space/drive_root/i18n');
                 const t = (key) => i18n.t(key, lang);
                 const locale = lang === 'en' ? 'en-GB' : (lang === 'ru' ? 'ru-RU' : 'de-DE');
 
-                const html = renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang });
+                const html = renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang, invoiceNote });
                 return { html };
             },
 

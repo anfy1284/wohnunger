@@ -22,6 +22,14 @@
             "typeId": "000000000-orgset-type-str",
             "options": { "referenceTable": "languages", "displayField": "name" },
             "displayOrder": 20
+        },
+        {
+            "UID": "000000000-orgset-fld-invnote",
+            "name": "invoiceNote",
+            "displayName": "invoice_note",
+            "typeId": "000000000-orgset-type-str",
+            "options": { "multiline": true, "rows": 3 },
+            "displayOrder": 30
         }
     ]
 }

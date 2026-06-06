@@ -14,6 +14,11 @@
         "ru": "Язык печати отчётов",
         "de": "Sprache für Berichtsdruck"
     },
+    "invoice_note": {
+        "en": "Invoice note (printed as-is)",
+        "ru": "Примечание в счёте (печатается как есть)",
+        "de": "Rechnungshinweis (wird so gedruckt)"
+    },
     "Apply": {
         "en": "Apply",
         "ru": "Применить",

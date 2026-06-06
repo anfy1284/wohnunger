@@ -184,6 +184,10 @@ async function buildLayout(modelsDB) {
             ctrl.options = enumOpts.map(o => ({ value: o, caption: o }));
         } else if (typeName === 'number') {
             ctrl.type = 'number';
+        } else if (opts && typeof opts === 'object' && !Array.isArray(opts) && opts.multiline) {
+            // Свободный многострочный текст (напр. примечание к счёту) → textarea.
+            ctrl.type = 'textarea';
+            if (typeof opts.rows === 'number') ctrl.rows = opts.rows;
         } else {
             ctrl.type = 'textbox';
         }

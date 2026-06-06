@@ -26,7 +26,7 @@ const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'
  * @param {string} [opts.lang]    — код языка документа (для <html lang>)
  * @returns {string} HTML-документ
  */
-function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang }) {
+function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang, invoiceNote }) {
     if (typeof t !== 'function') t = (k) => k;
     locale = locale || 'de-DE';
     lang   = lang || 'de';
@@ -166,9 +166,12 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang
 
 <h2>${t('invoice_no_label')} ${esc(invoiceNum)}</h2>`;
 
-    const noteInner = `
-${esc(t('invoice_note_thanks'))}<br/>
-${esc(t('invoice_note_payment'))}`;
+    // Примечание к счёту — свободный текст из настроек организации (invoiceNote).
+    // Печатается как есть, на языке ввода; перевода нет. Переносы строк → <br/>.
+    // Пусто → блок примечания не выводится.
+    const noteInner = invoiceNote
+        ? esc(invoiceNote).replace(/\r?\n/g, '<br/>')
+        : '';
 
     const colgroupHtml = '<colgroup>'
         + '<col class="col-desc"/><col class="col-rate"/><col class="col-mwst"/><col class="col-price"/>'
