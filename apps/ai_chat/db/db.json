@@ -1,0 +1,25 @@
+{
+    "models": [
+        {
+            "name": "AiChatMessages",
+            "tableName": "ai_chat_messages",
+            "fields": {
+                "userId": { "type": "STRING", "allowNull": false, "caption": "User" },
+                "role": { "type": "STRING", "allowNull": false, "caption": "Role" },
+                "text": { "type": "TEXT", "allowNull": true, "caption": "Text" }
+            },
+            "options": { "timestamps": true }
+        },
+        {
+            "name": "AiChatMemory",
+            "tableName": "ai_chat_memory",
+            "fields": {
+                "userId": { "type": "STRING", "allowNull": false, "caption": "User" },
+                "summary": { "type": "TEXT", "allowNull": true, "caption": "Summary" },
+                "facts": { "type": "TEXT", "allowNull": true, "caption": "Facts" },
+                "summarizedCount": { "type": "INTEGER", "allowNull": true, "caption": "SummarizedCount" }
+            },
+            "options": { "timestamps": true }
+        }
+    ]
+}

@@ -78,5 +78,35 @@
         "en": "⚠ Too many steps, stopping.",
         "ru": "⚠ Слишком много шагов, останавливаюсь.",
         "de": "⚠ Zu viele Schritte, Abbruch."
+    },
+    "— earlier conversation restored —": {
+        "en": "— earlier conversation restored —",
+        "ru": "— предыдущий разговор восстановлен —",
+        "de": "— früheres Gespräch wiederhergestellt —"
+    },
+    "AI is working": {
+        "en": "AI is working",
+        "ru": "ИИ работает",
+        "de": "KI arbeitet"
+    },
+    "Attach a file (image or PDF)": {
+        "en": "Attach a file (image or PDF)",
+        "ru": "Прикрепить файл (картинку или PDF)",
+        "de": "Datei anhängen (Bild oder PDF)"
+    },
+    "Remove attachment": {
+        "en": "Remove attachment",
+        "ru": "Убрать вложение",
+        "de": "Anhang entfernen"
+    },
+    "File is too large (max ~25 MB).": {
+        "en": "File is too large (max ~25 MB).",
+        "ru": "Файл слишком большой (макс. ~25 МБ).",
+        "de": "Datei ist zu groß (max. ~25 MB)."
+    },
+    "Could not read the file.": {
+        "en": "Could not read the file.",
+        "ru": "Не удалось прочитать файл.",
+        "de": "Datei konnte nicht gelesen werden."
     }
 }
