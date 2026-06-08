@@ -33,7 +33,9 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang
     const fmtDate = d => { const dt = new Date(d); return dt.toLocaleDateString(locale); };
     const fmtNum  = (v, dec) => Number(v).toLocaleString(locale, { minimumFractionDigits: dec || 2, maximumFractionDigits: dec || 2 });
 
-    const invoiceNum  = booking.name || booking.UID.slice(0, 8);
+    // Номер счёта = номер брони (реквизит number). booking.name теперь содержит
+    // представление (номер + клиент + даты), для «Rechnung Nr.» нужен именно number.
+    const invoiceNum  = booking.number || booking.name || booking.UID.slice(0, 8);
     const invoiceDate = fmtDate(new Date());
     const checkIn     = fmtDate(booking.checkIn);
     const checkOut    = fmtDate(booking.checkOut);

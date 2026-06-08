@@ -22,8 +22,8 @@
                 "layout": [
                     {
                         "type": "textbox",
-                        "name": "name",
-                        "data": "name",
+                        "name": "number",
+                        "data": "number",
                         "caption": { "i18n": "booking_name_field" }
                     },
                     {

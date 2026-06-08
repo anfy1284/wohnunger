@@ -8,10 +8,6 @@
                 "hooks": {
                     "beforeCreate": [
                         {
-                            "handler": "default.autoNumber",
-                            "params": { "field": "name", "length": 5, "prefix": "", "period": null }
-                        },
-                        {
                             "handler": "booking.onBeforeCreate"
                         }
                     ]
@@ -21,7 +17,7 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "booking_name_field" }
+                    "caption": { "i18n": "name_field" }
                 },
                 "organizationId": {
                     "type": "STRING",
