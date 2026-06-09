@@ -92,6 +92,110 @@
                                 ]
                             }
                         ]
+                    },
+                    {
+                        "type": "group",
+                        "caption": "",
+                        "noBorder": true,
+                        "orientation": "horizontal",
+                        "layout": [
+                            {
+                                "type": "group",
+                                "caption": { "i18n": "booking_rooms_tab" },
+                                "noBorder": true,
+                                "orientation": "vertical",
+                                "layout": [{
+                                    "type": "table",
+                                    "name": "ts_booking_rooms",
+                                    "data": "booking_rooms",
+                                    "columns": [
+                                        {
+                                            "caption": { "i18n": "Room" },
+                                            "data": "roomId",
+                                            "width": 200,
+                                            "inputType": "recordSelector",
+                                            "properties": {
+                                                "showSelectionButton": true,
+                                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
+                                            }
+                                        }
+                                    ],
+                                    "properties": {
+                                        "editMode": "cell-immediate",
+                                        "visibleRows": 8,
+                                        "tabularFilter": { "bookingId": "{UID}" },
+                                        "masterFor":   ["ts_booking_guests", "ts_booking_room_services"],
+                                        "masterField": "UID",
+                                        "detailField": "bookingRoomId",
+                                        "hiddenButtons": ["listSettings", "recordOpen"]
+                                    },
+                                    "events": {
+                                        "onRowActivate": "onRoomActivated"
+                                    }
+                                }]
+                            },
+                            {
+                                "type": "group",
+                                "caption": { "i18n": "Guests" },
+                                "noBorder": true,
+                                "orientation": "vertical",
+                                "layout": [{
+                                    "type": "table",
+                                    "name": "ts_booking_guests",
+                                    "data": "booking_guests",
+                                    "columns": [
+                                        {
+                                            "caption": { "i18n": "guest_type_field" },
+                                            "data": "guestTypeId",
+                                            "width": 180,
+                                            "inputType": "recordSelector",
+                                            "properties": {
+                                                "showSelectionButton": true,
+                                                "selection": { "table": "guest_types", "idField": "UID", "displayField": "name" }
+                                            }
+                                        },
+                                        { "caption": { "i18n": "Quantity" }, "data": "count", "width": 80, "inputType": "number" }
+                                    ],
+                                    "properties": {
+                                        "editMode": "cell-immediate",
+                                        "visibleRows": 8,
+                                        "tabularFilter": { "bookingId": "{UID}" },
+                                        "hiddenButtons": ["listSettings", "recordOpen"]
+                                    }
+                                }]
+                            },
+                            {
+                                "type": "group",
+                                "caption": { "i18n": "Services" },
+                                "noBorder": true,
+                                "orientation": "vertical",
+                                "layout": [{
+                                    "type": "table",
+                                    "name": "ts_booking_room_services",
+                                    "data": "booking_room_services",
+                                    "columns": [
+                                        {
+                                            "caption": { "i18n": "Service" },
+                                            "data": "serviceId",
+                                            "width": 200,
+                                            "readOnly": true,
+                                            "inputType": "recordSelector",
+                                            "properties": {
+                                                "showSelectionButton": true,
+                                                "selection": { "table": "services", "idField": "UID", "displayField": "name" }
+                                            }
+                                        },
+                                        { "caption": { "i18n": "Included" }, "data": "count", "width": 60, "inputType": "checkbox" }
+                                    ],
+                                    "properties": {
+                                        "editMode": "cell-immediate",
+                                        "visibleRows": 8,
+                                        "tabularFilter": { "bookingId": "{UID}" },
+                                        "hiddenButtons": ["listSettings", "recordOpen"]
+                                    }
+                                }]
+                            }
+                        ]
                     }
                 ]
             },
@@ -133,159 +237,56 @@
                                 }
                             }
                         ]
+                    },
+                    {
+                        "type": "group",
+                        "caption": { "i18n": "booking_extra_lines_tab" },
+                        "noBorder": true,
+                        "orientation": "vertical",
+                        "layout": [{
+                            "type": "table",
+                            "name": "ts_booking_extra_lines",
+                            "data": "booking_extra_lines",
+                            "columns": [
+                                { "caption": { "i18n": "extra_line_name" }, "data": "name", "width": 300, "inputType": "textbox" },
+                                { "caption": { "i18n": "amount_gross" }, "data": "amount", "width": 120, "inputType": "number" },
+                                {
+                                    "caption": { "i18n": "tax_rate" },
+                                    "data": "taxRateId",
+                                    "width": 120,
+                                    "inputType": "recordSelector",
+                                    "properties": {
+                                        "showSelectionButton": true,
+                                        "selection": { "table": "tax_rates", "idField": "UID", "displayField": "name" }
+                                    }
+                                }
+                            ],
+                            "properties": {
+                                "editMode": "cell-immediate",
+                                "visibleRows": 5,
+                                "tabularFilter": { "bookingId": "{UID}" },
+                                "hiddenButtons": ["listSettings", "recordOpen"]
+                            },
+                            "events": {
+                                "onRowActivate": "onExtraLineActivated"
+                            }
+                        }]
+                    },
+                    {
+                        "type": "group",
+                        "caption": { "i18n": "Notes" },
+                        "noBorder": true,
+                        "orientation": "vertical",
+                        "layout": [
+                            {
+                                "type": "textarea",
+                                "name": "notes",
+                                "data": "notes",
+                                "caption": ""
+                            }
+                        ]
                     }
                 ]
-            }
-        ]
-    },
-    {
-        "type": "group",
-        "caption": "",
-        "orientation": "horizontal",
-        "layout": [
-            {
-                "type": "group",
-                "caption": { "i18n": "booking_rooms_tab" },
-                "noBorder": true,
-                "orientation": "vertical",
-                "layout": [{
-                    "type": "table",
-                    "name": "ts_booking_rooms",
-                    "data": "booking_rooms",
-                    "columns": [
-                        {
-                            "caption": { "i18n": "Room" },
-                            "data": "roomId",
-                            "width": 200,
-                            "inputType": "recordSelector",
-                            "properties": {
-                                "showSelectionButton": true,
-                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
-                            }
-                        }
-                    ],
-                    "properties": {
-                        "editMode": "cell-immediate",
-                        "visibleRows": 8,
-                        "tabularFilter": { "bookingId": "{UID}" },
-                        "masterFor":   ["ts_booking_guests", "ts_booking_room_services"],
-                        "masterField": "UID",
-                        "detailField": "bookingRoomId",
-                        "hiddenButtons": ["listSettings", "recordOpen"]
-                    },
-                    "events": {
-                        "onRowActivate": "onRoomActivated"
-                    }
-                }]
-            },
-            {
-                "type": "group",
-                "caption": { "i18n": "Guests" },
-                "noBorder": true,
-                "orientation": "vertical",
-                "layout": [{
-                    "type": "table",
-                    "name": "ts_booking_guests",
-                    "data": "booking_guests",
-                    "columns": [
-                        {
-                            "caption": { "i18n": "guest_type_field" },
-                            "data": "guestTypeId",
-                            "width": 180,
-                            "inputType": "recordSelector",
-                            "properties": {
-                                "showSelectionButton": true,
-                                "selection": { "table": "guest_types", "idField": "UID", "displayField": "name" }
-                            }
-                        },
-                        { "caption": { "i18n": "Quantity" }, "data": "count", "width": 80, "inputType": "number" }
-                    ],
-                    "properties": {
-                        "editMode": "cell-immediate",
-                        "visibleRows": 8,
-                        "tabularFilter": { "bookingId": "{UID}" },
-                        "hiddenButtons": ["listSettings", "recordOpen"]
-                    }
-                }]
-            },
-            {
-                "type": "group",
-                "caption": { "i18n": "Services" },
-                "noBorder": true,
-                "orientation": "vertical",
-                "layout": [{
-                    "type": "table",
-                    "name": "ts_booking_room_services",
-                    "data": "booking_room_services",
-                    "columns": [
-                        {
-                            "caption": { "i18n": "Service" },
-                            "data": "serviceId",
-                            "width": 200,
-                            "readOnly": true,
-                            "inputType": "recordSelector",
-                            "properties": {
-                                "showSelectionButton": true,
-                                "selection": { "table": "services", "idField": "UID", "displayField": "name" }
-                            }
-                        },
-                        { "caption": { "i18n": "Included" }, "data": "count", "width": 60, "inputType": "checkbox" }
-                    ],
-                    "properties": {
-                        "editMode": "cell-immediate",
-                        "visibleRows": 8,
-                        "tabularFilter": { "bookingId": "{UID}" },
-                        "hiddenButtons": ["listSettings", "recordOpen"]
-                    }
-                }]
-            }
-        ]
-    },
-    {
-        "type": "group",
-        "caption": { "i18n": "booking_extra_lines_tab" },
-        "noBorder": true,
-        "orientation": "vertical",
-        "layout": [{
-            "type": "table",
-            "name": "ts_booking_extra_lines",
-            "data": "booking_extra_lines",
-            "columns": [
-                { "caption": { "i18n": "extra_line_name" }, "data": "name", "width": 300, "inputType": "textbox" },
-                { "caption": { "i18n": "amount_gross" }, "data": "amount", "width": 120, "inputType": "number" },
-                {
-                    "caption": { "i18n": "tax_rate" },
-                    "data": "taxRateId",
-                    "width": 120,
-                    "inputType": "recordSelector",
-                    "properties": {
-                        "showSelectionButton": true,
-                        "selection": { "table": "tax_rates", "idField": "UID", "displayField": "name" }
-                    }
-                }
-            ],
-            "properties": {
-                "editMode": "cell-immediate",
-                "visibleRows": 5,
-                "tabularFilter": { "bookingId": "{UID}" },
-                "hiddenButtons": ["listSettings", "recordOpen"]
-            },
-            "events": {
-                "onRowActivate": "onExtraLineActivated"
-            }
-        }]
-    },
-    {
-        "type": "group",
-        "caption": { "i18n": "Notes" },
-        "noBorder": true,
-        "orientation": "vertical",
-        "layout": [
-            {
-                "type": "textarea",
-                "name": "notes",
-                "data": "notes",
-                "caption": ""
             }
         ]
     }
