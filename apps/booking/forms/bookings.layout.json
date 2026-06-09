@@ -48,7 +48,6 @@
                                         "data": "clientId",
                                         "caption": { "i18n": "Client" },
                                         "properties": {
-                                            "showSelectionButton": true,
                                             "showOpenButton": true,
                                             "selection": {
                                                 "table": "clients",
@@ -84,7 +83,6 @@
                                         "data": "statusId",
                                         "caption": { "i18n": "Status" },
                                         "properties": {
-                                            "showSelectionButton": true,
                                             "selection": {
                                                 "table": "booking_statuses",
                                                 "idField": "UID",
@@ -218,7 +216,6 @@
                                 "data": "hotelId",
                                 "caption": { "i18n": "Hotel" },
                                 "properties": {
-                                    "showSelectionButton": true,
                                     "selection": {
                                         "table": "hotels",
                                         "idField": "UID",
@@ -232,7 +229,6 @@
                                 "data": "organizationId",
                                 "caption": { "i18n": "Organization" },
                                 "properties": {
-                                    "showSelectionButton": true,
                                     "selection": {
                                         "table": "organizations",
                                         "idField": "UID",
