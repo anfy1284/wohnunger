@@ -261,6 +261,7 @@
                             "properties": {
                                 "editMode": "cell-immediate",
                                 "visibleRows": 5,
+                                "autoPickSingleRef": false,
                                 "tabularFilter": { "bookingId": "{UID}" },
                                 "hiddenButtons": ["listSettings", "recordOpen"]
                             },
