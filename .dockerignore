@@ -1,0 +1,10 @@
+node_modules
+.env
+.git
+*.sqlite
+database.sqlite-journal
+dbSettings.json
+dbSettings.postgres.json
+dbSettings.sqlite.json
+ai_settings.json
+tmp/
