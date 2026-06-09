@@ -11,101 +11,128 @@
         ]
     },
     {
-        "type": "group",
-        "caption": { "i18n": "Booking" },
-        "orientation": "horizontal",
-        "layout": [
+        "type": "tabs",
+        "name": "bookingMainTabs",
+        "tabs": [
             {
-                "type": "group",
-                "caption": "",
-                "orientation": "vertical",
+                "caption": { "i18n": "booking_tab_main" },
                 "layout": [
                     {
-                        "type": "textbox",
-                        "name": "number",
-                        "data": "number",
-                        "caption": { "i18n": "booking_name_field" }
-                    },
-                    {
-                        "type": "number",
-                        "name": "prepayment",
-                        "data": "prepayment",
-                        "caption": { "i18n": "prepayment_field" }
-                    },
-                    {
-                        "type": "recordSelector",
-                        "name": "clientId",
-                        "data": "clientId",
-                        "caption": { "i18n": "Client" },
-                        "properties": {
-                            "showSelectionButton": true,
-                            "selection": {
-                                "table": "clients",
-                                "idField": "UID",
-                                "displayField": "name"
+                        "type": "group",
+                        "caption": "",
+                        "noBorder": true,
+                        "orientation": "horizontal",
+                        "layout": [
+                            {
+                                "type": "group",
+                                "caption": "",
+                                "noBorder": true,
+                                "orientation": "vertical",
+                                "layout": [
+                                    {
+                                        "type": "textbox",
+                                        "name": "number",
+                                        "data": "number",
+                                        "caption": { "i18n": "booking_name_field" }
+                                    },
+                                    {
+                                        "type": "number",
+                                        "name": "prepayment",
+                                        "data": "prepayment",
+                                        "caption": { "i18n": "prepayment_field" }
+                                    },
+                                    {
+                                        "type": "recordSelector",
+                                        "name": "clientId",
+                                        "data": "clientId",
+                                        "caption": { "i18n": "Client" },
+                                        "properties": {
+                                            "showSelectionButton": true,
+                                            "selection": {
+                                                "table": "clients",
+                                                "idField": "UID",
+                                                "displayField": "name"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "group",
+                                "caption": "",
+                                "noBorder": true,
+                                "orientation": "vertical",
+                                "layout": [
+                                    {
+                                        "type": "date",
+                                        "name": "checkIn",
+                                        "data": "checkIn",
+                                        "caption": { "i18n": "check_in" }
+                                    },
+                                    {
+                                        "type": "date",
+                                        "name": "checkOut",
+                                        "data": "checkOut",
+                                        "caption": { "i18n": "check_out" }
+                                    },
+                                    {
+                                        "type": "recordSelector",
+                                        "name": "statusId",
+                                        "data": "statusId",
+                                        "caption": { "i18n": "Status" },
+                                        "properties": {
+                                            "showSelectionButton": true,
+                                            "selection": {
+                                                "table": "booking_statuses",
+                                                "idField": "UID",
+                                                "displayField": "name"
+                                            }
+                                        }
+                                    }
+                                ]
                             }
-                        }
-                    },
-                    {
-                        "type": "recordSelector",
-                        "name": "hotelId",
-                        "data": "hotelId",
-                        "caption": { "i18n": "Hotel" },
-                        "properties": {
-                            "showSelectionButton": true,
-                            "selection": {
-                                "table": "hotels",
-                                "idField": "UID",
-                                "displayField": "name"
-                            }
-                        }
-                    },
-                    {
-                        "type": "recordSelector",
-                        "name": "organizationId",
-                        "data": "organizationId",
-                        "caption": { "i18n": "Organization" },
-                        "properties": {
-                            "showSelectionButton": true,
-                            "selection": {
-                                "table": "organizations",
-                                "idField": "UID",
-                                "displayField": "name"
-                            }
-                        }
+                        ]
                     }
                 ]
             },
             {
-                "type": "group",
-                "caption": "",
-                "orientation": "vertical",
+                "caption": { "i18n": "booking_tab_extra" },
                 "layout": [
                     {
-                        "type": "date",
-                        "name": "checkIn",
-                        "data": "checkIn",
-                        "caption": { "i18n": "check_in" }
-                    },
-                    {
-                        "type": "date",
-                        "name": "checkOut",
-                        "data": "checkOut",
-                        "caption": { "i18n": "check_out" }
-                    },
-                    {
-                        "type": "recordSelector",
-                        "name": "statusId",
-                        "data": "statusId",
-                        "caption": { "i18n": "Status" },
-                        "properties": {
-                            "showSelectionButton": true,
-                            "selection": {
-                                "table": "booking_statuses",
-                                "idField": "UID",
-                                "displayField": "name"
+                        "type": "group",
+                        "caption": "",
+                        "noBorder": true,
+                        "orientation": "vertical",
+                        "layout": [
+                            {
+                                "type": "recordSelector",
+                                "name": "hotelId",
+                                "data": "hotelId",
+                                "caption": { "i18n": "Hotel" },
+                                "properties": {
+                                    "showSelectionButton": true,
+                                    "selection": {
+                                        "table": "hotels",
+                                        "idField": "UID",
+                                        "displayField": "name"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "recordSelector",
+                                "name": "organizationId",
+                                "data": "organizationId",
+                                "caption": { "i18n": "Organization" },
+                                "properties": {
+                                    "showSelectionButton": true,
+                                    "selection": {
+                                        "table": "organizations",
+                                        "idField": "UID",
+                                        "displayField": "name"
+                                    }
+                                }
                             }
-                        }
+                        ]
                     }
                 ]
             }
@@ -119,6 +146,7 @@
             {
                 "type": "group",
                 "caption": { "i18n": "booking_rooms_tab" },
+                "noBorder": true,
                 "orientation": "vertical",
                 "layout": [{
                     "type": "table",
@@ -153,6 +181,7 @@
             {
                 "type": "group",
                 "caption": { "i18n": "Guests" },
+                "noBorder": true,
                 "orientation": "vertical",
                 "layout": [{
                     "type": "table",
@@ -182,6 +211,7 @@
             {
                 "type": "group",
                 "caption": { "i18n": "Services" },
+                "noBorder": true,
                 "orientation": "vertical",
                 "layout": [{
                     "type": "table",
@@ -214,6 +244,7 @@
     {
         "type": "group",
         "caption": { "i18n": "booking_extra_lines_tab" },
+        "noBorder": true,
         "orientation": "vertical",
         "layout": [{
             "type": "table",
@@ -247,6 +278,7 @@
     {
         "type": "group",
         "caption": { "i18n": "Notes" },
+        "noBorder": true,
         "orientation": "vertical",
         "layout": [
             {

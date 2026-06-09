@@ -344,5 +344,15 @@
         "en": "Invoices",
         "ru": "Счета",
         "de": "Rechnungen"
+    },
+    "booking_tab_main": {
+        "en": "Main",
+        "ru": "Основное",
+        "de": "Allgemein"
+    },
+    "booking_tab_extra": {
+        "en": "Additional",
+        "ru": "Дополнительное",
+        "de": "Zusatz"
     }
 }
