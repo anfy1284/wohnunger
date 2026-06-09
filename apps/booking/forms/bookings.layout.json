@@ -49,6 +49,7 @@
                                         "caption": { "i18n": "Client" },
                                         "properties": {
                                             "showSelectionButton": true,
+                                            "showOpenButton": true,
                                             "selection": {
                                                 "table": "clients",
                                                 "idField": "UID",
