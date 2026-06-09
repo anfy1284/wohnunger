@@ -116,7 +116,6 @@
                                             "width": 200,
                                             "inputType": "recordSelector",
                                             "properties": {
-                                                "showSelectionButton": true,
                                                 "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
                                             }
                                         }
@@ -151,7 +150,6 @@
                                             "width": 180,
                                             "inputType": "recordSelector",
                                             "properties": {
-                                                "showSelectionButton": true,
                                                 "selection": { "table": "guest_types", "idField": "UID", "displayField": "name" }
                                             }
                                         },
@@ -256,7 +254,6 @@
                                     "width": 120,
                                     "inputType": "recordSelector",
                                     "properties": {
-                                        "showSelectionButton": true,
                                         "selection": { "table": "tax_rates", "idField": "UID", "displayField": "name" }
                                     }
                                 }
