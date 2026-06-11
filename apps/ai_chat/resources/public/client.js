@@ -38,17 +38,22 @@ MySpace.register('ai_chat', {
         };
 
         // Прижать вплотную к правому нижнему углу (без зазоров) и держать там при ресайзе.
+        // Всегда выставляет appForm.x/y (по фиксированным width/height) — это позволяет
+        // вызвать её ДО первого Draw, чтобы окно сразу создалось в углу, а не мелькало
+        // по центру (Form.Draw авто-центрирует только при x===0 && y===0). К самому
+        // element координаты применяются, только если он уже создан.
         function positionBottomRight() {
             try {
-                if (!appForm.element) return;
-                const w = appForm.width || appForm.element.offsetWidth || 420;
-                const h = appForm.height || appForm.element.offsetHeight || 560;
+                const w = appForm.width || (appForm.element && appForm.element.offsetWidth) || 420;
+                const h = appForm.height || (appForm.element && appForm.element.offsetHeight) || 560;
                 // Высота таскбара (его задаёт приложение taskbar в Form.bottomOffset) — не залезаем на него.
                 const bottomOffset = (typeof Form !== 'undefined' && Form.bottomOffset) ? Form.bottomOffset : 0;
                 appForm.x = Math.max(0, window.innerWidth - w);
                 appForm.y = Math.max(0, window.innerHeight - h - bottomOffset);
-                appForm.element.style.left = appForm.x + 'px';
-                appForm.element.style.top = appForm.y + 'px';
+                if (appForm.element) {
+                    appForm.element.style.left = appForm.x + 'px';
+                    appForm.element.style.top = appForm.y + 'px';
+                }
             } catch (_) {}
         }
         window.addEventListener('resize', positionBottomRight);
@@ -89,6 +94,11 @@ MySpace.register('ai_chat', {
         const _originalDraw = appForm.Draw.bind(appForm);
 
         appForm.Draw = async function (parent) {
+            // Задаём итоговую позицию (правый нижний угол) ДО первого показа окна,
+            // иначе Form.Draw авто-центрирует пустое окно, оно мелькнёт по центру,
+            // и только потом перепрыгнет в угол (строка ниже). element ещё нет —
+            // positionBottomRight просто выставит appForm.x/y, которые подхватит Form.Draw.
+            positionBottomRight();
             await _originalDraw(parent);
 
             const contentArea = this.getContentArea();
