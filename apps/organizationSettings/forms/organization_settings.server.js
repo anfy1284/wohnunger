@@ -165,8 +165,8 @@ async function buildLayout(modelsDB) {
         const opts = field.options;
         if (opts && typeof opts === 'object' && !Array.isArray(opts) && opts.referenceTable) {
             ctrl.type = 'recordSelector';
+            // No explicit button flag → client auto-picks dropdown (small list) vs "..." (large).
             ctrl.properties = {
-                showSelectionButton: true,
                 selection: {
                     table:        opts.referenceTable,
                     idField:      'UID',
@@ -211,14 +211,16 @@ async function buildLayout(modelsDB) {
             type:        'group',
             caption:     { i18n: 'Organization' },
             orientation: 'vertical',
+            alignFields: true,
             layout: [
                 {
                     type: 'recordSelector',
                     name: ORG_FIELD,
                     data: ORG_FIELD,
                     caption: { i18n: 'Organization' },
+                    // No button flag → dropdown for the (usually few) organizations the
+                    // user may access; the dropdown selection fires onChange (onOrgChanged).
                     properties: {
-                        showSelectionButton: true,
                         selection: { table: 'organizations', idField: 'UID', displayField: 'name' }
                     },
                     events: { onChange: 'onOrgChanged' }
@@ -229,6 +231,7 @@ async function buildLayout(modelsDB) {
             type:        'group',
             caption:     { i18n: 'organization_settings_app_caption' },
             orientation: 'vertical',
+            alignFields: true,
             layout:      controls
         }
     ];

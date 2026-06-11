@@ -153,7 +153,7 @@
                                                 "selection": { "table": "guest_types", "idField": "UID", "displayField": "name" }
                                             }
                                         },
-                                        { "caption": { "i18n": "Quantity" }, "data": "count", "width": 80, "inputType": "number" }
+                                        { "caption": { "i18n": "Quantity" }, "data": "count", "width": 110, "inputType": "integer", "properties": { "minValue": 0 } }
                                     ],
                                     "properties": {
                                         "editMode": "cell-immediate",
