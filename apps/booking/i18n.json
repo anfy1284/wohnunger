@@ -213,6 +213,11 @@
         "ru": "Сохранить перед печатью?",
         "de": "Vor dem Drucken speichern?"
     },
+    "Preparing invoice…": {
+        "en": "Preparing invoice…",
+        "ru": "Формирование счёта…",
+        "de": "Rechnung wird erstellt…"
+    },
 
     "room_line_label": {
         "en": "Room {{room}} ({{guests}} guest(s.)) × {{nights}} night(s.)",

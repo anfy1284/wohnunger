@@ -95,7 +95,15 @@ async function printInvoice(ev, ctx) {
         if (form._modified) return; // сохранение не удалось, ошибка уже показана
     }
 
-    var result = await callServer('reports.actions', 'generateInvoiceHTML', { bookingId: bookingId });
+    // Бегущий прогрессбар на время серверной генерации счёта (печать окна
+    // покрывается отдельно индикатором внутри MySpace.open).
+    var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Preparing invoice…')) : null;
+    var result;
+    try {
+        result = await callServer('reports.actions', 'generateInvoiceHTML', { bookingId: bookingId });
+    } finally {
+        if (busyToken != null && window.MySpace && window.MySpace.hideBusy) window.MySpace.hideBusy(busyToken);
+    }
     if (result.error) { showAlert(__t('Error: ') + result.error); return; }
 
     if (window.MySpace && typeof window.MySpace.open === 'function') {
