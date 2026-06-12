@@ -116,7 +116,9 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang
     const orgName       = org    ? esc(org.name)    : '';
     const orgAddress    = org    && org.address ? esc(org.address) : '';
     const orgPhone      = org    && org.phone  ? esc(org.phone)  : '';
+    const orgFax        = org    && org.fax    ? esc(org.fax)    : '';
     const orgEmail      = org    && org.email  ? esc(org.email)  : '';
+    const orgWebsite    = org    && org.website ? esc(org.website) : '';
     const orgTaxNumber  = org    && org.taxNumber ? esc(org.taxNumber) : '';
     const orgIban       = org    && org.iban   ? esc(org.iban)   : '';
     const orgBic        = org    && org.bic    ? esc(org.bic)    : '';
@@ -144,9 +146,13 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang
     <img src="/apps/reports/resources/public/beim_seiler_4c_logo_2021.png" alt="${orgName}" /><br/>
   </div>
   <div class="contact">
+    <span class="contact-name">${orgName}</span><br/>
     ${orgAddress ? orgAddress + '<br/>' : ''}${hotelAddress && hotelAddress !== orgAddress ? hotelAddress + '<br/>' : ''}
     ${orgPhone ? t('invoice_phone_label') + ': ' + orgPhone + '<br/>' : ''}
-    ${orgEmail ? t('invoice_email_label') + ': ' + orgEmail : ''}
+    ${orgFax ? t('invoice_fax_label') + ': ' + orgFax + '<br/>' : ''}
+    ${orgEmail ? t('invoice_email_label') + ': ' + orgEmail + '<br/>' : ''}
+    ${orgWebsite ? t('invoice_website_label') + ': ' + orgWebsite + '<br/>' : ''}
+    ${orgTaxNumber ? t('invoice_tax_number_label') + ': ' + orgTaxNumber : ''}
   </div>
 </div>
 
@@ -220,7 +226,8 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 9pt; line-height: 1
 .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3mm; }
 .header .logo-area { max-width: 320px; }
 .header .logo-area img { max-width: 300px; }
-.header .contact { text-align: right; font-size: 8.5pt; line-height: 1.5; }
+.header .contact { text-align: right; font-size: 8.5pt; line-height: 1.45; }
+.header .contact .contact-name { font-weight: bold; font-size: 9pt; }
 .fold-mark { border-top: 1px solid #ccc; margin: 0 0 5mm 0; }
 .addr-block { font-size: 10pt; min-height: 18mm; margin-bottom: 4mm; }
 .addr-sender { font-size: 7pt; margin-bottom: 2mm;

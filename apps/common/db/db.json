@@ -38,10 +38,20 @@
                     "allowNull": true,
                     "caption": { "i18n": "Phone" }
                 },
+                "fax": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": { "i18n": "Fax" }
+                },
                 "email": {
                     "type": "STRING",
                     "allowNull": true,
                     "caption": { "i18n": "Email" }
+                },
+                "website": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": { "i18n": "Website" }
                 },
                 "taxNumber": {
                     "type": "STRING",

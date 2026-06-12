@@ -84,10 +84,20 @@
         "ru": "Тел.",
         "de": "Tel."
     },
+    "invoice_fax_label": {
+        "en": "Fax",
+        "ru": "Факс",
+        "de": "Fax"
+    },
     "invoice_email_label": {
         "en": "E-Mail",
         "ru": "E-Mail",
         "de": "E-Mail"
+    },
+    "invoice_website_label": {
+        "en": "Web",
+        "ru": "Сайт",
+        "de": "Web"
     },
     "invoice_page_label": {
         "en": "Page",

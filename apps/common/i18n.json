@@ -34,10 +34,20 @@
         "ru": "Телефон",
         "de": "Telefon"
     },
+    "Fax": {
+        "en": "Fax",
+        "ru": "Факс",
+        "de": "Fax"
+    },
     "Email": {
         "en": "E-Mail",
         "ru": "E-Mail",
         "de": "E-Mail"
+    },
+    "Website": {
+        "en": "Website",
+        "ru": "Сайт",
+        "de": "Webseite"
     },
     "TaxNumber": {
         "en": "Tax number",
