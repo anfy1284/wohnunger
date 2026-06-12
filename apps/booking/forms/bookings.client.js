@@ -87,19 +87,30 @@ async function printInvoice(ev, ctx) {
     var bookingId = uidEntry && uidEntry.value;
     if (!bookingId) { showAlert(__t('Please save the booking first')); return; }
 
-    // Если форма изменена — предложить сохранить (пересчёт счёта произойдёт автоматически в onBeforeSave)
+    // Если форма изменена — предложить сохранить (пересчёт счёта произойдёт автоматически в onBeforeSave).
+    // Сам диалог-подтверждение показываем БЕЗ индикатора (ждём ответа пользователя).
+    var needSave = false;
     if (form._modified) {
         var ok = await showConfirm(__t('Save before printing?'));
         if (!ok) return;
-        await form.doAction('save');
-        if (form._modified) return; // сохранение не удалось, ошибка уже показана
+        needSave = true;
     }
 
-    // Бегущий прогрессбар на время серверной генерации счёта (печать окна
-    // покрывается отдельно индикатором внутри MySpace.open).
+    // Бегущий прогрессбар сразу после ответа «да» — закрывает и ощутимое
+    // сохранение (round-trip + пересчёт счёта в onBeforeSave + refresh), и
+    // последующую серверную генерацию счёта. Печать окна покрывается отдельно
+    // индикатором внутри MySpace.open.
     var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Preparing invoice…')) : null;
     var result;
     try {
+        // Дать браузеру кадр на отрисовку индикатора до синхронного старта save.
+        await new Promise(function(r){ requestAnimationFrame(function(){ requestAnimationFrame(r); }); });
+
+        if (needSave) {
+            await form.doAction('save');
+            if (form._modified) return; // сохранение не удалось, ошибка уже показана
+        }
+
         result = await callServer('reports.actions', 'generateInvoiceHTML', { bookingId: bookingId });
     } finally {
         if (busyToken != null && window.MySpace && window.MySpace.hideBusy) window.MySpace.hideBusy(busyToken);
