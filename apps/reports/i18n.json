@@ -2,111 +2,133 @@
     "No invoice lines. Calculate cost first.": {
         "en": "No invoice lines. Calculate cost first.",
         "ru": "Нет строк спецификации. Сначала рассчитайте стоимость.",
-        "de": "Keine Rechnungszeilen. Bitte zuerst die Kosten berechnen."
+        "de": "Keine Rechnungszeilen. Bitte zuerst die Kosten berechnen.",
+        "pl": "Brak pozycji rachunku. Najpierw oblicz koszt."
     },
     "invoice_no_label": {
         "en": "Invoice No.",
         "ru": "Счёт №",
-        "de": "Rechnung Nr."
+        "de": "Rechnung Nr.",
+        "pl": "Rachunek nr"
     },
     "invoice_title": {
         "en": "Invoice",
         "ru": "Счёт",
-        "de": "Rechnung"
+        "de": "Rechnung",
+        "pl": "Rachunek"
     },
     "invoice_date_label": {
         "en": "Invoice date",
         "ru": "Дата счёта",
-        "de": "Rechnungsdatum"
+        "de": "Rechnungsdatum",
+        "pl": "Data rachunku"
     },
     "invoice_period_label": {
         "en": "Period",
         "ru": "Период",
-        "de": "Zeitraum"
+        "de": "Zeitraum",
+        "pl": "Okres"
     },
     "invoice_col_description": {
         "en": "Service / Description",
         "ru": "Услуга / Описание",
-        "de": "Leistung / Beschreibung"
+        "de": "Leistung / Beschreibung",
+        "pl": "Usługa / Opis"
     },
     "invoice_col_vat_rate": {
         "en": "VAT rate",
         "ru": "Ставка НДС",
-        "de": "MwSt.-Satz"
+        "de": "MwSt.-Satz",
+        "pl": "Stawka VAT"
     },
     "invoice_col_vat": {
         "en": "VAT",
         "ru": "НДС",
-        "de": "MwSt."
+        "de": "MwSt.",
+        "pl": "VAT"
     },
     "invoice_col_total": {
         "en": "Total price",
         "ru": "Сумма",
-        "de": "Gesamtpreis"
+        "de": "Gesamtpreis",
+        "pl": "Cena całkowita"
     },
     "invoice_of_which_vat": {
         "en": "incl. VAT",
         "ru": "в т.ч. НДС",
-        "de": "davon MwSt."
+        "de": "davon MwSt.",
+        "pl": "w tym VAT"
     },
     "invoice_subtotal": {
         "en": "Subtotal",
         "ru": "Промежуточный итог",
-        "de": "Zwischensumme"
+        "de": "Zwischensumme",
+        "pl": "Suma częściowa"
     },
     "invoice_net_amount": {
         "en": "Net amount",
         "ru": "Сумма нетто",
-        "de": "Nettobetrag"
+        "de": "Nettobetrag",
+        "pl": "Kwota netto"
     },
     "invoice_total_amount": {
         "en": "Total amount",
         "ru": "Итого",
-        "de": "Gesamtbetrag"
+        "de": "Gesamtbetrag",
+        "pl": "Kwota łączna"
     },
     "invoice_less_prepayment": {
         "en": "less prepayment",
         "ru": "минус предоплата",
-        "de": "abzgl. Anzahlung"
+        "de": "abzgl. Anzahlung",
+        "pl": "minus zaliczka"
     },
     "invoice_balance_due": {
         "en": "Balance due",
         "ru": "К доплате",
-        "de": "Restbetrag"
+        "de": "Restbetrag",
+        "pl": "Do zapłaty"
     },
     "invoice_tax_number_label": {
         "en": "Tax no.",
         "ru": "Налог. №",
-        "de": "Steuernr."
+        "de": "Steuernr.",
+        "pl": "NIP"
     },
     "invoice_phone_label": {
         "en": "Phone",
         "ru": "Тел.",
-        "de": "Tel."
+        "de": "Tel.",
+        "pl": "Tel."
     },
     "invoice_fax_label": {
         "en": "Fax",
         "ru": "Факс",
-        "de": "Fax"
+        "de": "Fax",
+        "pl": "Faks"
     },
     "invoice_email_label": {
         "en": "E-Mail",
         "ru": "E-Mail",
-        "de": "E-Mail"
+        "de": "E-Mail",
+        "pl": "E-mail"
     },
     "invoice_website_label": {
         "en": "Web",
         "ru": "Сайт",
-        "de": "Web"
+        "de": "Web",
+        "pl": "WWW"
     },
     "invoice_page_label": {
         "en": "Page",
         "ru": "Стр.",
-        "de": "Seite"
+        "de": "Seite",
+        "pl": "Strona"
     },
     "invoice_page_of": {
         "en": "of",
         "ru": "из",
-        "de": "von"
+        "de": "von",
+        "pl": "z"
     }
 }

@@ -7,7 +7,8 @@
 //
 // Каждая функция получает (params, ctx) где ctx = { sessionID, user, role }.
 
-const { tForSession, tfForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
+const i18n = require('../../../node_modules/my-old-space/drive_root/i18n');
+const { resolveOrgReportLang } = require('../../organizationSettings/lib/orgReportLanguage');
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -19,6 +20,15 @@ module.exports = function (modelsDB, Utilities) {
         const checkOutDate = new Date(checkOut);
         const nights       = Math.round((checkOutDate - checkInDate) / 86400000);
         if (nights <= 0) return { lines: [] };
+
+        // Строки счёта — часть ДОКУМЕНТА организации, поэтому их тексты (sectionLabel,
+        // label) строятся на ЯЗЫКЕ ОРГАНИЗАЦИИ (organizationSettings → reportLanguage),
+        // а НЕ на языке интерфейса текущего пользователя. Поэтому здесь НЕ используем
+        // tForSession/tfForSession (они берут язык сессии) — резолвим язык организации
+        // и переводим напрямую через i18n. Тот же язык берёт печать счёта (reports).
+        const invLang = await resolveOrgReportLang(modelsDB, orgId);
+        const tInv  = (key)       => i18n.t(key, invLang);
+        const tfInv = (key, vars) => i18n.tf(key, invLang, vars);
 
         const guestTypes = await modelsDB.GuestTypes.findAll({ raw: true });
         const gtMap = {};
@@ -190,8 +200,8 @@ module.exports = function (modelsDB, Utilities) {
                 lines.push({
                     UID: Utilities.generateUID('InvoiceLines'),
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
-                    sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
-                    label:    await tfForSession('room_line_label', ctx.sessionID, { room: rLabel, guests: billingGuests, nights }),
+                    sectionLabel: tInv('accommodation_section'),
+                    label:    tfInv('room_line_label', { room: rLabel, guests: billingGuests, nights }),
                     quantity: nights, unitPrice: rp.price,
                     taxRate:  rateByCode('accommodation', 0),
                     amount:   r2(rp.price * nights), sortOrder: ++sortOrd
@@ -205,8 +215,8 @@ module.exports = function (modelsDB, Utilities) {
                     UID: Utilities.generateUID('InvoiceLines'),
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
                     guestTypeId: '000000000-guest-type-0003',
-                    sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
-                    label:    await tfForSession('children_3_5_line_label', ctx.sessionID, { count: kids3_5, nights }),
+                    sectionLabel: tInv('accommodation_section'),
+                    label:    tfInv('children_3_5_line_label', { count: kids3_5, nights }),
                     quantity: qty, unitPrice: 10, taxRate: rateByCode('accommodation', 0),
                     amount:   r2(qty * 10), sortOrder: ++sortOrd
                 });
@@ -219,8 +229,8 @@ module.exports = function (modelsDB, Utilities) {
                     UID: Utilities.generateUID('InvoiceLines'),
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
                     guestTypeId: '000000000-guest-type-0005',
-                    sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
-                    label:    await tfForSession('children_2_line_label', ctx.sessionID, { count: kids2, nights }),
+                    sectionLabel: tInv('accommodation_section'),
+                    label:    tfInv('children_2_line_label', { count: kids2, nights }),
                     quantity: qty2, unitPrice: 10, taxRate: rateByCode('accommodation', 0),
                     amount:   r2(qty2 * 10), sortOrder: ++sortOrd
                 });
@@ -233,8 +243,8 @@ module.exports = function (modelsDB, Utilities) {
                     UID: Utilities.generateUID('InvoiceLines'),
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
                     guestTypeId: '000000000-guest-type-0001',
-                    sectionLabel: await tForSession('resort_fee_section', ctx.sessionID),
-                    label:    await tfForSession('adults_resort_fee_label', ctx.sessionID, { count: adults, nights }),
+                    sectionLabel: tInv('resort_fee_section'),
+                    label:    tfInv('adults_resort_fee_label', { count: adults, nights }),
                     quantity: qty, unitPrice: 2.10, taxRate: rateByCode('exempt', 0),
                     amount:   r2(qty * 2.10), sortOrder: ++sortOrd
                 });
@@ -245,8 +255,8 @@ module.exports = function (modelsDB, Utilities) {
                     UID: Utilities.generateUID('InvoiceLines'),
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
                     guestTypeId: '000000000-guest-type-0002',
-                    sectionLabel: await tForSession('resort_fee_section', ctx.sessionID),
-                    label:    await tfForSession('children_6_15_resort_fee_label', ctx.sessionID, { count: kids6_15, nights }),
+                    sectionLabel: tInv('resort_fee_section'),
+                    label:    tfInv('children_6_15_resort_fee_label', { count: kids6_15, nights }),
                     quantity: qty, unitPrice: 1.00, taxRate: rateByCode('exempt', 0),
                     amount:   r2(qty * 1.00), sortOrder: ++sortOrd
                 });
@@ -285,7 +295,7 @@ module.exports = function (modelsDB, Utilities) {
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             serviceId: rs.serviceId, guestTypeId: ag.gtId,
                             sectionLabel: svc.name,
-                            label:    await tfForSession('service_age_group_per_night_label', ctx.sessionID, { name: svc.name, ageGroup: await tForSession(ag.lblKey, ctx.sessionID), count: ag.n, perRoom: cnt, nights }),
+                            label:    tfInv('service_age_group_per_night_label', { name: svc.name, ageGroup: tInv(ag.lblKey), count: ag.n, perRoom: cnt, nights }),
                             quantity: qty, unitPrice: sp.price, taxRate: svcRate(svc),
                             amount:   r2(qty * sp.price), sortOrder: ++sortOrd
                         }, rs.serviceId);
@@ -296,8 +306,8 @@ module.exports = function (modelsDB, Utilities) {
                     if (price > 0) {
                         const qty = svc.chargeType === 'per_night' ? cnt * nights : cnt;
                         const svcLabel = svc.chargeType === 'per_night'
-                            ? await tfForSession('service_per_night_label', ctx.sessionID, { name: svc.name, count: cnt, nights })
-                            : await tfForSession('service_once_label',      ctx.sessionID, { name: svc.name, count: cnt });
+                            ? tfInv('service_per_night_label', { name: svc.name, count: cnt, nights })
+                            : tfInv('service_once_label',      { name: svc.name, count: cnt });
                         emitServiceLine({
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
@@ -318,8 +328,8 @@ module.exports = function (modelsDB, Utilities) {
                         UID: Utilities.generateUID('InvoiceLines'),
                         bookingId, bookingRoomId: room.UID, organizationId: orgId,
                         serviceId: csp.serviceId || null,
-                        sectionLabel: await tForSession('accommodation_section', ctx.sessionID),
-                        label:    await tfForSession('final_cleaning_label', ctx.sessionID, { room: rLabel }),
+                        sectionLabel: tInv('accommodation_section'),
+                        label:    tfInv('final_cleaning_label', { room: rLabel }),
                         quantity: 1, unitPrice: csp.price, taxRate: rateByCode('accommodation', 0),
                         amount:   csp.price, sortOrder: ++sortOrd
                     });
@@ -337,7 +347,7 @@ module.exports = function (modelsDB, Utilities) {
             lines.push({
                 UID: Utilities.generateUID('InvoiceLines'),
                 bookingId, organizationId: orgId,
-                sectionLabel: await tForSession('extra_lines_section', ctx.sessionID),
+                sectionLabel: tInv('extra_lines_section'),
                 label:    el.name,
                 quantity: 1, unitPrice: r2(amount),
                 taxRate:  rate,
