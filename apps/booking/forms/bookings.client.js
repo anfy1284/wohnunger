@@ -103,9 +103,6 @@ async function printInvoice(ev, ctx) {
     var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Preparing invoice…')) : null;
     var result;
     try {
-        // Дать браузеру кадр на отрисовку индикатора до синхронного старта save.
-        await new Promise(function(r){ requestAnimationFrame(function(){ requestAnimationFrame(r); }); });
-
         if (needSave) {
             await form.doAction('save');
             if (form._modified) return; // сохранение не удалось, ошибка уже показана
