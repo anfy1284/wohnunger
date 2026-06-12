@@ -1,4 +1,76 @@
 {
+    "organizations": {
+        "en": "Organizations",
+        "ru": "Организации",
+        "de": "Organisationen",
+        "pl": "Organizacje"
+    },
+    "hotels": {
+        "en": "Hotels",
+        "ru": "Гостиницы",
+        "de": "Hotels",
+        "pl": "Hotele"
+    },
+    "rooms": {
+        "en": "Rooms",
+        "ru": "Номера",
+        "de": "Zimmer",
+        "pl": "Pokoje"
+    },
+    "services": {
+        "en": "Services",
+        "ru": "Услуги",
+        "de": "Leistungen",
+        "pl": "Usługi"
+    },
+    "service_prices": {
+        "en": "Service prices",
+        "ru": "Цены услуг",
+        "de": "Leistungspreise",
+        "pl": "Ceny usług"
+    },
+    "room_prices": {
+        "en": "Room prices",
+        "ru": "Цены номеров",
+        "de": "Zimmerpreise",
+        "pl": "Ceny pokoi"
+    },
+    "guest_types": {
+        "en": "Guest types",
+        "ru": "Типы гостей",
+        "de": "Gästetypen",
+        "pl": "Typy gości"
+    },
+    "clients": {
+        "en": "Clients",
+        "ru": "Клиенты",
+        "de": "Kunden",
+        "pl": "Klienci"
+    },
+    "accommodation_types": {
+        "en": "Accommodation types",
+        "ru": "Типы размещения",
+        "de": "Unterkunftsarten",
+        "pl": "Rodzaje zakwaterowania"
+    },
+    "booking_statuses": {
+        "en": "Booking statuses",
+        "ru": "Статусы броней",
+        "de": "Buchungsstatus",
+        "pl": "Statusy rezerwacji"
+    },
+    "tax_categories": {
+        "en": "Tax categories",
+        "ru": "Категории налогов",
+        "de": "Steuerkategorien",
+        "pl": "Kategorie podatkowe"
+    },
+    "tax_rates": {
+        "en": "Tax rates",
+        "ru": "Налоговые ставки",
+        "de": "Steuersätze",
+        "pl": "Stawki podatkowe"
+    },
     "Name": {
         "en": "Name",
         "ru": "Название",
