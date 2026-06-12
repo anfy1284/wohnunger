@@ -47,7 +47,7 @@ async function onRoomActivated(rowIndex, ctx) {
             bookingRoomId: bookingRoomId,
             serviceId: svc.serviceId,
             __serviceId_display: svc.serviceName,
-            count: false
+            count: 0
         });
     }
 

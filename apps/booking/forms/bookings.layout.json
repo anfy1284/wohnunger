@@ -153,7 +153,7 @@
                                                 "selection": { "table": "guest_types", "idField": "UID", "displayField": "name" }
                                             }
                                         },
-                                        { "caption": { "i18n": "Quantity" }, "data": "count", "width": 110, "inputType": "integer", "properties": { "minValue": 0 } }
+                                        { "caption": { "i18n": "Quantity" }, "data": "count", "width": 110, "inputType": "integer", "defaultValue": 1, "properties": { "minValue": 0 } }
                                     ],
                                     "properties": {
                                         "editMode": "cell-immediate",
@@ -177,14 +177,13 @@
                                             "caption": { "i18n": "Service" },
                                             "data": "serviceId",
                                             "width": 200,
-                                            "readOnly": true,
                                             "inputType": "recordSelector",
                                             "properties": {
                                                 "showSelectionButton": true,
                                                 "selection": { "table": "services", "idField": "UID", "displayField": "name" }
                                             }
                                         },
-                                        { "caption": { "i18n": "Included" }, "data": "count", "width": 60, "inputType": "checkbox" }
+                                        { "caption": { "i18n": "Quantity" }, "data": "count", "width": 110, "inputType": "integer", "defaultValue": 1, "properties": { "minValue": 0 } }
                                     ],
                                     "properties": {
                                         "editMode": "cell-immediate",

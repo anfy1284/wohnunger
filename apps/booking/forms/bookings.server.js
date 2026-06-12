@@ -426,7 +426,8 @@ module.exports = function (modelsDB, Utilities) {
                     s => s.bookingRoomId && survivingRoomUIDs.has(s.bookingRoomId)
                 );
 
-                // Нормализуем checkbox boolean → 0/1 для count в услугах
+                // count услуги — числовое количество (числовое поле с "+"). Старые брони
+                // могли хранить его как boolean (бывшая галочка "Включено") — коэрцим в 0/1.
                 for (const rs of tabularSections.booking_room_services) {
                     if (typeof rs.count === 'boolean') rs.count = rs.count ? 1 : 0;
                 }

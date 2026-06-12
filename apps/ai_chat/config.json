@@ -2,7 +2,7 @@
     "level": "app",
     "autoStart": true,
     "system": ["mySpace"],
-    "access": ["admin", "user"],
+    "access": ["admin"],
     "dependencies": {},
     "mainMenuCommands": [
         {
@@ -10,6 +10,7 @@
             "caption": { "i18n": "AI Assistant" },
             "action": "open",
             "appName": "ai_chat",
+            "roles": ["admin"],
             "singleton": true,
             "icon": "/apps/general_icons/resources/public/16x16/chat.png"
         }
