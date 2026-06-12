@@ -81,6 +81,18 @@
         { "UID": "tr-bks-de-0002", "recordId": "000000000-bk-status-0002", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Bestätigt" },
         { "UID": "tr-bks-de-0003", "recordId": "000000000-bk-status-0003", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Eingecheckt" },
         { "UID": "tr-bks-de-0004", "recordId": "000000000-bk-status-0004", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Ausgecheckt" },
-        { "UID": "tr-bks-de-0005", "recordId": "000000000-bk-status-0005", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Storniert" }
+        { "UID": "tr-bks-de-0005", "recordId": "000000000-bk-status-0005", "tableName": "booking_statuses", "fieldName": "name", "language": "de", "value": "Storniert" },
+
+        { "UID": "tr-gt-pl-0001", "recordId": "000000000-guest-type-0001", "tableName": "guest_types", "fieldName": "name", "language": "pl", "value": "Dorosły" },
+        { "UID": "tr-gt-pl-0002", "recordId": "000000000-guest-type-0002", "tableName": "guest_types", "fieldName": "name", "language": "pl", "value": "Dziecko 6–15 lat" },
+        { "UID": "tr-gt-pl-0003", "recordId": "000000000-guest-type-0003", "tableName": "guest_types", "fieldName": "name", "language": "pl", "value": "Dziecko 3–5 lat" },
+        { "UID": "tr-gt-pl-0004", "recordId": "000000000-guest-type-0004", "tableName": "guest_types", "fieldName": "name", "language": "pl", "value": "Niemowlę (do 2 lat)" },
+        { "UID": "tr-gt-pl-0005", "recordId": "000000000-guest-type-0005", "tableName": "guest_types", "fieldName": "name", "language": "pl", "value": "Dziecko 2 lata" },
+
+        { "UID": "tr-bks-pl-0001", "recordId": "000000000-bk-status-0001", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Wersja robocza" },
+        { "UID": "tr-bks-pl-0002", "recordId": "000000000-bk-status-0002", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Potwierdzone" },
+        { "UID": "tr-bks-pl-0003", "recordId": "000000000-bk-status-0003", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Zameldowany" },
+        { "UID": "tr-bks-pl-0004", "recordId": "000000000-bk-status-0004", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Wymeldowany" },
+        { "UID": "tr-bks-pl-0005", "recordId": "000000000-bk-status-0005", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Anulowane" }
     ]
 }

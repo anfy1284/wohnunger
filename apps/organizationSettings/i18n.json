@@ -2,36 +2,43 @@
     "organization_settings_app_caption": {
         "en": "Organization Settings",
         "ru": "Настройки организации",
-        "de": "Organisationseinstellungen"
+        "de": "Organisationseinstellungen",
+        "pl": "Ustawienia organizacji"
     },
     "default_tax_rate": {
         "en": "Default tax rate",
         "ru": "Налоговая ставка по умолчанию",
-        "de": "Standard-Steuersatz"
+        "de": "Standard-Steuersatz",
+        "pl": "Domyślna stawka podatku"
     },
     "report_language": {
         "en": "Report printing language",
         "ru": "Язык печати отчётов",
-        "de": "Sprache für Berichtsdruck"
+        "de": "Sprache für Berichtsdruck",
+        "pl": "Język wydruku dokumentów"
     },
     "invoice_note": {
         "en": "Invoice note (printed as-is)",
         "ru": "Примечание в счёте (печатается как есть)",
-        "de": "Rechnungshinweis (wird so gedruckt)"
+        "de": "Rechnungshinweis (wird so gedruckt)",
+        "pl": "Uwaga na rachunku (drukowana bez zmian)"
     },
     "Apply": {
         "en": "Apply",
         "ru": "Применить",
-        "de": "Übernehmen"
+        "de": "Übernehmen",
+        "pl": "Zastosuj"
     },
     "Settings saved": {
         "en": "Settings saved",
         "ru": "Настройки сохранены",
-        "de": "Einstellungen gespeichert"
+        "de": "Einstellungen gespeichert",
+        "pl": "Ustawienia zapisane"
     },
     "Error: ": {
         "en": "Error: ",
         "ru": "Ошибка: ",
-        "de": "Fehler: "
+        "de": "Fehler: ",
+        "pl": "Błąd: "
     }
 }

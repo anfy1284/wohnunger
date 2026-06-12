@@ -2,282 +2,337 @@
     "Chat with AI (Chrome Gemini Nano)": {
         "en": "Chat with AI (Chrome Gemini Nano)",
         "ru": "Чат с ИИ (Chrome Gemini Nano)",
-        "de": "Chat mit KI (Chrome Gemini Nano)"
+        "de": "Chat mit KI (Chrome Gemini Nano)",
+        "pl": "Czat z AI (Chrome Gemini Nano)"
     },
     "Enter message... (Ctrl+Enter — send)": {
         "en": "Enter message... (Ctrl+Enter — send)",
         "ru": "Введите сообщение... (Ctrl+Enter — отправить)",
-        "de": "Nachricht eingeben... (Ctrl+Enter — senden)"
+        "de": "Nachricht eingeben... (Ctrl+Enter — senden)",
+        "pl": "Wpisz wiadomość... (Ctrl+Enter — wyślij)"
     },
     "Send": {
         "en": "Send",
         "ru": "Отправить",
-        "de": "Senden"
+        "de": "Senden",
+        "pl": "Wyślij"
     },
     "You": {
         "en": "You",
         "ru": "Вы",
-        "de": "Sie"
+        "de": "Sie",
+        "pl": "Ty"
     },
     "AI": {
         "en": "AI",
         "ru": "ИИ",
-        "de": "KI"
+        "de": "KI",
+        "pl": "AI"
     },
     "Click to copy address": {
         "en": "Click to copy address",
         "ru": "Нажмите, чтобы скопировать адрес",
-        "de": "Klicken zum Kopieren der Adresse"
+        "de": "Klicken zum Kopieren der Adresse",
+        "pl": "Kliknij, aby skopiować adres"
     },
     "✓ copied": {
         "en": "✓ copied",
         "ru": "✓ скопировано",
-        "de": "✓ kopiert"
+        "de": "✓ kopiert",
+        "pl": "✓ skopiowano"
     },
     "✗ Unsupported browser.\nGoogle Chrome is required.": {
         "en": "✗ Unsupported browser.\nGoogle Chrome is required.",
         "ru": "✗ Неподдерживаемый браузер.\nДля работы требуется Google Chrome.",
-        "de": "✗ Nicht unterstützter Browser.\nGoogle Chrome wird benötigt."
+        "de": "✗ Nicht unterstützter Browser.\nGoogle Chrome wird benötigt.",
+        "pl": "✗ Nieobsługiwana przeglądarka.\nWymagany jest Google Chrome."
     },
     "● Browser: Google Chrome ": {
         "en": "● Browser: Google Chrome ",
         "ru": "● Браузер: Google Chrome ",
-        "de": "● Browser: Google Chrome "
+        "de": "● Browser: Google Chrome ",
+        "pl": "● Przeglądarka: Google Chrome "
     },
     "✗ Chrome version is too old (": {
         "en": "✗ Chrome version is too old (",
         "ru": "✗ Версия Chrome слишком старая (",
-        "de": "✗ Chrome-Version ist zu alt ("
+        "de": "✗ Chrome-Version ist zu alt (",
+        "pl": "✗ Wersja Chrome jest zbyt stara ("
     },
     ", required: 127+).\nUpdate: ": {
         "en": ", required: 127+).\nUpdate: ",
         "ru": ", нужно: 127+).\nОбновите: ",
-        "de": ", benötigt: 127+).\nAktualisieren: "
+        "de": ", benötigt: 127+).\nAktualisieren: ",
+        "pl": ", wymagane: 127+).\nZaktualizuj: "
     },
     "✗ Prompt API not found (window.ai and window.LanguageModel are absent).\n\nStep 1 — enable the optimization flag:\n  ": {
         "en": "✗ Prompt API not found (window.ai and window.LanguageModel are absent).\n\nStep 1 — enable the optimization flag:\n  ",
         "ru": "✗ Prompt API не найден (window.ai и window.LanguageModel отсутствуют).\n\nШаг 1 — включите флаг оптимизации:\n  ",
-        "de": "✗ Prompt API nicht gefunden (window.ai und window.LanguageModel fehlen).\n\nSchritt 1 — Optimierungsflag aktivieren:\n  "
+        "de": "✗ Prompt API nicht gefunden (window.ai und window.LanguageModel fehlen).\n\nSchritt 1 — Optimierungsflag aktivieren:\n  ",
+        "pl": "✗ Nie znaleziono Prompt API (brak window.ai i window.LanguageModel).\n\nKrok 1 — włącz flagę optymalizacji:\n  "
     },
     " → Enabled BypassPerfRequirement\n\nStep 2 — enable Prompt API:\n  ": {
         "en": " → Enabled BypassPerfRequirement\n\nStep 2 — enable Prompt API:\n  ",
         "ru": " → Enabled BypassPerfRequirement\n\nШаг 2 — включите Prompt API:\n  ",
-        "de": " → Enabled BypassPerfRequirement\n\nSchritt 2 — Prompt API aktivieren:\n  "
+        "de": " → Enabled BypassPerfRequirement\n\nSchritt 2 — Prompt API aktivieren:\n  ",
+        "pl": " → Enabled BypassPerfRequirement\n\nKrok 2 — włącz Prompt API:\n  "
     },
     " → Enabled\n\nStep 3 — restart Chrome and reopen the app.": {
         "en": " → Enabled\n\nStep 3 — restart Chrome and reopen the app.",
         "ru": " → Enabled\n\nШаг 3 — перезапустите Chrome и откройте приложение снова.",
-        "de": " → Enabled\n\nSchritt 3 — Chrome neu starten und App erneut öffnen."
+        "de": " → Enabled\n\nSchritt 3 — Chrome neu starten und App erneut öffnen.",
+        "pl": " → Enabled\n\nKrok 3 — uruchom ponownie Chrome i otwórz aplikację jeszcze raz."
     },
     "✗ window.ai found, but window.ai.languageModel is absent.\nEnable flag: ": {
         "en": "✗ window.ai found, but window.ai.languageModel is absent.\nEnable flag: ",
         "ru": "✗ window.ai найден, но window.ai.languageModel отсутствует.\nВключите флаг: ",
-        "de": "✗ window.ai gefunden, aber window.ai.languageModel fehlt.\nFlag aktivieren: "
+        "de": "✗ window.ai gefunden, aber window.ai.languageModel fehlt.\nFlag aktivieren: ",
+        "pl": "✗ Znaleziono window.ai, ale brak window.ai.languageModel.\nWłącz flagę: "
     },
     " → Enabled\nThen restart Chrome.": {
         "en": " → Enabled\nThen restart Chrome.",
         "ru": " → Enabled\nЗатем перезапустите Chrome.",
-        "de": " → Enabled\nDann Chrome neu starten."
+        "de": " → Enabled\nDann Chrome neu starten.",
+        "pl": " → Enabled\nNastępnie uruchom ponownie Chrome."
     },
     "✗ Prompt API not detected. Restart Chrome after enabling the flags.": {
         "en": "✗ Prompt API not detected. Restart Chrome after enabling the flags.",
         "ru": "✗ Prompt API не обнаружен. Перезапустите Chrome после включения флагов.",
-        "de": "✗ Prompt API nicht erkannt. Chrome nach Aktivierung der Flags neu starten."
+        "de": "✗ Prompt API nicht erkannt. Chrome nach Aktivierung der Flags neu starten.",
+        "pl": "✗ Nie wykryto Prompt API. Uruchom ponownie Chrome po włączeniu flag."
     },
     "● Prompt API detected. Checking model availability...": {
         "en": "● Prompt API detected. Checking model availability...",
         "ru": "● Prompt API обнаружен. Проверка доступности модели...",
-        "de": "● Prompt API erkannt. Modellverfügbarkeit wird geprüft..."
+        "de": "● Prompt API erkannt. Modellverfügbarkeit wird geprüft...",
+        "pl": "● Wykryto Prompt API. Sprawdzanie dostępności modelu..."
     },
     "Availability check error: ": {
         "en": "Availability check error: ",
         "ru": "Ошибка проверки доступности: ",
-        "de": "Fehler bei der Verfügbarkeitsprüfung: "
+        "de": "Fehler bei der Verfügbarkeitsprüfung: ",
+        "pl": "Błąd sprawdzania dostępności: "
     },
     "● Model status: ": {
         "en": "● Model status: ",
         "ru": "● Статус модели: ",
-        "de": "● Modellstatus: "
+        "de": "● Modellstatus: ",
+        "pl": "● Status modelu: "
     },
     "✗ Gemini Nano model is unavailable.\nOpen ": {
         "en": "✗ Gemini Nano model is unavailable.\nOpen ",
         "ru": "✗ Модель Gemini Nano недоступна.\nОткройте ",
-        "de": "✗ Gemini Nano Modell ist nicht verfügbar.\nÖffnen Sie "
+        "de": "✗ Gemini Nano Modell ist nicht verfügbar.\nÖffnen Sie ",
+        "pl": "✗ Model Gemini Nano jest niedostępny.\nOtwórz "
     },
     " → find \"Optimization Guide On Device Model\"\n→ click «Check for updates» and wait for download.\nThen restart Chrome and reopen the app.": {
         "en": " → find \"Optimization Guide On Device Model\"\n→ click «Check for updates» and wait for download.\nThen restart Chrome and reopen the app.",
         "ru": " → найдите \"Optimization Guide On Device Model\"\n→ нажмите «Проверить наличие обновлений» и дождитесь загрузки.\nЗатем перезапустите Chrome и откройте приложение снова.",
-        "de": " → \"Optimization Guide On Device Model\" suchen\n→ «Nach Updates suchen» klicken und Download abwarten.\nDann Chrome neu starten und App erneut öffnen."
+        "de": " → \"Optimization Guide On Device Model\" suchen\n→ «Nach Updates suchen» klicken und Download abwarten.\nDann Chrome neu starten und App erneut öffnen.",
+        "pl": " → znajdź \"Optimization Guide On Device Model\"\n→ kliknij «Sprawdź aktualizacje» i poczekaj na pobranie.\nNastępnie uruchom ponownie Chrome i otwórz aplikację jeszcze raz."
     },
     "⬇ Gemini Nano model (~1.5–2 GB) is not yet downloaded.": {
         "en": "⬇ Gemini Nano model (~1.5–2 GB) is not yet downloaded.",
         "ru": "⬇ Модель Gemini Nano (~1.5–2 ГБ) ещё не загружена.",
-        "de": "⬇ Gemini Nano Modell (~1.5–2 GB) noch nicht heruntergeladen."
+        "de": "⬇ Gemini Nano Modell (~1.5–2 GB) noch nicht heruntergeladen.",
+        "pl": "⬇ Model Gemini Nano (~1,5–2 GB) nie został jeszcze pobrany."
     },
     "📌 Step 1: make sure the flag is set correctly:\n  ": {
         "en": "📌 Step 1: make sure the flag is set correctly:\n  ",
         "ru": "📌 Шаг 1: убедитесь что флаг выставлен правильно:\n  ",
-        "de": "📌 Schritt 1: Flag korrekt setzen:\n  "
+        "de": "📌 Schritt 1: Flag korrekt setzen:\n  ",
+        "pl": "📌 Krok 1: upewnij się, że flaga jest ustawiona poprawnie:\n  "
     },
     "\n  → value: Enabled BypassPerfRequirement\n  (not just Enabled — specifically BypassPerfRequirement)\n\n": {
         "en": "\n  → value: Enabled BypassPerfRequirement\n  (not just Enabled — specifically BypassPerfRequirement)\n\n",
         "ru": "\n  → значение: Enabled BypassPerfRequirement\n  (не просто Enabled — именно BypassPerfRequirement)\n\n",
-        "de": "\n  → Wert: Enabled BypassPerfRequirement\n  (nicht nur Enabled — speziell BypassPerfRequirement)\n\n"
+        "de": "\n  → Wert: Enabled BypassPerfRequirement\n  (nicht nur Enabled — speziell BypassPerfRequirement)\n\n",
+        "pl": "\n  → wartość: Enabled BypassPerfRequirement\n  (nie tylko Enabled — konkretnie BypassPerfRequirement)\n\n"
     },
     "📌 Step 2: start the download manually:\n  ": {
         "en": "📌 Step 2: start the download manually:\n  ",
         "ru": "📌 Шаг 2: запустите загрузку вручную:\n  ",
-        "de": "📌 Schritt 2: Download manuell starten:\n  "
+        "de": "📌 Schritt 2: Download manuell starten:\n  ",
+        "pl": "📌 Krok 2: uruchom pobieranie ręcznie:\n  "
     },
     "\n  → find «Optimization Guide On Device Model»\n": {
         "en": "\n  → find «Optimization Guide On Device Model»\n",
         "ru": "\n  → найдите «Optimization Guide On Device Model»\n",
-        "de": "\n  → «Optimization Guide On Device Model» suchen\n"
+        "de": "\n  → «Optimization Guide On Device Model» suchen\n",
+        "pl": "\n  → znajdź «Optimization Guide On Device Model»\n"
     },
     "  → click «Check for updates»\n": {
         "en": "  → click «Check for updates»\n",
         "ru": "  → нажмите «Проверить обновления»\n",
-        "de": "  → «Nach Updates suchen» klicken\n"
+        "de": "  → «Nach Updates suchen» klicken\n",
+        "pl": "  → kliknij «Sprawdź aktualizacje»\n"
     },
     "  → if status stays at 0.0.0.0 and «No update required» —\n": {
         "en": "  → if status stays at 0.0.0.0 and «No update required» —\n",
         "ru": "  → если статус висит на 0.0.0.0 и «Обновление не требуется» —\n",
-        "de": "  → wenn Status bei 0.0.0.0 bleibt und «Kein Update erforderlich» —\n"
+        "de": "  → wenn Status bei 0.0.0.0 bleibt und «Kein Update erforderlich» —\n",
+        "pl": "  → jeśli status pozostaje na 0.0.0.0 i «Aktualizacja niewymagana» —\n"
     },
     "    click the button again after 30–60 sec (Chrome sometimes does not respond immediately)\n\n": {
         "en": "    click the button again after 30–60 sec (Chrome sometimes does not respond immediately)\n\n",
         "ru": "    нажмите кнопку ещё раз через 30–60 сек (Chrome иногда не реагирует с первого раза)\n\n",
-        "de": "    Button nach 30–60 Sek erneut klicken (Chrome reagiert manchmal nicht sofort)\n\n"
+        "de": "    Button nach 30–60 Sek erneut klicken (Chrome reagiert manchmal nicht sofort)\n\n",
+        "pl": "    kliknij przycisk ponownie po 30–60 sek (Chrome czasem nie reaguje od razu)\n\n"
     },
     "📌 Step 3: if the button does not help — open DevTools (F12) on\n": {
         "en": "📌 Step 3: if the button does not help — open DevTools (F12) on\n",
         "ru": "📌 Шаг 3: если кнопка не помогает — откройте DevTools (F12) на\n",
-        "de": "📌 Schritt 3: Wenn der Button nicht hilft — DevTools (F12) öffnen\n"
+        "de": "📌 Schritt 3: Wenn der Button nicht hilft — DevTools (F12) öffnen\n",
+        "pl": "📌 Krok 3: jeśli przycisk nie pomaga — otwórz DevTools (F12) na\n"
     },
     "  any tab and run in console:\n": {
         "en": "  any tab and run in console:\n",
         "ru": "  любой вкладке и выполните в консоли:\n",
-        "de": "  auf beliebigem Tab und in Konsole ausführen:\n"
+        "de": "  auf beliebigem Tab und in Konsole ausführen:\n",
+        "pl": "  dowolnej karcie i wykonaj w konsoli:\n"
     },
     "  This will force the download.\n\n": {
         "en": "  This will force the download.\n\n",
         "ru": "  Это принудительно инициирует загрузку.\n\n",
-        "de": "  Das erzwingt den Download.\n\n"
+        "de": "  Das erzwingt den Download.\n\n",
+        "pl": "  Wymusi to pobranie.\n\n"
     },
     "The app will activate automatically after download.": {
         "en": "The app will activate automatically after download.",
         "ru": "Приложение автоматически активируется после загрузки.",
-        "de": "Die App aktiviert sich automatisch nach dem Download."
+        "de": "Die App aktiviert sich automatisch nach dem Download.",
+        "pl": "Aplikacja aktywuje się automatycznie po pobraniu."
     },
     "  ⏳ Waiting: 0 sec": {
         "en": "  ⏳ Waiting: 0 sec",
         "ru": "  ⏳ Ожидание: 0 сек",
-        "de": "  ⏳ Warten: 0 Sek"
+        "de": "  ⏳ Warten: 0 Sek",
+        "pl": "  ⏳ Oczekiwanie: 0 sek"
     },
     "  ⏳ Waiting: ": {
         "en": "  ⏳ Waiting: ",
         "ru": "  ⏳ Ожидание: ",
-        "de": "  ⏳ Warten: "
+        "de": "  ⏳ Warten: ",
+        "pl": "  ⏳ Oczekiwanie: "
     },
     " min ": {
         "en": " min ",
         "ru": " мин ",
-        "de": " Min "
+        "de": " Min ",
+        "pl": " min "
     },
     " sec": {
         "en": " sec",
         "ru": " сек",
-        "de": " Sek"
+        "de": " Sek",
+        "pl": " sek"
     },
     "  Downloaded: ": {
         "en": "  Downloaded: ",
         "ru": "  Загружено: ",
-        "de": "  Heruntergeladen: "
+        "de": "  Heruntergeladen: ",
+        "pl": "  Pobrano: "
     },
     "  [████████████████████] 100%  — download complete.": {
         "en": "  [████████████████████] 100%  — download complete.",
         "ru": "  [████████████████████] 100%  — загрузка завершена.",
-        "de": "  [████████████████████] 100%  — Download abgeschlossen."
+        "de": "  [████████████████████] 100%  — Download abgeschlossen.",
+        "pl": "  [████████████████████] 100%  — pobieranie zakończone."
     },
     "  ✓ Download complete (waited: ": {
         "en": "  ✓ Download complete (waited: ",
         "ru": "  ✓ Загрузка завершена (ожидание: ",
-        "de": "  ✓ Download abgeschlossen (Wartezeit: "
+        "de": "  ✓ Download abgeschlossen (Wartezeit: ",
+        "pl": "  ✓ Pobieranie zakończone (czas oczekiwania: "
     },
     "✓ Gemini Nano ready. Enter a message and click «Send» (or Ctrl+Enter).": {
         "en": "✓ Gemini Nano ready. Enter a message and click «Send» (or Ctrl+Enter).",
         "ru": "✓ Gemini Nano готов. Введите сообщение и нажмите «Отправить» (или Ctrl+Enter).",
-        "de": "✓ Gemini Nano bereit. Nachricht eingeben und «Senden» klicken (oder Ctrl+Enter)."
+        "de": "✓ Gemini Nano bereit. Nachricht eingeben und «Senden» klicken (oder Ctrl+Enter).",
+        "pl": "✓ Gemini Nano gotowy. Wpisz wiadomość i kliknij «Wyślij» (lub Ctrl+Enter)."
     },
     "Initialization error: ": {
         "en": "Initialization error: ",
         "ru": "Ошибка инициализации: ",
-        "de": "Initialisierungsfehler: "
+        "de": "Initialisierungsfehler: ",
+        "pl": "Błąd inicjalizacji: "
     },
     "Error: ": {
         "en": "Error: ",
         "ru": "Ошибка: ",
-        "de": "Fehler: "
+        "de": "Fehler: ",
+        "pl": "Błąd: "
     },
     "User settings": {
         "en": "User settings",
         "ru": "Настройки пользователя",
-        "de": "Benutzereinstellungen"
+        "de": "Benutzereinstellungen",
+        "pl": "Ustawienia użytkownika"
     },
     "Apply": {
         "en": "Apply",
         "ru": "Применить",
-        "de": "Anwenden"
+        "de": "Anwenden",
+        "pl": "Zastosuj"
     },
     "Language": {
         "en": "Language",
         "ru": "Язык",
-        "de": "Sprache"
+        "de": "Sprache",
+        "pl": "Język"
     },
     "Settings saved": {
         "en": "Settings saved",
         "ru": "Настройки сохранены",
-        "de": "Einstellungen gespeichert"
+        "de": "Einstellungen gespeichert",
+        "pl": "Ustawienia zapisane"
     },
     "Autofill": {
         "en": "Autofill",
         "ru": "Автозаполнение",
-        "de": "Autovervollständigung"
+        "de": "Autovervollständigung",
+        "pl": "Autouzupełnianie"
     },
     "Table": {
         "en": "Table",
         "ru": "Таблица",
-        "de": "Tabelle"
+        "de": "Tabelle",
+        "pl": "Tabela"
     },
     "Record": {
         "en": "Record",
         "ru": "Запись",
-        "de": "Datensatz"
+        "de": "Datensatz",
+        "pl": "Rekord"
     },
     "Select table": {
         "en": "Select table",
         "ru": "Выберите таблицу",
-        "de": "Tabelle auswählen"
+        "de": "Tabelle auswählen",
+        "pl": "Wybierz tabelę"
     },
     "Default value": {
         "en": "Default value",
         "ru": "Значение по умолчанию",
-        "de": "Standardwert"
+        "de": "Standardwert",
+        "pl": "Wartość domyślna"
     },
     "Table not selected": {
         "en": "Table not selected",
         "ru": "Таблица не выбрана",
-        "de": "Tabelle nicht ausgewählt"
+        "de": "Tabelle nicht ausgewählt",
+        "pl": "Nie wybrano tabeli"
     },
     "Record not selected": {
         "en": "Record not selected",
         "ru": "Запись не выбрана",
-        "de": "Datensatz nicht ausgewählt"
+        "de": "Datensatz nicht ausgewählt",
+        "pl": "Nie wybrano rekordu"
     },
     "Database models not available": {
         "en": "Database models not available",
         "ru": "Модели базы данных недоступны",
-        "de": "Datenbankmodelle nicht verfügbar"
+        "de": "Datenbankmodelle nicht verfügbar",
+        "pl": "Modele bazy danych niedostępne"
     }
 }
-

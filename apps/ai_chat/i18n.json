@@ -2,111 +2,133 @@
     "AI Assistant": {
         "en": "AI Assistant",
         "ru": "Помощник ИИ",
-        "de": "KI-Assistent"
+        "de": "KI-Assistent",
+        "pl": "Asystent AI"
     },
     "Enter message... (Ctrl+Enter — send)": {
         "en": "Enter message... (Ctrl+Enter — send)",
         "ru": "Введите сообщение… (Ctrl+Enter — отправить)",
-        "de": "Nachricht eingeben… (Strg+Enter — senden)"
+        "de": "Nachricht eingeben… (Strg+Enter — senden)",
+        "pl": "Wpisz wiadomość… (Ctrl+Enter — wyślij)"
     },
     "Send": {
         "en": "Send",
         "ru": "Отправить",
-        "de": "Senden"
+        "de": "Senden",
+        "pl": "Wyślij"
     },
     "You": {
         "en": "You",
         "ru": "Вы",
-        "de": "Sie"
+        "de": "Sie",
+        "pl": "Ty"
     },
     "AI": {
         "en": "AI",
         "ru": "ИИ",
-        "de": "KI"
+        "de": "KI",
+        "pl": "AI"
     },
     "Connected to Google Gemini. Ask in words or by voice — e.g. «open a new booking and fill in the dates».": {
         "en": "Connected to Google Gemini. Ask in words or by voice — e.g. «open a new booking and fill in the dates».",
         "ru": "Подключено к Google Gemini. Попросите словами или голосом — например «открой новую бронь и заполни даты».",
-        "de": "Mit Google Gemini verbunden. Bitten Sie per Text oder Sprache — z. B. «öffne eine neue Buchung und fülle die Daten aus»."
+        "de": "Mit Google Gemini verbunden. Bitten Sie per Text oder Sprache — z. B. «öffne eine neue Buchung und fülle die Daten aus».",
+        "pl": "Połączono z Google Gemini. Poproś tekstem lub głosem — np. «otwórz nową rezerwację i uzupełnij daty»."
     },
     "Error: ": {
         "en": "Error: ",
         "ru": "Ошибка: ",
-        "de": "Fehler: "
+        "de": "Fehler: ",
+        "pl": "Błąd: "
     },
     "unknown error": {
         "en": "unknown error",
         "ru": "неизвестная ошибка",
-        "de": "unbekannter Fehler"
+        "de": "unbekannter Fehler",
+        "pl": "nieznany błąd"
     },
     "Voice input": {
         "en": "Voice input",
         "ru": "Голосовой ввод",
-        "de": "Spracheingabe"
+        "de": "Spracheingabe",
+        "pl": "Wprowadzanie głosowe"
     },
     "Listening… (click to stop)": {
         "en": "Listening… (click to stop)",
         "ru": "Слушаю… (нажмите, чтобы остановить)",
-        "de": "Höre zu… (zum Stoppen klicken)"
+        "de": "Höre zu… (zum Stoppen klicken)",
+        "pl": "Słucham… (kliknij, aby zatrzymać)"
     },
     "Voice input is not supported in this browser.": {
         "en": "Voice input is not supported in this browser.",
         "ru": "Голосовой ввод не поддерживается в этом браузере.",
-        "de": "Spracheingabe wird in diesem Browser nicht unterstützt."
+        "de": "Spracheingabe wird in diesem Browser nicht unterstützt.",
+        "pl": "Wprowadzanie głosowe nie jest obsługiwane w tej przeglądarce."
     },
     "Microphone access denied.": {
         "en": "Microphone access denied.",
         "ru": "Доступ к микрофону запрещён.",
-        "de": "Mikrofonzugriff verweigert."
+        "de": "Mikrofonzugriff verweigert.",
+        "pl": "Odmowa dostępu do mikrofonu."
     },
     "Voice input error: ": {
         "en": "Voice input error: ",
         "ru": "Ошибка голосового ввода: ",
-        "de": "Spracheingabefehler: "
+        "de": "Spracheingabefehler: ",
+        "pl": "Błąd wprowadzania głosowego: "
     },
     "Recognizing…": {
         "en": "Recognizing…",
         "ru": "Распознаю…",
-        "de": "Erkenne…"
+        "de": "Erkenne…",
+        "pl": "Rozpoznaję…"
     },
     "No speech recognized.": {
         "en": "No speech recognized.",
         "ru": "Речь не распознана.",
-        "de": "Keine Sprache erkannt."
+        "de": "Keine Sprache erkannt.",
+        "pl": "Nie rozpoznano mowy."
     },
     "⚠ Too many steps, stopping.": {
         "en": "⚠ Too many steps, stopping.",
         "ru": "⚠ Слишком много шагов, останавливаюсь.",
-        "de": "⚠ Zu viele Schritte, Abbruch."
+        "de": "⚠ Zu viele Schritte, Abbruch.",
+        "pl": "⚠ Zbyt wiele kroków, zatrzymuję."
     },
     "— earlier conversation restored —": {
         "en": "— earlier conversation restored —",
         "ru": "— предыдущий разговор восстановлен —",
-        "de": "— früheres Gespräch wiederhergestellt —"
+        "de": "— früheres Gespräch wiederhergestellt —",
+        "pl": "— przywrócono wcześniejszą rozmowę —"
     },
     "AI is working": {
         "en": "AI is working",
         "ru": "ИИ работает",
-        "de": "KI arbeitet"
+        "de": "KI arbeitet",
+        "pl": "AI pracuje"
     },
     "Attach a file (image or PDF)": {
         "en": "Attach a file (image or PDF)",
         "ru": "Прикрепить файл (картинку или PDF)",
-        "de": "Datei anhängen (Bild oder PDF)"
+        "de": "Datei anhängen (Bild oder PDF)",
+        "pl": "Załącz plik (obraz lub PDF)"
     },
     "Remove attachment": {
         "en": "Remove attachment",
         "ru": "Убрать вложение",
-        "de": "Anhang entfernen"
+        "de": "Anhang entfernen",
+        "pl": "Usuń załącznik"
     },
     "File is too large (max ~25 MB).": {
         "en": "File is too large (max ~25 MB).",
         "ru": "Файл слишком большой (макс. ~25 МБ).",
-        "de": "Datei ist zu groß (max. ~25 MB)."
+        "de": "Datei ist zu groß (max. ~25 MB).",
+        "pl": "Plik jest zbyt duży (maks. ~25 MB)."
     },
     "Could not read the file.": {
         "en": "Could not read the file.",
         "ru": "Не удалось прочитать файл.",
-        "de": "Datei konnte nicht gelesen werden."
+        "de": "Datei konnte nicht gelesen werden.",
+        "pl": "Nie udało się odczytać pliku."
     }
 }

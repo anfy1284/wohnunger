@@ -2,22 +2,26 @@
     "bookings_app_caption": {
         "en": "Bookings",
         "ru": "Бронирования",
-        "de": "Buchungen"
+        "de": "Buchungen",
+        "pl": "Rezerwacje"
     },
     "bookingId required": {
         "en": "bookingId is required",
         "ru": "bookingId обязателен",
-        "de": "bookingId ist erforderlich"
+        "de": "bookingId ist erforderlich",
+        "pl": "bookingId jest wymagany"
     },
     "Booking not found": {
         "en": "Booking not found",
         "ru": "Бронирование не найдено",
-        "de": "Buchung nicht gefunden"
+        "de": "Buchung nicht gefunden",
+        "pl": "Nie znaleziono rezerwacji"
     },
     "Invalid dates": {
         "en": "Invalid dates",
         "ru": "Некорректные даты",
-        "de": "Ungültige Datumsangaben"
+        "de": "Ungültige Datumsangaben",
+        "pl": "Nieprawidłowe daty"
     },
     "accommodation_section": {
         "en": "Accommodation",
@@ -40,181 +44,216 @@
     "booking_extra_lines_tab": {
         "en": "Additional services",
         "ru": "Дополнительные услуги",
-        "de": "Zusatzleistungen"
+        "de": "Zusatzleistungen",
+        "pl": "Usługi dodatkowe"
     },
     "extra_line_name": {
         "en": "Description",
         "ru": "Наименование",
-        "de": "Bezeichnung"
+        "de": "Bezeichnung",
+        "pl": "Nazwa"
     },
     "amount_gross": {
         "en": "Amount (incl. tax)",
         "ru": "Сумма (с налогом)",
-        "de": "Betrag (inkl. Steuer)"
+        "de": "Betrag (inkl. Steuer)",
+        "pl": "Kwota (z podatkiem)"
     },
     "tax_rate": {
         "en": "Tax rate",
         "ru": "Ставка налога",
-        "de": "Steuersatz"
+        "de": "Steuersatz",
+        "pl": "Stawka podatku"
     },
 
     "Booking": {
         "en": "Booking",
         "ru": "Бронирование",
-        "de": "Buchung"
+        "de": "Buchung",
+        "pl": "Rezerwacja"
     },
     "booking_name_field": {
         "en": "Booking number",
         "ru": "Номер брони",
-        "de": "Buchungsnummer"
+        "de": "Buchungsnummer",
+        "pl": "Numer rezerwacji"
     },
     "prepayment_field": {
         "en": "Prepayment",
         "ru": "Предоплата",
-        "de": "Anzahlung"
+        "de": "Anzahlung",
+        "pl": "Zaliczka"
     },
     "Client": {
         "en": "Client",
         "ru": "Клиент",
-        "de": "Mandant"
+        "de": "Mandant",
+        "pl": "Klient"
     },
     "Hotel": {
         "en": "Hotel",
         "ru": "Гостиница",
-        "de": "Hotel"
+        "de": "Hotel",
+        "pl": "Hotel"
     },
     "Organization": {
         "en": "Organization",
         "ru": "Организация",
-        "de": "Organisation"
+        "de": "Organisation",
+        "pl": "Organizacja"
     },
     "check_in": {
         "en": "Check-in",
         "ru": "Заезд",
-        "de": "Anreise"
+        "de": "Anreise",
+        "pl": "Zameldowanie"
     },
     "check_out": {
         "en": "Check-out",
         "ru": "Выезд",
-        "de": "Abreise"
+        "de": "Abreise",
+        "pl": "Wymeldowanie"
     },
     "Status": {
         "en": "Status",
         "ru": "Статус",
-        "de": "Status"
+        "de": "Status",
+        "pl": "Status"
     },
     "booking_rooms_tab": {
         "en": "Accommodation rooms",
         "ru": "Номера размещения",
-        "de": "Unterkunftszimmer"
+        "de": "Unterkunftszimmer",
+        "pl": "Pokoje zakwaterowania"
     },
     "Guests": {
         "en": "Guests",
         "ru": "Гости",
-        "de": "Gäste"
+        "de": "Gäste",
+        "pl": "Goście"
     },
     "Services": {
         "en": "Services",
         "ru": "Услуги",
-        "de": "Leistungen"
+        "de": "Leistungen",
+        "pl": "Usługi"
     },
     "Room": {
         "en": "Room",
         "ru": "Номер",
-        "de": "Zimmer"
+        "de": "Zimmer",
+        "pl": "Pokój"
     },
     "guest_type_field": {
         "en": "Guest type",
         "ru": "Тип гостя",
-        "de": "Gästetyp"
+        "de": "Gästetyp",
+        "pl": "Typ gościa"
     },
     "Quantity": {
         "en": "Qty",
         "ru": "Кол-во",
-        "de": "Anz."
+        "de": "Anz.",
+        "pl": "Il."
     },
     "Service": {
         "en": "Service",
         "ru": "Услуга",
-        "de": "Leistung"
+        "de": "Leistung",
+        "pl": "Usługa"
     },
     "invoice_lines_tab": {
         "en": "Invoice specification",
         "ru": "Спецификация счёта",
-        "de": "Rechnungsspezifikation"
+        "de": "Rechnungsspezifikation",
+        "pl": "Specyfikacja rachunku"
     },
     "Section": {
         "en": "Section",
         "ru": "Раздел",
-        "de": "Abschnitt"
+        "de": "Abschnitt",
+        "pl": "Sekcja"
     },
     "Description": {
         "en": "Description",
         "ru": "Описание",
-        "de": "Beschreibung"
+        "de": "Beschreibung",
+        "pl": "Opis"
     },
     "Price": {
         "en": "Price",
         "ru": "Цена",
-        "de": "Preis"
+        "de": "Preis",
+        "pl": "Cena"
     },
     "vat_rate_field": {
         "en": "VAT %",
         "ru": "НДС %",
-        "de": "MwSt %"
+        "de": "MwSt %",
+        "pl": "VAT %"
     },
     "Amount": {
         "en": "Amount",
         "ru": "Сумма",
-        "de": "Betrag"
+        "de": "Betrag",
+        "pl": "Kwota"
     },
     "Notes": {
         "en": "Notes",
         "ru": "Примечания",
-        "de": "Anmerkungen"
+        "de": "Anmerkungen",
+        "pl": "Uwagi"
     },
     "Save": {
         "en": "Save",
         "ru": "Сохранить",
-        "de": "Speichern"
+        "de": "Speichern",
+        "pl": "Zapisz"
     },
     "Cancel": {
         "en": "Cancel",
         "ru": "Отмена",
-        "de": "Abbrechen"
+        "de": "Abbrechen",
+        "pl": "Anuluj"
     },
     "OK": {
         "en": "OK",
         "ru": "ОК",
-        "de": "OK"
+        "de": "OK",
+        "pl": "OK"
     },
 
     "print_invoice_btn": {
         "en": "Print invoice",
         "ru": "Печать счёта",
-        "de": "Rechnung drucken"
+        "de": "Rechnung drucken",
+        "pl": "Drukuj rachunek"
     },
 
     "Error: ": {
         "en": "Error: ",
         "ru": "Ошибка: ",
-        "de": "Fehler: "
+        "de": "Fehler: ",
+        "pl": "Błąd: "
     },
 
     "Please save the booking first": {
         "en": "Please save the booking first",
         "ru": "Сначала сохраните бронирование",
-        "de": "Bitte speichern Sie die Buchung zuerst"
+        "de": "Bitte speichern Sie die Buchung zuerst",
+        "pl": "Najpierw zapisz rezerwację"
     },
     "Save before printing?": {
         "en": "Save before printing?",
         "ru": "Сохранить перед печатью?",
-        "de": "Vor dem Drucken speichern?"
+        "de": "Vor dem Drucken speichern?",
+        "pl": "Zapisać przed wydrukiem?"
     },
     "Preparing invoice…": {
         "en": "Preparing invoice…",
         "ru": "Формирование счёта…",
-        "de": "Rechnung wird erstellt…"
+        "de": "Rechnung wird erstellt…",
+        "pl": "Przygotowywanie rachunku…"
     },
 
     "room_line_label": {
@@ -305,71 +344,85 @@
     "booking_ref": {
         "en": "Booking",
         "ru": "Бронь",
-        "de": "Buchung"
+        "de": "Buchung",
+        "pl": "Rezerwacja"
     },
     "booking_room_ref": {
         "en": "Booking room",
         "ru": "Номер в брони",
-        "de": "Unterkunftszimmer"
+        "de": "Unterkunftszimmer",
+        "pl": "Pokój w rezerwacji"
     },
     "invoice_name": {
         "en": "Invoice number",
         "ru": "Номер счёта",
-        "de": "Rechnungsnummer"
+        "de": "Rechnungsnummer",
+        "pl": "Numer rachunku"
     },
     "invoice_date": {
         "en": "Invoice date",
         "ru": "Дата счёта",
-        "de": "Rechnungsdatum"
+        "de": "Rechnungsdatum",
+        "pl": "Data rachunku"
     },
     "due_date": {
         "en": "Due date",
         "ru": "Оплатить до",
-        "de": "Fälligkeitsdatum"
+        "de": "Fälligkeitsdatum",
+        "pl": "Termin płatności"
     },
     "Invoice": {
         "en": "Invoice",
         "ru": "Счёт",
-        "de": "Rechnung"
+        "de": "Rechnung",
+        "pl": "Rachunek"
     },
     "section_label": {
         "en": "Section label",
         "ru": "Заголовок секции",
-        "de": "Abschnittsbezeichnung"
+        "de": "Abschnittsbezeichnung",
+        "pl": "Etykieta sekcji"
     },
     "unit_price": {
         "en": "Unit price",
         "ru": "Цена за ед.",
-        "de": "Einzelpreis"
+        "de": "Einzelpreis",
+        "pl": "Cena jednostkowa"
     },
     "sort_order": {
         "en": "Sort order",
         "ru": "Порядок",
-        "de": "Reihenfolge"
+        "de": "Reihenfolge",
+        "pl": "Kolejność"
     },
     "booking_services_tab": {
         "en": "Booking services",
         "ru": "Услуги бронирования",
-        "de": "Buchungsleistungen"
+        "de": "Buchungsleistungen",
+        "pl": "Usługi rezerwacji"
     },
     "booking_guests_tab": {
         "en": "Booking guests",
         "ru": "Гости бронирования",
-        "de": "Buchungsgäste"
+        "de": "Buchungsgäste",
+        "pl": "Goście rezerwacji"
     },
     "invoices_tab": {
         "en": "Invoices",
         "ru": "Счета",
-        "de": "Rechnungen"
+        "de": "Rechnungen",
+        "pl": "Rachunki"
     },
     "booking_tab_main": {
         "en": "Main",
         "ru": "Основное",
-        "de": "Allgemein"
+        "de": "Allgemein",
+        "pl": "Ogólne"
     },
     "booking_tab_extra": {
         "en": "Additional",
         "ru": "Дополнительное",
-        "de": "Zusatz"
+        "de": "Zusatz",
+        "pl": "Dodatkowe"
     }
 }

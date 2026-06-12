@@ -2,211 +2,253 @@
     "Name": {
         "en": "Name",
         "ru": "Название",
-        "de": "Name"
+        "de": "Name",
+        "pl": "Nazwa"
     },
     "accommodation_type_name": {
         "en": "Accommodation type",
         "ru": "Тип размещения",
-        "de": "Unterkunftsart"
+        "de": "Unterkunftsart",
+        "pl": "Rodzaj zakwaterowania"
     },
     "Description": {
         "en": "Description",
         "ru": "Описание",
-        "de": "Beschreibung"
+        "de": "Beschreibung",
+        "pl": "Opis"
     },
     "Organization": {
         "en": "Organization",
         "ru": "Организация",
-        "de": "Organisation"
+        "de": "Organisation",
+        "pl": "Organizacja"
     },
     "Hotel": {
         "en": "Hotel",
         "ru": "Гостиница",
-        "de": "Hotel"
+        "de": "Hotel",
+        "pl": "Hotel"
     },
     "Address": {
         "en": "Address",
         "ru": "Адрес",
-        "de": "Adresse"
+        "de": "Adresse",
+        "pl": "Adres"
     },
     "Phone": {
         "en": "Phone",
         "ru": "Телефон",
-        "de": "Telefon"
+        "de": "Telefon",
+        "pl": "Telefon"
     },
     "Fax": {
         "en": "Fax",
         "ru": "Факс",
-        "de": "Fax"
+        "de": "Fax",
+        "pl": "Faks"
     },
     "Email": {
         "en": "E-Mail",
         "ru": "E-Mail",
-        "de": "E-Mail"
+        "de": "E-Mail",
+        "pl": "E-mail"
     },
     "Website": {
         "en": "Website",
         "ru": "Сайт",
-        "de": "Webseite"
+        "de": "Webseite",
+        "pl": "Strona internetowa"
     },
     "TaxNumber": {
         "en": "Tax number",
         "ru": "Steuernummer",
-        "de": "Steuernummer"
+        "de": "Steuernummer",
+        "pl": "Numer podatkowy (NIP)"
     },
     "IBAN": {
         "en": "IBAN",
         "ru": "IBAN",
-        "de": "IBAN"
+        "de": "IBAN",
+        "pl": "IBAN"
     },
     "BIC": {
         "en": "BIC",
         "ru": "BIC",
-        "de": "BIC"
+        "de": "BIC",
+        "pl": "BIC"
     },
     "is_active": {
         "en": "Active",
         "ru": "Активна",
-        "de": "Aktiv"
+        "de": "Aktiv",
+        "pl": "Aktywna"
     },
     "User": {
         "en": "User",
         "ru": "Пользователь",
-        "de": "Benutzer"
+        "de": "Benutzer",
+        "pl": "Użytkownik"
     },
     "room_number": {
         "en": "Room number",
         "ru": "Номер комнаты",
-        "de": "Zimmernummer"
+        "de": "Zimmernummer",
+        "pl": "Numer pokoju"
     },
     "Service": {
         "en": "Service",
         "ru": "Услуга",
-        "de": "Leistung"
+        "de": "Leistung",
+        "pl": "Usługa"
     },
     "Room": {
         "en": "Room",
         "ru": "Номер",
-        "de": "Zimmer"
+        "de": "Zimmer",
+        "pl": "Pokój"
     },
     "Price": {
         "en": "Price",
         "ru": "Цена",
-        "de": "Preis"
+        "de": "Preis",
+        "pl": "Cena"
     },
     "charge_type": {
         "en": "Charge type",
         "ru": "Тип начисления",
-        "de": "Abrechnungsart"
+        "de": "Abrechnungsart",
+        "pl": "Typ naliczania"
     },
     "tax_rate": {
         "en": "Tax rate",
         "ru": "Ставка налога",
-        "de": "Steuersatz"
+        "de": "Steuersatz",
+        "pl": "Stawka podatku"
     },
     "tax_rate_name": {
         "en": "Name",
         "ru": "Название",
-        "de": "Bezeichnung"
+        "de": "Bezeichnung",
+        "pl": "Nazwa"
     },
     "tax_rate_value": {
         "en": "Rate, %",
         "ru": "Ставка, %",
-        "de": "Satz, %"
+        "de": "Satz, %",
+        "pl": "Stawka, %"
     },
     "tax_component_name": {
         "en": "Component name",
         "ru": "Название компонента",
-        "de": "Komponentenbezeichnung"
+        "de": "Komponentenbezeichnung",
+        "pl": "Nazwa komponentu"
     },
     "tax_category": {
         "en": "Tax category",
         "ru": "Налоговая группа",
-        "de": "Steuerkategorie"
+        "de": "Steuerkategorie",
+        "pl": "Kategoria podatkowa"
     },
     "tax_category_code": {
         "en": "Category code",
         "ru": "Код группы",
-        "de": "Kategorie-Code"
+        "de": "Kategorie-Code",
+        "pl": "Kod kategorii"
     },
     "tax_category_name": {
         "en": "Category name",
         "ru": "Название группы",
-        "de": "Kategoriebezeichnung"
+        "de": "Kategoriebezeichnung",
+        "pl": "Nazwa kategorii"
     },
     "tax_split_mode": {
         "en": "Split mode",
         "ru": "Способ деления",
-        "de": "Aufteilungsart"
+        "de": "Aufteilungsart",
+        "pl": "Sposób podziału"
     },
     "tax_split_value": {
         "en": "Split value",
         "ru": "Значение деления",
-        "de": "Aufteilungswert"
+        "de": "Aufteilungswert",
+        "pl": "Wartość podziału"
     },
     "display_order": {
         "en": "Display order",
         "ru": "Порядок",
-        "de": "Reihenfolge"
+        "de": "Reihenfolge",
+        "pl": "Kolejność"
     },
     "age_from": {
         "en": "Age from",
         "ru": "Возраст от",
-        "de": "Alter von"
+        "de": "Alter von",
+        "pl": "Wiek od"
     },
     "age_to": {
         "en": "Age to",
         "ru": "Возраст до",
-        "de": "Alter bis"
+        "de": "Alter bis",
+        "pl": "Wiek do"
     },
     "date_from": {
         "en": "From",
         "ru": "Начало периода",
-        "de": "Von"
+        "de": "Von",
+        "pl": "Od"
     },
     "date_to": {
         "en": "To",
         "ru": "Конец периода",
-        "de": "Bis"
+        "de": "Bis",
+        "pl": "Do"
     },
     "guests_count": {
         "en": "Guests count",
         "ru": "Кол-во гостей",
-        "de": "Anzahl Gäste"
+        "de": "Anzahl Gäste",
+        "pl": "Liczba gości"
     },
     "base_rate_price": {
         "en": "Base price",
         "ru": "Базовая цена",
-        "de": "Grundpreis"
+        "de": "Grundpreis",
+        "pl": "Cena bazowa"
     },
     "guest_type_field": {
         "en": "Guest type",
         "ru": "Тип гостя",
-        "de": "Gästetyp"
+        "de": "Gästetyp",
+        "pl": "Typ gościa"
     },
     "Quantity": {
         "en": "Qty",
         "ru": "Кол-во",
-        "de": "Anz."
+        "de": "Anz.",
+        "pl": "Il."
     },
     "Status": {
         "en": "Status",
         "ru": "Статус",
-        "de": "Status"
+        "de": "Status",
+        "pl": "Status"
     },
     "booking_status_code": {
         "en": "Status code",
         "ru": "Код статуса",
-        "de": "Statuscode"
+        "de": "Statuscode",
+        "pl": "Kod statusu"
     },
     "booking_status_name": {
         "en": "Status name",
         "ru": "Название статуса",
-        "de": "Statusbezeichnung"
+        "de": "Statusbezeichnung",
+        "pl": "Nazwa statusu"
     },
     "Notes": {
         "en": "Notes",
         "ru": "Примечания",
-        "de": "Anmerkungen"
+        "de": "Anmerkungen",
+        "pl": "Uwagi"
     }
 }
