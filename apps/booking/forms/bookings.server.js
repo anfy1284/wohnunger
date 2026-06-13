@@ -8,6 +8,7 @@
 // Каждая функция получает (params, ctx) где ctx = { sessionID, user, role }.
 
 const i18n = require('../../../node_modules/my-old-space/drive_root/i18n');
+const { tForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
 const { resolveOrgReportLang } = require('../../organizationSettings/lib/orgReportLanguage');
 
 module.exports = function (modelsDB, Utilities) {
@@ -389,6 +390,26 @@ module.exports = function (modelsDB, Utilities) {
         // 1. Заполняем organizationId в основной записи и во все строки ТЧ.
         // 2. Пересчитываем строки счёта (invoice_lines) на основе актуальных ТЧ.
         async onBeforeSave({ record, changes, tabularSections, parentUID }, ctx) {
+            // 0. Контроль дат: дата выезда должна быть строго больше даты заезда.
+            //    changes содержит только изменённые поля — дочитываем запись из БД и мерджим,
+            //    чтобы проверить актуальную пару дат (могла измениться только одна из них).
+            //    Бросаем ошибку → dispatchServerEvent пробросит её, applyChanges вернёт
+            //    { ok:false, error } и клиент покажет сообщение, сохранение не произойдёт.
+            {
+                const bId = parentUID || (changes && changes.UID);
+                let dbRec = null;
+                if (bId) {
+                    try { dbRec = await modelsDB.Bookings.findByPk(bId, { raw: true }); } catch (_) {}
+                }
+                const eff = Object.assign({}, dbRec || {}, changes || {});
+                if (eff.checkIn && eff.checkOut) {
+                    const ci = new Date(eff.checkIn), co = new Date(eff.checkOut);
+                    if (!isNaN(ci.getTime()) && !isNaN(co.getTime()) && co <= ci) {
+                        throw new Error(await tForSession('checkout_after_checkin', ctx.sessionID));
+                    }
+                }
+            }
+
             // 1. organizationId
             if (!changes.organizationId) {
                 try {

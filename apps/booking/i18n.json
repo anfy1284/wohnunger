@@ -23,6 +23,12 @@
         "de": "Ungültige Datumsangaben",
         "pl": "Nieprawidłowe daty"
     },
+    "checkout_after_checkin": {
+        "en": "Check-out date must be later than check-in date.",
+        "ru": "Дата выезда должна быть позже даты заезда.",
+        "de": "Das Abreisedatum muss nach dem Anreisedatum liegen.",
+        "pl": "Data wymeldowania musi być późniejsza niż data zameldowania."
+    },
     "accommodation_section": {
         "en": "Accommodation",
         "ru": "Проживание",

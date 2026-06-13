@@ -92,6 +92,9 @@ module.exports = async function (modelsDB) {
         //     require('./forms/invoices.server')(modelsDB, Utilities), 'user');
         // ...
 
+        // ── Сортировка списка броней по умолчанию: по номеру от большего к меньшему ──
+        layoutMemory.registerListSort('bookings', [{ field: 'number', order: 'desc' }]);
+
         // ── Пункт главного меню ─────────────────────────────────────────
         const mainMenu = require('../../node_modules/my-old-space/apps/main_menu/server.js');
         mainMenu.addMenuItems([
