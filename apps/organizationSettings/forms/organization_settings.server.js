@@ -188,6 +188,7 @@ async function buildLayout(modelsDB) {
             // Свободный многострочный текст (напр. примечание к счёту) → textarea.
             ctrl.type = 'textarea';
             if (typeof opts.rows === 'number') ctrl.rows = opts.rows;
+            if (typeof opts.cols === 'number') ctrl.cols = opts.cols;
         } else {
             ctrl.type = 'textbox';
         }
