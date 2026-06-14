@@ -78,6 +78,37 @@ module.exports = function (modelsDB, Utilities) {
         const cleaningPrices = roomIds.length
             ? await modelsDB.ServicePrices.findAll({ where: { roomId: roomIds }, raw: true }) : [];
 
+        // ──────────────────────────────────────────────────────────────────────
+        // ТЕХДОЛГ (де-хардкодинг расчёта стоимости) — Шаг 1 из 2.
+        // СЕЙЧАС: суммы курсбора (Kurbeitrag) и детского тарифа проживания берём
+        // из ДАННЫХ (service_prices: записи srv-kurbeitrag / srv-child), а не числом
+        // в коде. Это убирает «магические» 2.10 / 1.00 / 10 ниже.
+        // ОСТАЁТСЯ в коде (Шаг 2): сами ПРАВИЛА начисления — кто платит курсбор
+        // (все 6+, per-night), что дети 2–5 идут по детскому тарифу, а также порог
+        // уборки `nights <= 3`. Плюс эти услуги пока ссылаются по фикс-UID и видны
+        // в ручном подборе услуг → риск двойного начисления, если их добавить в бронь
+        // руками (footgun). Полное решение — общий флаг услуги `autoApply` во
+        // фреймворке (обязательная услуга на всех гостей по возрастным полосам,
+        // скрытая из ручного подбора), тогда вся логика уйдёт в данные и этот блок
+        // исчезнет. См. также блок №5 (уборка) ниже.
+        // ──────────────────────────────────────────────────────────────────────
+        const RESORT_SERVICE_ID = 'srv-kurbeitrag';
+        const CHILD_SERVICE_ID   = 'srv-child';
+        const auxPrices = await modelsDB.ServicePrices.findAll({
+            where: { serviceId: [RESORT_SERVICE_ID, CHILD_SERVICE_ID] }, raw: true
+        });
+        // Цена услуги по возрасту: первая полоса service_prices, накрывающая возраст
+        // (или без возрастных границ). fallback — на случай отсутствия записей.
+        const auxPriceByAge = (serviceId, age, fallback) => {
+            const p = auxPrices.find(x => x.serviceId === serviceId
+                && (x.ageFrom == null || x.ageFrom <= age)
+                && (x.ageTo == null || x.ageTo >= age));
+            return p ? p.price : fallback;
+        };
+        const childNightPrice = auxPriceByAge(CHILD_SERVICE_ID, 3, 10);     // Kinder 2–5: 10 €/Nacht
+        const resortAdultRate = auxPriceByAge(RESORT_SERVICE_ID, 16, 2.10); // Kurbeitrag ab 16
+        const resortKidRate   = auxPriceByAge(RESORT_SERVICE_ID, 6, 1.00);  // Kurbeitrag 6–15
+
         const lines = [];
         let sortOrd = 0;
         const r2 = v => Math.round(v * 100) / 100;
@@ -178,18 +209,23 @@ module.exports = function (modelsDB, Utilities) {
             const rInfo   = roomMap[room.roomId];
             const rLabel  = rInfo ? rInfo.number : '?';
 
-            let adults = 0, kids6_15 = 0, kids3_5 = 0, kids2 = 0, infants = 0;
+            // Возрастные группы совпадают с видами гостей (guest_types): 16+, 14–15,
+            // 6–13, 3–5, 2, 0–1. Границы 13/14 (завтрак) и 15/16 (курсбор) — разные,
+            // поэтому 14–15 выделены отдельным бакетом.
+            let adults = 0, teen14_15 = 0, kids6_13 = 0, kids3_5 = 0, kids2 = 0, infants = 0;
             for (const g of rGuests) {
                 const gt = gtMap[g.guestTypeId];
                 if (!gt) continue;
                 const c = g.count || 1;
-                if      (gt.ageFrom >= 16) adults   += c;
-                else if (gt.ageFrom >= 6)  kids6_15 += c;
-                else if (gt.ageFrom >= 3)  kids3_5  += c;
-                else if (gt.ageFrom >= 2)  kids2    += c;
-                else                       infants  += c;
+                if      (gt.ageFrom >= 16) adults    += c;
+                else if (gt.ageFrom >= 14) teen14_15 += c;
+                else if (gt.ageFrom >= 6)  kids6_13  += c;
+                else if (gt.ageFrom >= 3)  kids3_5   += c;
+                else if (gt.ageFrom >= 2)  kids2     += c;
+                else                       infants   += c;
             }
-            const billingGuests = adults + kids6_15;
+            // Заполняемость номера (тариф проживания) — гости 6 лет и старше.
+            const billingGuests = adults + teen14_15 + kids6_13;
 
             // 1. Проживание
             const rp = roomPrices.find(p =>
@@ -218,8 +254,8 @@ module.exports = function (modelsDB, Utilities) {
                     guestTypeId: '000000000-guest-type-0003',
                     sectionLabel: tInv('accommodation_section'),
                     label:    tfInv('children_3_5_line_label', { count: kids3_5, nights }),
-                    quantity: qty, unitPrice: 10, taxRate: rateByCode('accommodation', 0),
-                    amount:   r2(qty * 10), sortOrder: ++sortOrd
+                    quantity: qty, unitPrice: childNightPrice, taxRate: rateByCode('accommodation', 0),
+                    amount:   r2(qty * childNightPrice), sortOrder: ++sortOrd
                 });
             }
 
@@ -232,12 +268,13 @@ module.exports = function (modelsDB, Utilities) {
                     guestTypeId: '000000000-guest-type-0005',
                     sectionLabel: tInv('accommodation_section'),
                     label:    tfInv('children_2_line_label', { count: kids2, nights }),
-                    quantity: qty2, unitPrice: 10, taxRate: rateByCode('accommodation', 0),
-                    amount:   r2(qty2 * 10), sortOrder: ++sortOrd
+                    quantity: qty2, unitPrice: childNightPrice, taxRate: rateByCode('accommodation', 0),
+                    amount:   r2(qty2 * childNightPrice), sortOrder: ++sortOrd
                 });
             }
 
-            // 3. Курортный сбор
+            // 3. Курортный сбор (Kurbeitrag). Ставки — из service_prices (см. техдолг выше).
+            // Дети до 5 — бесплатно; 6–15 (= бакеты 6–13 и 14–15) — детская ставка; 16+ — взрослая.
             if (adults > 0) {
                 const qty = adults * nights;
                 lines.push({
@@ -246,20 +283,21 @@ module.exports = function (modelsDB, Utilities) {
                     guestTypeId: '000000000-guest-type-0001',
                     sectionLabel: tInv('resort_fee_section'),
                     label:    tfInv('adults_resort_fee_label', { count: adults, nights }),
-                    quantity: qty, unitPrice: 2.10, taxRate: rateByCode('exempt', 0),
-                    amount:   r2(qty * 2.10), sortOrder: ++sortOrd
+                    quantity: qty, unitPrice: resortAdultRate, taxRate: rateByCode('exempt', 0),
+                    amount:   r2(qty * resortAdultRate), sortOrder: ++sortOrd
                 });
             }
-            if (kids6_15 > 0) {
-                const qty = kids6_15 * nights;
+            const resortKids = kids6_13 + teen14_15; // курсбор 6–15 = 1,00 €
+            if (resortKids > 0) {
+                const qty = resortKids * nights;
                 lines.push({
                     UID: Utilities.generateUID('InvoiceLines'),
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
                     guestTypeId: '000000000-guest-type-0002',
                     sectionLabel: tInv('resort_fee_section'),
-                    label:    tfInv('children_6_15_resort_fee_label', { count: kids6_15, nights }),
-                    quantity: qty, unitPrice: 1.00, taxRate: rateByCode('exempt', 0),
-                    amount:   r2(qty * 1.00), sortOrder: ++sortOrd
+                    label:    tfInv('children_6_15_resort_fee_label', { count: resortKids, nights }),
+                    quantity: qty, unitPrice: resortKidRate, taxRate: rateByCode('exempt', 0),
+                    amount:   r2(qty * resortKidRate), sortOrder: ++sortOrd
                 });
             }
 
@@ -275,11 +313,12 @@ module.exports = function (modelsDB, Utilities) {
 
                 if (agePrices.length > 0 && svc.chargeType === 'per_night') {
                     const groups = [
-                        { gtId: '000000000-guest-type-0001', n: adults,   lblKey: 'age_group_adults_abbr' },
-                        { gtId: '000000000-guest-type-0002', n: kids6_15, lblKey: 'age_group_6_15_abbr' },
-                        { gtId: '000000000-guest-type-0003', n: kids3_5,  lblKey: 'age_group_3_5_abbr'  },
-                        { gtId: '000000000-guest-type-0005', n: kids2,    lblKey: 'age_group_2_abbr'   },
-                        { gtId: '000000000-guest-type-0004', n: infants,  lblKey: 'age_group_0_1_abbr'  },
+                        { gtId: '000000000-guest-type-0001', n: adults,    lblKey: 'age_group_adults_abbr' },
+                        { gtId: '000000000-guest-type-0006', n: teen14_15, lblKey: 'age_group_14_15_abbr' },
+                        { gtId: '000000000-guest-type-0002', n: kids6_13,  lblKey: 'age_group_6_13_abbr'  },
+                        { gtId: '000000000-guest-type-0003', n: kids3_5,   lblKey: 'age_group_3_5_abbr'  },
+                        { gtId: '000000000-guest-type-0005', n: kids2,     lblKey: 'age_group_2_abbr'   },
+                        { gtId: '000000000-guest-type-0004', n: infants,   lblKey: 'age_group_0_1_abbr'  },
                     ];
                     for (const ag of groups) {
                         if (ag.n <= 0) continue;
@@ -321,7 +360,9 @@ module.exports = function (modelsDB, Utilities) {
                 }
             }
 
-            // 5. Финальная уборка (Endreinigung) при <=3 ночей
+            // 5. Финальная уборка (Endreinigung) при <=3 ночей. Сумма — из service_prices
+            // (по комнате). ТЕХДОЛГ: порог «3 ночи» захардкожен; в Шаге 2 (см. блок выше)
+            // его тоже надо вынести в настройки/данные.
             if (nights <= 3) {
                 const csp = cleaningPrices.find(sp => sp.roomId === room.roomId);
                 if (csp) {

@@ -322,11 +322,17 @@
         "de": "Erw.",
         "pl": "dorośli"
     },
-    "age_group_6_15_abbr": {
-        "en": "children 6–15",
-        "ru": "дети 6–15",
-        "de": "Kinder 6–15",
-        "pl": "dzieci 6–15"
+    "age_group_6_13_abbr": {
+        "en": "children 6–13",
+        "ru": "дети 6–13",
+        "de": "Kinder 6–13",
+        "pl": "dzieci 6–13"
+    },
+    "age_group_14_15_abbr": {
+        "en": "teens 14–15",
+        "ru": "подростки 14–15",
+        "de": "Jugendliche 14–15",
+        "pl": "nastolatki 14–15"
     },
     "age_group_3_5_abbr": {
         "en": "children 3–5",
