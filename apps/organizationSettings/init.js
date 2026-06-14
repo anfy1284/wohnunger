@@ -55,6 +55,7 @@ module.exports = async function (modelsDB) {
                 action: 'open',
                 singleton: true,
                 appName: 'uniForm',
+                order: 101, // настройки — в конец списка меню, после пользовательских (см. sortByOrder)
                 params: { mode: 'record', dbTable: 'organization_settings' }
             }]
         }]);
