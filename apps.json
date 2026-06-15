@@ -23,6 +23,10 @@
         {
             "name": "booking_icons",
             "path": "/booking_icons"
+        },
+        {
+            "name": "formula_editor",
+            "path": "/formula_editor"
         }
     ]
 }

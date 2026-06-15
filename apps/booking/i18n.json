@@ -5,6 +5,12 @@
         "de": "Einbezogen",
         "pl": "Uwzględniono"
     },
+    "auto_quantity": {
+        "en": "Auto quantity (by formula)",
+        "ru": "Автоколичество (по формуле)",
+        "de": "Automatische Menge (per Formel)",
+        "pl": "Automatyczna ilość (wg formuły)"
+    },
     "bookings_app_caption": {
         "en": "Bookings",
         "ru": "Бронирования",
@@ -309,6 +315,12 @@
         "ru": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}}) × {{nights}} ноч.",
         "de": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}}) × {{nights}} ÜN",
         "pl": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}}) × {{nights}} nocy"
+    },
+    "service_age_group_per_stay_label": {
+        "en": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}})",
+        "ru": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}})",
+        "de": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}})",
+        "pl": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}})"
     },
     "service_per_night_label": {
         "en": "{{name}} ({{count}}) × {{nights}} night(s.)",

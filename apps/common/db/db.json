@@ -253,6 +253,11 @@
                     "allowNull": false,
                     "defaultValue": true,
                     "caption": { "i18n": "include_by_default" }
+                },
+                "quantityFormula": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": { "i18n": "quantity_formula" }
                 }
             },
             "options": {

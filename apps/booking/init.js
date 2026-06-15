@@ -83,7 +83,8 @@ module.exports = async function (modelsDB) {
             appCaption:   { i18n: 'bookings_app_caption' },
             recordCaption:{ i18n: 'Booking' },
             events: {
-                onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' }
+                onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' },
+                onChange:     { fn: 'onFormChange' }
             }
         });
 

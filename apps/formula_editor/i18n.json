@@ -1,0 +1,74 @@
+{
+    "formula_editor_title": {
+        "en": "Formula editor",
+        "ru": "Редактор формулы",
+        "de": "Formel-Editor",
+        "pl": "Edytor formuł"
+    },
+    "formula_vars_legend": {
+        "en": "Available variables (click to insert):",
+        "ru": "Доступные переменные (клик — вставить):",
+        "de": "Verfügbare Variablen (Klick zum Einfügen):",
+        "pl": "Dostępne zmienne (kliknij, aby wstawić):"
+    },
+    "formula_var_nights": {
+        "en": "Number of nights in the booking",
+        "ru": "Количество ночей в брони",
+        "de": "Anzahl der Nächte in der Buchung",
+        "pl": "Liczba nocy w rezerwacji"
+    },
+    "formula_funcs_legend": {
+        "en": "Functions (click to insert):",
+        "ru": "Функции (клик — вставить):",
+        "de": "Funktionen (Klick zum Einfügen):",
+        "pl": "Funkcje (kliknij, aby wstawić):"
+    },
+    "formula_operators_help": {
+        "en": "Conditions: comparisons > < >= <= == != , logic && || ! , ternary cond ? A : B. Use if(condition; A; B) to choose a value, e.g. if(@nights > 3; @nights - 1; @nights). Arguments separated by ; or ,",
+        "ru": "Условия: сравнения > < >= <= == != , логика && || ! , тернарный условие ? A : B. Используйте if(условие; A; B) для выбора значения, напр. if(@nights > 3; @nights - 1; @nights). Аргументы через ; или ,",
+        "de": "Bedingungen: Vergleiche > < >= <= == != , Logik && || ! , ternär Bedingung ? A : B. Mit if(Bedingung; A; B) einen Wert wählen, z. B. if(@nights > 3; @nights - 1; @nights). Argumente getrennt durch ; oder ,",
+        "pl": "Warunki: porównania > < >= <= == != , logika && || ! , trójargumentowy warunek ? A : B. Użyj if(warunek; A; B), aby wybrać wartość, np. if(@nights > 3; @nights - 1; @nights). Argumenty oddzielone ; lub ,"
+    },
+    "formula_fn_if": {
+        "en": "If condition is true returns A, otherwise B",
+        "ru": "Если условие истинно — вернёт A, иначе B",
+        "de": "Wenn die Bedingung wahr ist, gibt A zurück, sonst B",
+        "pl": "Jeśli warunek jest prawdziwy zwraca A, w przeciwnym razie B"
+    },
+    "formula_fn_min": {
+        "en": "Smaller of two values",
+        "ru": "Меньшее из двух значений",
+        "de": "Kleinerer von zwei Werten",
+        "pl": "Mniejsza z dwóch wartości"
+    },
+    "formula_fn_max": {
+        "en": "Larger of two values",
+        "ru": "Большее из двух значений",
+        "de": "Größerer von zwei Werten",
+        "pl": "Większa z dwóch wartości"
+    },
+    "formula_fn_round": {
+        "en": "Round to the nearest integer",
+        "ru": "Округление до целого",
+        "de": "Auf die nächste ganze Zahl runden",
+        "pl": "Zaokrąglij do najbliższej liczby całkowitej"
+    },
+    "formula_fn_ceil": {
+        "en": "Round up to an integer",
+        "ru": "Округление вверх",
+        "de": "Aufrunden auf eine ganze Zahl",
+        "pl": "Zaokrąglij w górę"
+    },
+    "formula_fn_floor": {
+        "en": "Round down to an integer",
+        "ru": "Округление вниз",
+        "de": "Abrunden auf eine ganze Zahl",
+        "pl": "Zaokrąglij w dół"
+    },
+    "formula_fn_abs": {
+        "en": "Absolute value",
+        "ru": "Модуль числа",
+        "de": "Absolutwert",
+        "pl": "Wartość bezwzględna"
+    }
+}

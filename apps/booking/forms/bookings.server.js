@@ -10,6 +10,7 @@
 const i18n = require('../../../node_modules/my-old-space/drive_root/i18n');
 const { tForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
 const { resolveOrgReportLang } = require('../../organizationSettings/lib/orgReportLanguage');
+const formulaEngine = require('../../common/lib/formulaEngine');
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -77,6 +78,18 @@ module.exports = function (modelsDB, Utilities) {
 
         const cleaningPrices = roomIds.length
             ? await modelsDB.ServicePrices.findAll({ where: { roomId: roomIds }, raw: true }) : [];
+
+        // Полосы цен услуги для конкретной комнаты (СИСТЕМНЫЙ резолв цены).
+        // Прайс-лист service_prices может задавать цену услуги покомнатно (roomId)
+        // ИЛИ общую (roomId == null). Правило: если для этой комнаты есть свои строки —
+        // берём только их, иначе откатываемся на общие. Так ручная и авто-услуга
+        // считаются ОДИНАКОВО (раньше блок №4 брал первую строку, игнорируя roomId,
+        // из-за чего цена зависела от порядка записей, а не от комнаты брони).
+        const pricesForRoom = (serviceId, roomId) => {
+            const rows = svcPrices.filter(p => p.serviceId === serviceId);
+            const roomRows = rows.filter(p => p.roomId === roomId);
+            return roomRows.length ? roomRows : rows.filter(p => p.roomId == null);
+        };
 
         // ──────────────────────────────────────────────────────────────────────
         // ТЕХДОЛГ (де-хардкодинг расчёта стоимости) — Шаг 1 из 2.
@@ -310,11 +323,18 @@ module.exports = function (modelsDB, Utilities) {
                 if (!svc) continue;
                 const cnt = Number(rs.count);
                 if (!cnt) continue;
-                const agePrices = svcPrices.filter(sp =>
-                    sp.serviceId === rs.serviceId && sp.ageFrom != null
-                );
+                const perNight = svc.chargeType === 'per_night';
+                // Цены этой услуги для комнаты брони (покомнатные → иначе общие).
+                const roomPriceRows = pricesForRoom(rs.serviceId, room.roomId);
+                const agePrices = roomPriceRows.filter(sp => sp.ageFrom != null);
 
-                if (agePrices.length > 0 && svc.chargeType === 'per_night') {
+                // Возрастная тарификация применяется при ЛЮБОМ chargeType (не только
+                // per_night). chargeType влияет лишь на количество: per_night → ×ночи,
+                // иначе — разово за пребывание. Раньше ветка была привязана к per_night,
+                // из-за чего per_stay-услуга с возрастными ценами (напр. завтрак) молча
+                // выпадала из счёта (уходила в else, где искалась несуществующая
+                // строка с ageFrom == null → цена 0 → строка не печаталась).
+                if (agePrices.length > 0) {
                     const groups = [
                         { gtId: '000000000-guest-type-0001', n: adults,    lblKey: 'age_group_adults_abbr' },
                         { gtId: '000000000-guest-type-0006', n: teen14_15, lblKey: 'age_group_14_15_abbr' },
@@ -332,23 +352,26 @@ module.exports = function (modelsDB, Utilities) {
                             (p.ageTo == null || p.ageTo >= (gt.ageTo != null ? gt.ageTo : gt.ageFrom))
                         );
                         if (!sp || sp.price === 0) continue;
-                        const qty = ag.n * cnt * nights;
+                        const qty = perNight ? ag.n * cnt * nights : ag.n * cnt;
+                        const ageLabel = perNight
+                            ? tfInv('service_age_group_per_night_label', { name: svc.name, ageGroup: tInv(ag.lblKey), count: ag.n, perRoom: cnt, nights })
+                            : tfInv('service_age_group_per_stay_label',  { name: svc.name, ageGroup: tInv(ag.lblKey), count: ag.n, perRoom: cnt });
                         emitServiceLine({
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             serviceId: rs.serviceId, guestTypeId: ag.gtId,
                             sectionLabel: svc.name,
-                            label:    tfInv('service_age_group_per_night_label', { name: svc.name, ageGroup: tInv(ag.lblKey), count: ag.n, perRoom: cnt, nights }),
+                            label:    ageLabel,
                             quantity: qty, unitPrice: sp.price, taxRate: svcRate(svc),
                             amount:   r2(qty * sp.price), sortOrder: ++sortOrd
                         }, rs.serviceId);
                     }
                 } else {
-                    const sp    = svcPrices.find(p => p.serviceId === rs.serviceId && p.ageFrom == null);
+                    const sp    = roomPriceRows.find(p => p.ageFrom == null);
                     const price = sp ? sp.price : 0;
                     if (price > 0) {
-                        const qty = svc.chargeType === 'per_night' ? cnt * nights : cnt;
-                        const svcLabel = svc.chargeType === 'per_night'
+                        const qty = perNight ? cnt * nights : cnt;
+                        const svcLabel = perNight
                             ? tfInv('service_per_night_label', { name: svc.name, count: cnt, nights })
                             : tfInv('service_once_label',      { name: svc.name, count: cnt });
                         emitServiceLine({
@@ -425,6 +448,42 @@ module.exports = function (modelsDB, Utilities) {
             delete ln._isExtra;
         });
         return { lines };
+    }
+
+    // ── Пересчёт количеств услуг по формуле (services.quantityFormula) ───────
+    // Единый источник: использует общий движок formulaEngine (парсер + реестр
+    // переменных). Применяется и при сохранении (onBeforeSave, авторитетно), и
+    // по событию изменения формы (RPC recalcServiceQuantities, live).
+    //
+    // Правила (autoQuantity — флаг строки ТЧ booking_room_services):
+    //   • autoQuantity === false → строку не трогаем (пользователь ввёл вручную).
+    //   • autoQuantity !== false  → если формула услуги пустая, снимаем флаг
+    //     (autoQuantity=false) и количество НЕ меняем; иначе count = round(формула).
+    // Мутирует переданные строки на месте и возвращает их же.
+    async function _recalcServiceQuantities(rows, dateCtx) {
+        if (!Array.isArray(rows) || !rows.length) return rows;
+        const serviceIds = [...new Set(rows.map(r => r && r.serviceId).filter(Boolean))];
+        const svcRecs = serviceIds.length
+            ? await modelsDB.Services.findAll({ where: { UID: serviceIds }, raw: true }) : [];
+        const formulaById = {};
+        for (const s of svcRecs) formulaById[s.UID] = (s.quantityFormula || '').trim();
+
+        const values = formulaEngine.resolveVariables({
+            checkIn:  dateCtx && dateCtx.checkIn,
+            checkOut: dateCtx && dateCtx.checkOut
+        });
+
+        for (const row of rows) {
+            if (!row) continue;
+            if (row.autoQuantity === false) continue;          // ручное значение — не трогаем
+            const formula = row.serviceId ? formulaById[row.serviceId] : '';
+            if (!formula) { row.autoQuantity = false; continue; } // пустая формула → снять галочку
+            let q = null;
+            try { q = formulaEngine.evaluate(formula, values); } catch (_) { q = null; }
+            if (q == null || !isFinite(q)) continue;            // некорректная формула — count не меняем
+            row.count = Math.max(0, Math.round(q));
+        }
+        return rows;
     }
 
     return {
@@ -511,6 +570,11 @@ module.exports = function (modelsDB, Utilities) {
                 const roomServices = tabularSections.booking_room_services;
                 const extraLines   = tabularSections.booking_extra_lines || [];
 
+                // Пересчёт количеств услуг по формуле ДО расчёта счёта (авторитетно).
+                try { await _recalcServiceQuantities(roomServices, { checkIn, checkOut }); } catch (e) {
+                    console.warn('[booking/onBeforeSave] quantity recalc failed:', e && e.message);
+                }
+
                 if (bookingId && checkIn && checkOut && (rooms.length > 0 || extraLines.length > 0)) {
                     const { lines } = await _buildInvoiceLines(
                         { bookingId, checkIn, checkOut, rooms, guests, roomServices, extraLines, orgId },
@@ -523,6 +587,20 @@ module.exports = function (modelsDB, Utilities) {
             } catch (e) {
                 console.error('[booking/onBeforeSave] Invoice calculation failed:', e && e.message || e);
             }
+        },
+
+        // ── Live-пересчёт количеств услуг по формуле (вызывается по событию
+        //    изменения формы). Принимает текущие строки ТЧ услуг + даты брони,
+        //    возвращает обновлённые { UID, count, autoQuantity } для применения на форме.
+        async recalcServiceQuantities({ checkIn, checkOut, roomServices }, ctx) {
+            const rows = Array.isArray(roomServices) ? roomServices.map(r => ({
+                UID:          r && r.UID,
+                serviceId:    r && r.serviceId,
+                autoQuantity: !(r && r.autoQuantity === false),
+                count:        r && r.count
+            })) : [];
+            await _recalcServiceQuantities(rows, { checkIn, checkOut });
+            return { rows: rows.map(r => ({ UID: r.UID, count: r.count, autoQuantity: r.autoQuantity })) };
         },
 
         // ── Возвращает дефолтные услуги для отеля (для переформирования ТЧ услуг
@@ -550,7 +628,8 @@ module.exports = function (modelsDB, Utilities) {
                 services: defaults.map(d => ({
                     serviceId: d.serviceId,
                     serviceName: (svcMap2[d.serviceId] && svcMap2[d.serviceId].name) || '',
-                    includeByDefault: !!(svcMap2[d.serviceId] && svcMap2[d.serviceId].includeByDefault)
+                    includeByDefault: !!(svcMap2[d.serviceId] && svcMap2[d.serviceId].includeByDefault),
+                    hasFormula: !!(svcMap2[d.serviceId] && (svcMap2[d.serviceId].quantityFormula || '').trim())
                 }))
             };
         },

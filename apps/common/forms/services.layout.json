@@ -1,0 +1,45 @@
+[
+    { "type": "commandBar" },
+    {
+        "type": "group",
+        "caption": "",
+        "noBorder": true,
+        "alignFields": true,
+        "orientation": "vertical",
+        "layout": [
+            { "type": "textbox", "name": "name", "data": "name", "caption": { "i18n": "Name" } },
+            { "type": "textbox", "name": "chargeType", "data": "chargeType", "caption": { "i18n": "charge_type" } },
+            {
+                "type": "recordSelector",
+                "name": "taxCategoryId",
+                "data": "taxCategoryId",
+                "caption": { "i18n": "tax_category" },
+                "properties": { "selection": { "table": "tax_categories", "idField": "UID", "displayField": "name" } }
+            },
+            {
+                "type": "recordSelector",
+                "name": "hotelId",
+                "data": "hotelId",
+                "caption": { "i18n": "Hotel" },
+                "properties": { "selection": { "table": "hotels", "idField": "UID", "displayField": "name" } }
+            },
+            {
+                "type": "recordSelector",
+                "name": "organizationId",
+                "data": "organizationId",
+                "caption": { "i18n": "Organization" },
+                "properties": { "selection": { "table": "organizations", "idField": "UID", "displayField": "name" } }
+            },
+            { "type": "integer", "name": "displayOrder", "data": "displayOrder", "caption": { "i18n": "display_order" } },
+            { "type": "checkbox", "name": "includeByDefault", "data": "includeByDefault", "caption": { "i18n": "include_by_default" } },
+            {
+                "type": "textbox",
+                "name": "quantityFormula",
+                "data": "quantityFormula",
+                "caption": { "i18n": "quantity_formula" },
+                "properties": { "editorButton": true },
+                "events": { "onSelectionStart": "openFormulaEditor" }
+            }
+        ]
+    }
+]

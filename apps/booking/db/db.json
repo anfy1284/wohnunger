@@ -190,6 +190,12 @@
                     "defaultValue": true,
                     "caption": { "i18n": "service_included" }
                 },
+                "autoQuantity": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": true,
+                    "caption": { "i18n": "auto_quantity" }
+                },
                 "count": {
                     "type": "INTEGER",
                     "allowNull": false,

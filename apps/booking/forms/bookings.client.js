@@ -64,6 +64,10 @@ async function onRoomSelected(rowIndex, newVal, displayVal, ctx) {
                 serviceId: svc.serviceId,
                 __serviceId_display: svc.serviceName,
                 included: !!svc.includeByDefault,
+                // autoQuantity = есть ли у услуги формула: непустая → авторасчёт по формуле,
+                // пустая → ручное количество (1). Сам count для формульных строк проставит
+                // пересчёт по событию изменения формы (onFormChange ниже).
+                autoQuantity: !!svc.hasFormula,
                 count: 1
             });
         }
@@ -97,6 +101,84 @@ async function onExtraLineActivated(rowIndex, ctx) {
     tbl.data_updateValue(tbl.dataKey, rows);
     try { if (typeof tbl._invokeRenderBodyRows === 'function') tbl._invokeRenderBodyRows(); } catch(_) {}
     try { if (typeof form.setModified === 'function') form.setModified(true); } catch(_) {}
+}
+
+// Form-level событие «при изменении» (events.onChange формы): пересчитывает
+// количества услуг по формуле. Перерасчёт ВЕСЬ на сервере (единый источник —
+// formulaEngine + реестр переменных): шлём текущие строки ТЧ + даты, получаем
+// обновлённые { count, autoQuantity } и применяем. Дебаунс события — в setModified.
+async function onFormChange(ctx) {
+    var form = ctx.form;
+    var svcTbl = form.controlsMap && form.controlsMap['ts_booking_room_services'];
+    if (!svcTbl) return;
+    var rows = svcTbl.data_getRows(svcTbl.dataKey);
+    if (!rows || !rows.length) return;
+
+    // Защита от наложения запросов: если перерасчёт уже идёт — пометим, что нужен ещё один.
+    if (form._recalcInFlight) { form._recalcPending = true; return; }
+
+    var ciEntry = form._dataMap && form._dataMap['checkIn'];
+    var coEntry = form._dataMap && form._dataMap['checkOut'];
+    var checkIn = ciEntry && ciEntry.value;
+    var checkOut = coEntry && coEntry.value;
+
+    var payload = rows.map(function(r) {
+        return { UID: r.UID, serviceId: r.serviceId, autoQuantity: r.autoQuantity !== false, count: r.count };
+    });
+
+    form._recalcInFlight = true;
+    var result;
+    try {
+        result = await callServer('__SERVER_SCRIPT__', 'recalcServiceQuantities', { checkIn: checkIn, checkOut: checkOut, roomServices: payload });
+    } finally {
+        form._recalcInFlight = false;
+    }
+
+    if (result && result.rows) {
+        var byUID = {};
+        for (var i = 0; i < result.rows.length; i++) byUID[result.rows[i].UID] = result.rows[i];
+
+        var changed = false;
+        for (var k = 0; k < rows.length; k++) {
+            var upd = byUID[rows[k].UID];
+            if (!upd) continue;
+            if (rows[k].count !== upd.count) { rows[k].count = upd.count; changed = true; }
+            var oldAuto = rows[k].autoQuantity !== false;
+            var newAuto = upd.autoQuantity !== false;
+            if (oldAuto !== newAuto) { rows[k].autoQuantity = newAuto; changed = true; }
+        }
+
+        if (changed) {
+            // _suppressFormChange защищает от рекурсии: setModified ниже не должен
+            // повторно дёрнуть onChange.
+            form._suppressFormChange = true;
+            try {
+                svcTbl.data_updateValue(svcTbl.dataKey, rows);
+                if (typeof svcTbl._invokeRenderBodyRows === 'function') svcTbl._invokeRenderBodyRows();
+                if (typeof form.setModified === 'function') form.setModified(true);
+            } finally {
+                form._suppressFormChange = false;
+            }
+        }
+    }
+
+    // За время запроса могли прийти новые изменения — перезапустим перерасчёт.
+    if (form._recalcPending) { form._recalcPending = false; setTimeout(function() { onFormChange(ctx); }, 0); }
+}
+
+// Колоночное событие onChange колонки "количество": ручной ввод количества
+// отключает автопересчёт для этой строки (autoQuantity = false), чтобы следующий
+// перерасчёт не затёр введённое значение.
+function onServiceCountEdited(rowIndex, newVal, displayVal, ctx) {
+    var form = ctx.form;
+    var svcTbl = form.controlsMap && form.controlsMap['ts_booking_room_services'];
+    if (!svcTbl) return;
+    var rows = svcTbl.data_getRows(svcTbl.dataKey);
+    var row = rows && rows[rowIndex];
+    if (!row) return;
+    row.autoQuantity = false;
+    // Перерисовка галочки autoQuantity произойдёт при ближайшем перерасчёте
+    // (его уже инициировал setModified из обработчика ячейки).
 }
 
 async function printInvoice(ev, ctx) {
@@ -137,4 +219,4 @@ async function printInvoice(ev, ctx) {
     }
 }
 
-return { onRoomSelected, onExtraLineActivated, printInvoice };
+return { onRoomSelected, onExtraLineActivated, printInvoice, onFormChange, onServiceCountEdited };

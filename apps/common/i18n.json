@@ -5,6 +5,24 @@
         "de": "Standardmäßig einbeziehen",
         "pl": "Uwzględnij domyślnie"
     },
+    "quantity_formula": {
+        "en": "Quantity formula",
+        "ru": "Формула расчёта количества",
+        "de": "Mengenformel",
+        "pl": "Formuła ilości"
+    },
+    "Formula editor is unavailable": {
+        "en": "Formula editor is unavailable",
+        "ru": "Редактор формулы недоступен",
+        "de": "Formel-Editor ist nicht verfügbar",
+        "pl": "Edytor formuł jest niedostępny"
+    },
+    "service_record_caption": {
+        "en": "Service",
+        "ru": "Услуга",
+        "de": "Leistung",
+        "pl": "Usługa"
+    },
     "organizations": {
         "en": "Organizations",
         "ru": "Организации",
