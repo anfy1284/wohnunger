@@ -301,8 +301,11 @@ module.exports = function (modelsDB, Utilities) {
                 });
             }
 
-            // 4. Услуги из BookingRoomServices
+            // 4. Услуги из BookingRoomServices.
+            // В счёт идут только услуги с проставленной галочкой "включено"
+            // (реквизит included). Снятая галочка — услугу не считаем и не печатаем.
             for (const rs of rSvcs) {
+                if (rs.included === false) continue;
                 const svc = svcMap[rs.serviceId];
                 if (!svc) continue;
                 const cnt = Number(rs.count);
@@ -522,11 +525,16 @@ module.exports = function (modelsDB, Utilities) {
             }
         },
 
-        // ── Возвращает дефолтные услуги для отеля (для автозаполнения при выборе гостя) ──
-        async getDefaultServices({ hotelId, bookingRoomId }, ctx) {
+        // ── Возвращает дефолтные услуги для отеля (для переформирования ТЧ услуг
+        //    при выборе номера). Для каждой услуги возвращает флаг includeByDefault —
+        //    им заполняется реквизит "включено" строки ТЧ.
+        //    force=true — пропустить проверку «услуги уже есть в БД» (нужно при
+        //    переформировании по выбору комнаты: всегда отдаём актуальный набор).
+        async getDefaultServices({ hotelId, bookingRoomId, force }, ctx) {
             if (!hotelId) return { services: [] };
             // Если для этого номера услуги уже есть в БД — не добавляем повторно
-            if (bookingRoomId) {
+            // (кроме явного переформирования force=true).
+            if (bookingRoomId && !force) {
                 const existing = await modelsDB.BookingRoomServices.count({ where: { bookingRoomId } });
                 if (existing > 0) return { services: [] };
             }
@@ -541,7 +549,8 @@ module.exports = function (modelsDB, Utilities) {
             return {
                 services: defaults.map(d => ({
                     serviceId: d.serviceId,
-                    serviceName: (svcMap2[d.serviceId] && svcMap2[d.serviceId].name) || ''
+                    serviceName: (svcMap2[d.serviceId] && svcMap2[d.serviceId].name) || '',
+                    includeByDefault: !!(svcMap2[d.serviceId] && svcMap2[d.serviceId].includeByDefault)
                 }))
             };
         },

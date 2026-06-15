@@ -184,6 +184,12 @@
                     "onDelete": "RESTRICT",
                     "caption": { "i18n": "Service" }
                 },
+                "included": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": true,
+                    "caption": { "i18n": "service_included" }
+                },
                 "count": {
                     "type": "INTEGER",
                     "allowNull": false,

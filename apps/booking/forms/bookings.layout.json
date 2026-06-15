@@ -117,6 +117,9 @@
                                             "inputType": "recordSelector",
                                             "properties": {
                                                 "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
+                                            },
+                                            "events": {
+                                                "onChange": "onRoomSelected"
                                             }
                                         }
                                     ],
@@ -128,9 +131,6 @@
                                         "masterField": "UID",
                                         "detailField": "bookingRoomId",
                                         "hiddenButtons": ["listSettings", "recordOpen"]
-                                    },
-                                    "events": {
-                                        "onRowActivate": "onRoomActivated"
                                     }
                                 }]
                             },
@@ -173,6 +173,7 @@
                                     "name": "ts_booking_room_services",
                                     "data": "booking_room_services",
                                     "columns": [
+                                        { "caption": "✓", "data": "included", "width": 34, "inputType": "checkbox", "defaultValue": true },
                                         {
                                             "caption": { "i18n": "Service" },
                                             "data": "serviceId",

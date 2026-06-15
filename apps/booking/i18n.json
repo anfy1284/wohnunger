@@ -1,4 +1,10 @@
 {
+    "service_included": {
+        "en": "Included",
+        "ru": "Включено",
+        "de": "Einbezogen",
+        "pl": "Uwzględniono"
+    },
     "bookings_app_caption": {
         "en": "Bookings",
         "ru": "Бронирования",

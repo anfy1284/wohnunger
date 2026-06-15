@@ -1,4 +1,10 @@
 {
+    "include_by_default": {
+        "en": "Include by default",
+        "ru": "Включать по умолчанию",
+        "de": "Standardmäßig einbeziehen",
+        "pl": "Uwzględnij domyślnie"
+    },
     "organizations": {
         "en": "Organizations",
         "ru": "Организации",

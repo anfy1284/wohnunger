@@ -247,6 +247,12 @@
                     "allowNull": true,
                     "defaultValue": 50,
                     "caption": { "i18n": "display_order" }
+                },
+                "includeByDefault": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": true,
+                    "caption": { "i18n": "include_by_default" }
                 }
             },
             "options": {

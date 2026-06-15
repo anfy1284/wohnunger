@@ -13,15 +13,18 @@
 // их обработчики встроены в DataForm (doAction 'ok' / 'save' / 'cancel').
 // Здесь остаются только специфические для booking функции.
 
-// Вызывается при активации строки в таблице номеров.
-// Автоматически добавляет дефолтные услуги для номера, если их ещё нет.
-async function onRoomActivated(rowIndex, ctx) {
+// Вызывается при ВЫБОРЕ (или перевыборе) номера в ячейке таблицы номеров
+// (колоночное событие onChange колонки roomId). Переформировывает ТЧ услуг
+// для этого номера: убирает прежние услуги номера и добавляет дефолтные услуги
+// отеля заново. Флаг "включено" каждой услуги берётся из реквизита услуги
+// includeByDefault. Срабатывает ТОЛЬКО при выборе комнаты, не при простой
+// активации строки.
+//   rowIndex   — индекс строки номера в этой таблице
+//   newVal     — выбранный roomId (UID комнаты)
+//   displayVal — отображаемое имя комнаты
+async function onRoomSelected(rowIndex, newVal, displayVal, ctx) {
     var form = ctx.form;
-    var hotelEntry = form._dataMap && form._dataMap['hotelId'];
-    var hotelId = hotelEntry && hotelEntry.value;
-    if (!hotelId) return;
 
-    // rowIndex — индекс активированного номера прямо в этой таблице
     var roomsTbl = form.controlsMap && form.controlsMap['ts_booking_rooms'];
     if (!roomsTbl) return;
     var roomRows = roomsTbl.data_getRows(roomsTbl.dataKey);
@@ -29,29 +32,44 @@ async function onRoomActivated(rowIndex, ctx) {
     if (!activeRoom || !activeRoom.UID) return;
     var bookingRoomId = activeRoom.UID;
 
-    // Идемпотентность: если услуги для этого номера уже есть — выходим
+    // Комната снята (значение очищено) — ничего не формируем.
+    var roomId = newVal || activeRoom.roomId;
+    if (!roomId) return;
+
+    var hotelEntry = form._dataMap && form._dataMap['hotelId'];
+    var hotelId = hotelEntry && hotelEntry.value;
+    if (!hotelId) return;
+
     var svcTbl = form.controlsMap && form.controlsMap['ts_booking_room_services'];
     if (!svcTbl) return;
-    var existingRows = svcTbl.data_getRows(svcTbl.dataKey);
-    var alreadyHas = existingRows.some(function(r) { return r.bookingRoomId === bookingRoomId; });
-    if (alreadyHas) return;
+    var rows = svcTbl.data_getRows(svcTbl.dataKey);
 
-    var result = await callServer('__SERVER_SCRIPT__', 'getDefaultServices', { hotelId: hotelId, bookingRoomId: bookingRoomId });
-    if (!result || !result.services || !result.services.length) return;
-
-    for (var i = 0; i < result.services.length; i++) {
-        var svc = result.services[i];
-        var uidResp = await callServerMethod('drive_api', 'getNewUID', { tableName: 'booking_room_services' });
-        existingRows.push({
-            UID: uidResp && uidResp.uid,
-            bookingRoomId: bookingRoomId,
-            serviceId: svc.serviceId,
-            __serviceId_display: svc.serviceName,
-            count: 0
-        });
+    // Переформирование: убираем прежние услуги ЭТОГО номера НА МЕСТЕ (splice),
+    // сохраняя ссылку на массив. Замыкание renderBodyRows захватывает массив строк
+    // по ссылке — если подменить его новым (через .filter()), рендер и последующий
+    // "Add" ломаются (рисуется старый массив, данные пишутся в новый). Поэтому
+    // только in-place мутация, как в штатном doToolbarAction('recordAdd').
+    for (var k = rows.length - 1; k >= 0; k--) {
+        if (rows[k] && rows[k].bookingRoomId === bookingRoomId) rows.splice(k, 1);
     }
 
-    svcTbl.data_updateValue(svcTbl.dataKey, existingRows);
+    var result = await callServer('__SERVER_SCRIPT__', 'getDefaultServices', { hotelId: hotelId, bookingRoomId: bookingRoomId, force: true });
+    if (result && result.services && result.services.length) {
+        for (var i = 0; i < result.services.length; i++) {
+            var svc = result.services[i];
+            var uidResp = await callServerMethod('drive_api', 'getNewUID', { tableName: 'booking_room_services' });
+            rows.push({
+                UID: uidResp && uidResp.uid,
+                bookingRoomId: bookingRoomId,
+                serviceId: svc.serviceId,
+                __serviceId_display: svc.serviceName,
+                included: !!svc.includeByDefault,
+                count: 1
+            });
+        }
+    }
+
+    svcTbl.data_updateValue(svcTbl.dataKey, rows);
     try { if (typeof svcTbl._invokeRenderBodyRows === 'function') svcTbl._invokeRenderBodyRows(); } catch(_) {}
     try { if (typeof form.setModified === 'function') form.setModified(true); } catch(_) {}
 }
@@ -119,4 +137,4 @@ async function printInvoice(ev, ctx) {
     }
 }
 
-return { onRoomActivated, onExtraLineActivated, printInvoice };
+return { onRoomSelected, onExtraLineActivated, printInvoice };
