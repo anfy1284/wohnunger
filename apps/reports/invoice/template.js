@@ -17,10 +17,13 @@ const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'
 // Таблица invoice_lines хранит детализацию (по услуге, возрастной группе,
 // налоговому компоненту) — это источник правды. Печатный документ показывает
 // её свёрнутой. Классификация строк — структурная, по сохранённым полям:
-//   • serviceId есть          → услуга: группируем по serviceId+taxRate в одну
-//                                строку (label = sectionLabel — чистое имя услуги),
-//                                сумма складывается. Разные ставки одной услуги
-//                                (дробление НДС) → столько строк, сколько ставок.
+//   • serviceId есть          → услуга: группируем по serviceId+taxComponent+taxRate
+//                                в одну строку (label = sectionLabel — чистое имя
+//                                услуги; для дроблёных по НДС услуг к имени дописываем
+//                                имя компонента, напр. «Frühstück – Speisen»), сумма
+//                                складывается. Завтрак с делёжкой НДС (Speisen 7% /
+//                                Getränke 19%) остаётся ДВУМЯ строками — по компоненту,
+//                                а не сводится к одной. Услуга без компонентов → одна строка.
 //   • иначе bookingRoomId есть → проживание (Zimmer + дети): оставляем как есть.
 //   • иначе                    → доп.строка (booking_extra_lines): оставляем как есть.
 // Порядок: проживание (по убыванию суммы) → услуги (по убыванию суммы) → доп.строки
@@ -30,14 +33,16 @@ function groupLinesForPrint(rawLines) {
     const r2 = v => Math.round(v * 100) / 100;
     const accommodation = [];
     const extra = [];
-    const svcGroups = new Map(); // ключ: serviceId|taxRate
+    const svcGroups = new Map(); // ключ: serviceId|taxComponentName|taxRate
     for (const ln of rawLines) {
         if (ln.serviceId) {
             const rate = ln.taxRate || 0;
-            const key  = ln.serviceId + '|' + rate;
+            const comp = ln.taxComponentName || '';
+            const key  = ln.serviceId + '|' + comp + '|' + rate;
             let g = svcGroups.get(key);
             if (!g) {
-                g = { label: ln.sectionLabel || ln.label, taxRate: rate, amount: 0 };
+                const base = ln.sectionLabel || ln.label;
+                g = { label: comp ? base + ' – ' + comp : base, taxRate: rate, amount: 0 };
                 svcGroups.set(key, g);
             }
             g.amount = r2(g.amount + (Number(ln.amount) || 0));

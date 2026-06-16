@@ -166,6 +166,7 @@ module.exports = function (modelsDB, Utilities) {
                 out.push(Object.assign({}, base, {
                     UID: Utilities.generateUID('InvoiceLines'),
                     label: (base.label || '') + ' – ' + c.name,
+                    taxComponentName: c.name,
                     unitPrice: unitPart,
                     taxRate: resolveRate(c.taxCategoryId, base.taxRate),
                     amount

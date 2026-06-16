@@ -389,6 +389,12 @@
         "de": "Abschnittsbezeichnung",
         "pl": "Etykieta sekcji"
     },
+    "tax_component_name": {
+        "en": "Tax component",
+        "ru": "Налоговый компонент",
+        "de": "Steuerkomponente",
+        "pl": "Składnik podatkowy"
+    },
     "unit_price": {
         "en": "Unit price",
         "ru": "Цена за ед.",

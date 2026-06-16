@@ -435,6 +435,11 @@
                     "allowNull": true,
                     "caption": { "i18n": "section_label" }
                 },
+                "taxComponentName": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": { "i18n": "tax_component_name" }
+                },
                 "serviceId": {
                     "type": "STRING",
                     "allowNull": true,
