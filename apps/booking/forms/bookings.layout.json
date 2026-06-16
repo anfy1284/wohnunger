@@ -147,7 +147,7 @@
                                         {
                                             "caption": { "i18n": "guest_type_field" },
                                             "data": "guestTypeId",
-                                            "width": 180,
+                                            "autoWidth": true,
                                             "inputType": "recordSelector",
                                             "properties": {
                                                 "selection": { "table": "guest_types", "idField": "UID", "displayField": "name" }
@@ -158,6 +158,7 @@
                                     "properties": {
                                         "editMode": "cell-immediate",
                                         "visibleRows": 8,
+                                        "highlightActiveRow": false,
                                         "tabularFilter": { "bookingId": "{UID}" },
                                         "hiddenButtons": ["listSettings", "recordOpen"]
                                     }
@@ -173,23 +174,24 @@
                                     "name": "ts_booking_room_services",
                                     "data": "booking_room_services",
                                     "columns": [
-                                        { "caption": "✓", "data": "included", "width": 34, "inputType": "checkbox", "defaultValue": true },
+                                        { "caption": "✓", "data": "included", "width": 28, "inputType": "checkbox", "defaultValue": true },
                                         {
                                             "caption": { "i18n": "Service" },
                                             "data": "serviceId",
-                                            "width": 200,
+                                            "autoWidth": true,
                                             "inputType": "recordSelector",
                                             "properties": {
                                                 "showSelectionButton": true,
                                                 "selection": { "table": "services", "idField": "UID", "displayField": "name" }
                                             }
                                         },
-                                        { "caption": "🧮", "data": "autoQuantity", "width": 34, "inputType": "checkbox", "defaultValue": true },
+                                        { "caption": "🔄", "data": "autoQuantity", "width": 28, "inputType": "checkbox", "defaultValue": true },
                                         { "caption": { "i18n": "Quantity" }, "data": "count", "width": 110, "inputType": "integer", "defaultValue": 1, "properties": { "minValue": 0 }, "events": { "onChange": "onServiceCountEdited" } }
                                     ],
                                     "properties": {
                                         "editMode": "cell-immediate",
                                         "visibleRows": 8,
+                                        "highlightActiveRow": false,
                                         "tabularFilter": { "bookingId": "{UID}" },
                                         "hiddenButtons": ["listSettings", "recordOpen"]
                                     }

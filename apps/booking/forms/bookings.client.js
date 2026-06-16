@@ -177,8 +177,18 @@ function onServiceCountEdited(rowIndex, newVal, displayVal, ctx) {
     var row = rows && rows[rowIndex];
     if (!row) return;
     row.autoQuantity = false;
-    // Перерисовка галочки autoQuantity произойдёт при ближайшем перерасчёте
-    // (его уже инициировал setModified из обработчика ячейки).
+    // Снимаем галочку автоколичества СРАЗУ (точечно, без перерисовки всей ТЧ —
+    // чтобы не терять фокус/спиннер активной ячейки). Ближайший перерасчёт уже не
+    // увидит изменения (autoQuantity уже false), поэтому он галочку не перерисует.
+    // Чекбокс ячейки зарегистрирован в controlsMap по ключу dataKey + '__r<i>__autoQuantity'.
+    var cbKey = svcTbl.dataKey + '__r' + rowIndex + '__autoQuantity';
+    var cb = form.controlsMap && form.controlsMap[cbKey];
+    if (cb && typeof cb.setChecked === 'function') {
+        try { cb.setChecked(false); } catch (e) {}
+    }
+    // Синхронизируем значение ячейки в датасете — иначе ближайшая перерисовка тела ТЧ
+    // (_invokeRenderBodyRows при пересчёте count) перечитает старое true и вернёт галочку.
+    try { svcTbl.data_updateValue(cbKey, false); } catch (e) {}
 }
 
 async function printInvoice(ev, ctx) {
