@@ -229,11 +229,6 @@
                     "allowNull": false,
                     "caption": { "i18n": "Name" }
                 },
-                "chargeType": {
-                    "type": "STRING",
-                    "allowNull": false,
-                    "caption": { "i18n": "charge_type" }
-                },
                 "taxCategoryId": {
                     "type": "STRING",
                     "allowNull": false,

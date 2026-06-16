@@ -209,12 +209,6 @@
         "de": "Preis",
         "pl": "Cena"
     },
-    "charge_type": {
-        "en": "Charge type",
-        "ru": "Тип начисления",
-        "de": "Abrechnungsart",
-        "pl": "Typ naliczania"
-    },
     "tax_rate": {
         "en": "Tax rate",
         "ru": "Ставка налога",

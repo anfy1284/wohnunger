@@ -8,7 +8,6 @@
         "orientation": "vertical",
         "layout": [
             { "type": "textbox", "name": "name", "data": "name", "caption": { "i18n": "Name" } },
-            { "type": "textbox", "name": "chargeType", "data": "chargeType", "caption": { "i18n": "charge_type" } },
             {
                 "type": "recordSelector",
                 "name": "taxCategoryId",
