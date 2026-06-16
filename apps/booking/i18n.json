@@ -281,22 +281,22 @@
     },
 
     "room_line_label": {
-        "en": "Room {{room}} ({{guests}} guest(s.)) × {{nights}} night(s.)",
-        "ru": "Комн. {{room}} ({{guests}} гост.) × {{nights}} ноч.",
-        "de": "Zimmer {{room}} ({{guests}} Gäste) × {{nights}} ÜN",
-        "pl": "Pokój {{room}} ({{guests}} gości) × {{nights}} nocy"
+        "en": "Room {{room}} - {{guests}} guest(s.) × {{nights}} night(s.)",
+        "ru": "Комн. {{room}} - {{guests}} гост. × {{nights}} ноч.",
+        "de": "Zimmer {{room}} - {{guests}} Gäste × {{nights}} ÜN",
+        "pl": "Pokój {{room}} - {{guests}} gości × {{nights}} nocy"
     },
     "children_3_5_line_label": {
-        "en": "Children 3–5 y.o. ({{count}} pers.) × {{nights}} night(s.)",
-        "ru": "Дети 3–5 лет ({{count}} чел.) × {{nights}} ноч.",
-        "de": "Kinder 3–5 J. ({{count}} Pers.) × {{nights}} ÜN",
-        "pl": "Dzieci 3–5 lat ({{count}} os.) × {{nights}} nocy"
+        "en": "Room {{room}} - Children 3–5 y.o. ({{count}} pers.) × {{nights}} night(s.)",
+        "ru": "Комн. {{room}} - Дети 3–5 лет ({{count}} чел.) × {{nights}} ноч.",
+        "de": "Zimmer {{room}} - Kinder 3–5 J. ({{count}} Pers.) × {{nights}} ÜN",
+        "pl": "Pokój {{room}} - Dzieci 3–5 lat ({{count}} os.) × {{nights}} nocy"
     },
     "children_2_line_label": {
-        "en": "Children 2 y.o. ({{count}} pers.) × {{nights}} night(s.)",
-        "ru": "Дети 2 лет ({{count}} чел.) × {{nights}} ноч.",
-        "de": "Kinder 2 J. ({{count}} Pers.) × {{nights}} ÜN",
-        "pl": "Dzieci 2 lata ({{count}} os.) × {{nights}} nocy"
+        "en": "Room {{room}} - Children 2 y.o. ({{count}} pers.) × {{nights}} night(s.)",
+        "ru": "Комн. {{room}} - Дети 2 лет ({{count}} чел.) × {{nights}} ноч.",
+        "de": "Zimmer {{room}} - Kinder 2 J. ({{count}} Pers.) × {{nights}} ÜN",
+        "pl": "Pokój {{room}} - Dzieci 2 lata ({{count}} os.) × {{nights}} nocy"
     },
     "service_age_group_label": {
         "en": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}})",

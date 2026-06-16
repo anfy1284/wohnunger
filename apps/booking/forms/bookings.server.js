@@ -252,7 +252,7 @@ module.exports = function (modelsDB, Utilities) {
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
                     guestTypeId: '000000000-guest-type-0003',
                     sectionLabel: tInv('accommodation_section'),
-                    label:    tfInv('children_3_5_line_label', { count: kids3_5, nights }),
+                    label:    tfInv('children_3_5_line_label', { room: rLabel, count: kids3_5, nights }),
                     quantity: qty, unitPrice: childNightPrice, taxRate: rateByCode('accommodation', 0),
                     amount:   r2(qty * childNightPrice), sortOrder: ++sortOrd
                 });
@@ -266,7 +266,7 @@ module.exports = function (modelsDB, Utilities) {
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
                     guestTypeId: '000000000-guest-type-0005',
                     sectionLabel: tInv('accommodation_section'),
-                    label:    tfInv('children_2_line_label', { count: kids2, nights }),
+                    label:    tfInv('children_2_line_label', { room: rLabel, count: kids2, nights }),
                     quantity: qty2, unitPrice: childNightPrice, taxRate: rateByCode('accommodation', 0),
                     amount:   r2(qty2 * childNightPrice), sortOrder: ++sortOrd
                 });

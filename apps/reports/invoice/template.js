@@ -13,6 +13,45 @@
 
 const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+// Группировка строк счёта для ПЕЧАТИ (представление, не учёт).
+// Таблица invoice_lines хранит детализацию (по услуге, возрастной группе,
+// налоговому компоненту) — это источник правды. Печатный документ показывает
+// её свёрнутой. Классификация строк — структурная, по сохранённым полям:
+//   • serviceId есть          → услуга: группируем по serviceId+taxRate в одну
+//                                строку (label = sectionLabel — чистое имя услуги),
+//                                сумма складывается. Разные ставки одной услуги
+//                                (дробление НДС) → столько строк, сколько ставок.
+//   • иначе bookingRoomId есть → проживание (Zimmer + дети): оставляем как есть.
+//   • иначе                    → доп.строка (booking_extra_lines): оставляем как есть.
+// Порядок: проживание (по убыванию суммы) → услуги (по убыванию суммы) → доп.строки
+// (в исходном порядке). Ставка у каждой группы одна, поэтому свод MwSt по ставкам
+// (taxGroups ниже) считается из этих же строк без расхождений.
+function groupLinesForPrint(rawLines) {
+    const r2 = v => Math.round(v * 100) / 100;
+    const accommodation = [];
+    const extra = [];
+    const svcGroups = new Map(); // ключ: serviceId|taxRate
+    for (const ln of rawLines) {
+        if (ln.serviceId) {
+            const rate = ln.taxRate || 0;
+            const key  = ln.serviceId + '|' + rate;
+            let g = svcGroups.get(key);
+            if (!g) {
+                g = { label: ln.sectionLabel || ln.label, taxRate: rate, amount: 0 };
+                svcGroups.set(key, g);
+            }
+            g.amount = r2(g.amount + (Number(ln.amount) || 0));
+        } else if (ln.bookingRoomId) {
+            accommodation.push(ln);
+        } else {
+            extra.push(ln);
+        }
+    }
+    accommodation.sort((a, b) => b.amount - a.amount);
+    const services = Array.from(svcGroups.values()).sort((a, b) => b.amount - a.amount);
+    return accommodation.concat(services, extra);
+}
+
 /**
  * Генерация HTML-документа счёта.
  * @param {object} opts
@@ -30,6 +69,10 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang
     if (typeof t !== 'function') t = (k) => k;
     locale = locale || 'de-DE';
     lang   = lang || 'de';
+    // Свёртка строк для печати: проживание сверху, услуги сгруппированы по
+    // ставке, доп.строки снизу (см. groupLinesForPrint). Учётная детализация
+    // остаётся в invoice_lines, документ показывает её свёрнутой.
+    lines = groupLinesForPrint(lines || []);
     const fmtDate = d => { const dt = new Date(d); return dt.toLocaleDateString(locale); };
     const fmtNum  = (v, dec) => Number(v).toLocaleString(locale, { minimumFractionDigits: dec || 2, maximumFractionDigits: dec || 2 });
 
