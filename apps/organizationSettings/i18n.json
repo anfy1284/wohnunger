@@ -17,12 +17,6 @@
         "de": "Sprache für Berichtsdruck",
         "pl": "Język wydruku dokumentów"
     },
-    "invoice_note": {
-        "en": "Invoice note (printed as-is)",
-        "ru": "Примечание в счёте (печатается как есть)",
-        "de": "Rechnungshinweis (wird so gedruckt)",
-        "pl": "Uwaga na rachunku (drukowana bez zmian)"
-    },
     "Apply": {
         "en": "Apply",
         "ru": "Применить",

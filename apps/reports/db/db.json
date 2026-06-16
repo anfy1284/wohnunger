@@ -1,0 +1,48 @@
+{
+    "models": [
+        {
+            "name": "ReportVariants",
+            "tableName": "report_variants",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Organization" }
+                },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": { "i18n": "report_variant_name" }
+                },
+                "invoiceNote": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": { "i18n": "invoice_note" }
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        }
+    ],
+    "associations": [
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "ReportVariants",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "ReportVariants",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        }
+    ]
+}

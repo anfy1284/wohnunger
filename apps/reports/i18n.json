@@ -130,5 +130,41 @@
         "ru": "из",
         "de": "von",
         "pl": "z"
+    },
+    "invoice_note": {
+        "en": "Invoice note (printed as-is)",
+        "ru": "Примечание в счёте (печатается как есть)",
+        "de": "Rechnungshinweis (wird so gedruckt)",
+        "pl": "Uwaga na rachunku (drukowana bez zmian)"
+    },
+    "directories_submenu": {
+        "en": "Reference data",
+        "ru": "Справочники",
+        "de": "Stammdaten",
+        "pl": "Słowniki"
+    },
+    "report_variants": {
+        "en": "Report variants",
+        "ru": "Варианты отчёта",
+        "de": "Berichtsvarianten",
+        "pl": "Warianty raportu"
+    },
+    "report_variant_record_caption": {
+        "en": "Report variant",
+        "ru": "Вариант отчёта",
+        "de": "Berichtsvariante",
+        "pl": "Wariant raportu"
+    },
+    "report_variant_name": {
+        "en": "Name",
+        "ru": "Наименование",
+        "de": "Bezeichnung",
+        "pl": "Nazwa"
+    },
+    "report_variant_field": {
+        "en": "Report variant",
+        "ru": "Вариант отчёта",
+        "de": "Berichtsvariante",
+        "pl": "Wariant raportu"
     }
 }

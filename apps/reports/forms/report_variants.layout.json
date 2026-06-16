@@ -1,0 +1,48 @@
+[
+    {
+        "type": "commandBar"
+    },
+    {
+        "type": "group",
+        "caption": "",
+        "noBorder": true,
+        "alignFields": true,
+        "orientation": "vertical",
+        "layout": [
+            {
+                "type": "textbox",
+                "name": "name",
+                "data": "name",
+                "caption": { "i18n": "report_variant_name" }
+            },
+            {
+                "type": "recordSelector",
+                "name": "organizationId",
+                "data": "organizationId",
+                "caption": { "i18n": "Organization" },
+                "properties": {
+                    "selection": {
+                        "table": "organizations",
+                        "idField": "UID",
+                        "displayField": "name"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "type": "group",
+        "caption": { "i18n": "invoice_note" },
+        "noBorder": true,
+        "orientation": "vertical",
+        "layout": [
+            {
+                "type": "textarea",
+                "name": "invoiceNote",
+                "data": "invoiceNote",
+                "caption": "",
+                "rows": 8
+            }
+        ]
+    }
+]

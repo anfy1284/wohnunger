@@ -217,9 +217,9 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang
 
 <h2>${t('invoice_no_label')} ${esc(invoiceNum)}</h2>`;
 
-    // Примечание к счёту — свободный текст из настроек организации (invoiceNote).
-    // Печатается как есть, на языке ввода; перевода нет. Переносы строк → <br/>.
-    // Пусто → блок примечания не выводится.
+    // Примечание к счёту — свободный текст из выбранного в брони варианта отчёта
+    // (report_variants → invoiceNote). Печатается как есть, на языке ввода;
+    // перевода нет. Переносы строк → <br/>. Пусто → блок примечания не выводится.
     const noteInner = invoiceNote
         ? esc(invoiceNote).replace(/\r?\n/g, '<br/>')
         : '';

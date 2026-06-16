@@ -236,6 +236,20 @@
                                         "displayField": "name"
                                     }
                                 }
+                            },
+                            {
+                                "type": "recordSelector",
+                                "name": "reportVariantId",
+                                "data": "reportVariantId",
+                                "caption": { "i18n": "report_variant_field" },
+                                "properties": {
+                                    "showOpenButton": true,
+                                    "selection": {
+                                        "table": "report_variants",
+                                        "idField": "UID",
+                                        "displayField": "name"
+                                    }
+                                }
                             }
                         ]
                     },
