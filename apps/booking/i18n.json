@@ -17,18 +17,6 @@
         "de": "Heute",
         "pl": "Dziś"
     },
-    "calendar_prev": {
-        "en": "Earlier",
-        "ru": "Раньше",
-        "de": "Früher",
-        "pl": "Wcześniej"
-    },
-    "calendar_next": {
-        "en": "Later",
-        "ru": "Позже",
-        "de": "Später",
-        "pl": "Później"
-    },
     "calendar_orientation_toggle": {
         "en": "Rotate (rows ↔ columns)",
         "ru": "Повернуть (строки ↔ столбцы)",
