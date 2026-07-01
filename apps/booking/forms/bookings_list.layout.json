@@ -1,0 +1,47 @@
+[
+    {
+        "type": "tabs",
+        "name": "bookingsListTabs",
+        "fillHeight": true,
+        "tabs": [
+            {
+                "caption": { "i18n": "booking_list_tab" },
+                "layout": [
+                    {
+                        "type": "table",
+                        "name": "bookingsList",
+                        "properties": {
+                            "dynamicTable": true,
+                            "readOnly": true,
+                            "appName": "uniForm",
+                            "tableName": "bookings",
+                            "visibleRows": 12,
+                            "editable": true,
+                            "showToolbar": true,
+                            "initialSort": [{ "field": "number", "order": "desc" }]
+                        }
+                    }
+                ]
+            },
+            {
+                "caption": { "i18n": "booking_calendar_tab" },
+                "layout": [
+                    {
+                        "type": "calendar",
+                        "name": "occupancyCalendar",
+                        "properties": {
+                            "tableName": "bookings",
+                            "idField": "UID",
+                            "resourceField": "resourceId",
+                            "startField": "start",
+                            "endField": "end",
+                            "labelField": "label",
+                            "colorField": "color",
+                            "orientation": "horizontal"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+]

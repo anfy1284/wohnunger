@@ -1,4 +1,40 @@
 {
+    "booking_list_tab": {
+        "en": "List",
+        "ru": "Список",
+        "de": "Liste",
+        "pl": "Lista"
+    },
+    "booking_calendar_tab": {
+        "en": "Calendar",
+        "ru": "Календарь",
+        "de": "Kalender",
+        "pl": "Kalendarz"
+    },
+    "calendar_today": {
+        "en": "Today",
+        "ru": "Сегодня",
+        "de": "Heute",
+        "pl": "Dziś"
+    },
+    "calendar_prev": {
+        "en": "Earlier",
+        "ru": "Раньше",
+        "de": "Früher",
+        "pl": "Wcześniej"
+    },
+    "calendar_next": {
+        "en": "Later",
+        "ru": "Позже",
+        "de": "Später",
+        "pl": "Później"
+    },
+    "calendar_orientation_toggle": {
+        "en": "Rotate (rows ↔ columns)",
+        "ru": "Повернуть (строки ↔ столбцы)",
+        "de": "Drehen (Zeilen ↔ Spalten)",
+        "pl": "Obróć (wiersze ↔ kolumny)"
+    },
     "service_included": {
         "en": "Included",
         "ru": "Включено",

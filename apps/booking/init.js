@@ -88,6 +88,44 @@ module.exports = async function (modelsDB) {
             }
         });
 
+        // ── Кастомная форма СПИСКА броней: вкладки «Список» + «Календарь» ─────
+        // Календарь (фреймворковый элемент type:'calendar') тянет данные через
+        // window.callServer(serverScript, 'loadCalendar', ...). Имя серверного
+        // скрипта внедряем в свойства календаря в лейауте (аналог __SERVER_SCRIPT__).
+        // Клиентский скрипт списку не нужен — календарь самодостаточен.
+        const listServerName = loadServerScript(
+            'booking.bookingListActions',
+            require('./forms/bookings_list.server')(modelsDB, Utilities),
+            'user'
+        );
+
+        const listLayout = require('./forms/bookings_list.layout.json');
+        (function injectCalendarServerScript(items) {
+            if (!Array.isArray(items)) return;
+            for (const it of items) {
+                if (it && it.type === 'calendar') {
+                    it.properties = it.properties || {};
+                    it.properties.serverScript = listServerName;
+                    it.properties.loadFn = 'loadCalendar';
+                }
+                if (it && Array.isArray(it.layout)) injectCalendarServerScript(it.layout);
+                if (it && Array.isArray(it.tabs)) {
+                    for (const t of it.tabs) injectCalendarServerScript(t.layout);
+                }
+            }
+        })(listLayout);
+
+        await layoutMemory.saveLayout({
+            appName:     'uniForm',
+            mode:        'list',
+            tableName:   'bookings',
+            roles:       'user',
+            layout:      listLayout,
+            windowState: 'maximized',
+            appCaption:  { i18n: 'bookings_app_caption' },
+            listIcon:    '/apps/general_icons/resources/public/16x16/journal.png'
+        });
+
         // ── Сюда добавлять новые формы по той же схеме ───────────────────
         // const invoicesServerName = loadServerScript('booking.invoiceActions',
         //     require('./forms/invoices.server')(modelsDB, Utilities), 'user');

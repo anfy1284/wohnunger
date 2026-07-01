@@ -22,11 +22,11 @@
         { "UID": "000000000-tax-rate-0007", "taxCategoryId": "000000000-tax-cat-0006", "rateId": "000000000-taxrate-v000", "validFrom": null,         "validTo": null }
     ],
     "booking_statuses": [
-        { "UID": "000000000-bk-status-0001", "code": "draft",      "name": "Draft",      "displayOrder": 10 },
-        { "UID": "000000000-bk-status-0002", "code": "confirmed",  "name": "Confirmed",  "displayOrder": 20 },
-        { "UID": "000000000-bk-status-0003", "code": "checkedIn",  "name": "Checked in",  "displayOrder": 30 },
-        { "UID": "000000000-bk-status-0004", "code": "checkedOut", "name": "Checked out", "displayOrder": 40 },
-        { "UID": "000000000-bk-status-0005", "code": "cancelled",  "name": "Cancelled",  "displayOrder": 50 }
+        { "UID": "000000000-bk-status-0001", "code": "draft",      "name": "Draft",      "color": "#9E9E9E", "displayOrder": 10 },
+        { "UID": "000000000-bk-status-0002", "code": "confirmed",  "name": "Confirmed",  "color": "#4CAF50", "displayOrder": 20 },
+        { "UID": "000000000-bk-status-0003", "code": "checkedIn",  "name": "Checked in",  "color": "#2196F3", "displayOrder": 30 },
+        { "UID": "000000000-bk-status-0004", "code": "checkedOut", "name": "Checked out", "color": "#607D8B", "displayOrder": 40 },
+        { "UID": "000000000-bk-status-0005", "code": "cancelled",  "name": "Cancelled",  "color": "#E53935", "displayOrder": 50 }
     ],
     "guest_types": [
         {

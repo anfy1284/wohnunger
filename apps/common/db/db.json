@@ -654,6 +654,12 @@
                     "translatable": true,
                     "caption": { "i18n": "booking_status_name" }
                 },
+                "color": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "inputType": "color",
+                    "caption": { "i18n": "status_color" }
+                },
                 "displayOrder": {
                     "type": "INTEGER",
                     "allowNull": true,

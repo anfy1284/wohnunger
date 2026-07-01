@@ -1,4 +1,10 @@
 {
+    "status_color": {
+        "en": "Color",
+        "ru": "Цвет",
+        "de": "Farbe",
+        "pl": "Kolor"
+    },
     "include_by_default": {
         "en": "Include by default",
         "ru": "Включать по умолчанию",
