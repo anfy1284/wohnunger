@@ -26,13 +26,6 @@ module.exports = function (modelsDB, Utilities) {
     const priceResolver = require('../../common/lib/priceResolver')(modelsDB);
 
     const r2 = v => Math.round(v * 100) / 100;
-    const fmtD = (v) => {
-        if (!v) return '';
-        const dt = new Date(v);
-        if (isNaN(dt.getTime())) return String(v);
-        const p = n => String(n).padStart(2, '0');
-        return `${p(dt.getDate())}.${p(dt.getMonth() + 1)}.${dt.getFullYear()}`;
-    };
 
     // SSE-оповещение подписанных списков (журнал счетов, вкладка «Счета» брони).
     // fillInvoice/createFromBooking меняют данные мимо applyChanges — оповещаем сами.
@@ -385,6 +378,71 @@ module.exports = function (modelsDB, Utilities) {
         return { lines, booking };
     }
 
+    // ── Свёртка детальных строк в «печатный» вид (WYSIWYG) ───────────────
+    // ТЧ счёта хранит РОВНО те строки, что печатаются, — корректировать удобно.
+    // Классификация как раньше в печати: услуги группируются по
+    // serviceId + налоговый компонент + ставка (label = имя услуги [+ компонент]),
+    // проживание и доп.строки — как есть. Порядок: проживание (по убыванию суммы)
+    // → услуги (по убыванию суммы) → доп.строки.
+    // Кол-во/цена свёрнутой строки: полосы с одинаковой ценой → qty = Σqty;
+    // разные цены (возрастные полосы) → qty = 1, цена = Σсумм.
+    // Ставка НДС — ссылкой на справочник tax_rates (taxRateId); % (taxRate)
+    // остаётся снапшотом документа рядом.
+    function _collapseInvoiceLines(rawLines, taxRateRows) {
+        const accommodation = [];
+        const extra = [];
+        const svcGroups = new Map(); // ключ: serviceId|taxComponentName|taxRate
+        for (const ln of rawLines) {
+            if (ln.serviceId) {
+                const rate = ln.taxRate || 0;
+                const comp = ln.taxComponentName || '';
+                const key = ln.serviceId + '|' + comp + '|' + rate;
+                let g = svcGroups.get(key);
+                if (!g) {
+                    const base = ln.sectionLabel || ln.label;
+                    g = { proto: ln, label: comp ? base + ' – ' + comp : base, rows: [] };
+                    svcGroups.set(key, g);
+                }
+                g.rows.push(ln);
+            } else if (ln.bookingRoomId) {
+                accommodation.push(ln);
+            } else {
+                extra.push(ln);
+            }
+        }
+        const services = [];
+        for (const g of svcGroups.values()) {
+            const amount  = r2(g.rows.reduce((s, r) => s + (Number(r.amount) || 0), 0));
+            const qtySum  = r2(g.rows.reduce((s, r) => s + (Number(r.quantity) || 0), 0));
+            const uniform = g.rows.every(r => Number(r.unitPrice) === Number(g.rows[0].unitPrice));
+            services.push({
+                UID: Utilities.generateUID('InvoiceLines'),
+                bookingId:        g.proto.bookingId,
+                organizationId:   g.proto.organizationId,
+                serviceId:        g.proto.serviceId,
+                guestTypeId:      g.rows.length === 1 ? (g.proto.guestTypeId || null) : null,
+                taxComponentName: g.proto.taxComponentName || null,
+                sectionLabel:     g.proto.sectionLabel || null,
+                label:            g.label,
+                quantity:         uniform ? qtySum : 1,
+                unitPrice:        uniform ? (Number(g.rows[0].unitPrice) || 0) : amount,
+                taxRate:          g.proto.taxRate || 0,
+                amount
+            });
+        }
+        accommodation.sort((a, b) => b.amount - a.amount);
+        services.sort((a, b) => b.amount - a.amount);
+        const out = accommodation.concat(services, extra);
+        // Ссылка на справочник ставок + display-значения для FK-ячеек формы.
+        for (const ln of out) {
+            const rr = taxRateRows.find(r => Number(r.rate) === Number(ln.taxRate || 0));
+            ln.taxRateId = rr ? rr.UID : null;
+            if (rr) ln.__taxRateId_display = rr.name;
+            if (ln.serviceId && ln.sectionLabel) ln.__serviceId_display = ln.sectionLabel;
+        }
+        return out;
+    }
+
     // ── Перезаполнение строк счёта по ТЧ «Бронирования» ──────────────────
     // Режим даты ценообразования — из настроек организации (pricingDateMode):
     //   bookingDate → дата документа каждой брони (своя на бронь);
@@ -401,7 +459,7 @@ module.exports = function (modelsDB, Utilities) {
         const bookingIds = [...new Set(links.map(l => l.bookingId).filter(Boolean))];
 
         const mode = await resolveOrgPricingMode(modelsDB, invoice.organizationId);
-        const invLang = await resolveOrgReportLang(modelsDB, invoice.organizationId);
+        const taxRateRows = await modelsDB.TaxRates.findAll({ raw: true });
 
         const allLines = [];
         let prepaymentSum = 0;
@@ -414,14 +472,9 @@ module.exports = function (modelsDB, Utilities) {
             const { lines } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
             prepaymentSum = r2(prepaymentSum + (Number(booking.prepayment) || 0));
 
-            // При нескольких бронях первая строка группы несёт идентификацию брони
-            // (на языке организации) — по ней же секционируется печать.
-            if (bookingIds.length > 1 && lines.length) {
-                lines[0].sectionLabel = i18n.tf('invoice_booking_section', invLang, {
-                    number: booking.number || '', from: fmtD(booking.checkIn), to: fmtD(booking.checkOut)
-                });
-            }
-            allLines.push(...lines);
+            // ТЧ хранит свёрнутые «печатные» строки (WYSIWYG) — детализация по
+            // возрастным группам схлопывается здесь же, как раньше в печати.
+            allLines.push(..._collapseInvoiceLines(lines, taxRateRows));
         }
         allLines.forEach((ln, i) => {
             ln.invoiceId = invoiceId;
@@ -430,10 +483,13 @@ module.exports = function (modelsDB, Utilities) {
         });
 
         // Перезапись строк — через dbGateway (RLS/хуки), не прямым Model.destroy/bulkCreate.
+        // __*_display-ключи — только для формы, в БД не пишем.
         const dbCtx = { sessionID: ctx.sessionID };
         await dbGateway.execute({ operation: 'delete', table: 'invoice_lines', where: { invoiceId }, context: dbCtx });
         for (const ln of allLines) {
-            await dbGateway.execute({ operation: 'create', table: 'invoice_lines', data: ln, context: dbCtx });
+            const dbRow = {};
+            for (const k of Object.keys(ln)) { if (!k.startsWith('__')) dbRow[k] = ln[k]; }
+            await dbGateway.execute({ operation: 'create', table: 'invoice_lines', data: dbRow, context: dbCtx });
         }
         await dbGateway.execute({
             operation: 'update', table: 'invoices',
@@ -458,42 +514,43 @@ module.exports = function (modelsDB, Utilities) {
             }
         },
 
-        // ── RPC: создание счёта из брони (кнопка «Создать счёт») ──────────
-        // Создание — через dbGateway (тот же путь, что applyChanges): срабатывают
-        // автонумерация (number), системная дата (date), представление (name) и RLS.
-        async createFromBooking({ bookingId }, ctx) {
+        // ── RPC: подготовка НОВОГО счёта из брони (кнопка «Создать счёт») ──
+        // НИЧЕГО не пишет в БД: считает строки и возвращает prefill/prefillTabular
+        // для открытия ЗАПОЛНЕННОЙ новой формы счёта («создать на основании»).
+        // Номер/дата/представление присвоятся при сохранении формы (хуки dbGateway).
+        async prepareFromBooking({ bookingId }, ctx) {
             if (!bookingId) return { error: await tForSession('booking_not_found', ctx.sessionID) };
             const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
             if (!booking) return { error: await tForSession('booking_not_found', ctx.sessionID) };
 
-            const dbCtx = { sessionID: ctx.sessionID };
-            const invoiceId = Utilities.generateUID('Invoices');
             try {
-                await dbGateway.execute({
-                    operation: 'create', table: 'invoices',
-                    data: {
-                        UID: invoiceId,
+                const mode = await resolveOrgPricingMode(modelsDB, booking.organizationId);
+                // Дата счёта появится только при сохранении — в режиме invoiceDate
+                // берём текущий момент (его же поставит хук default.documentDate).
+                const pricingDate = (mode === 'invoiceDate')
+                    ? new Date()
+                    : (booking.date || new Date());
+                const { lines } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
+                const taxRateRows = await modelsDB.TaxRates.findAll({ raw: true });
+                const collapsed = _collapseInvoiceLines(lines, taxRateRows);
+                collapsed.forEach((ln, i) => { ln.sortOrder = i + 1; });
+
+                return {
+                    prefill: {
                         organizationId: booking.organizationId,
                         hotelId:        booking.hotelId,
                         clientId:       booking.clientId,
                         status:         'draft',
                         prepayment:     Number(booking.prepayment) || 0
                     },
-                    context: dbCtx
-                });
-                await dbGateway.execute({
-                    operation: 'create', table: 'invoice_bookings',
-                    data: {
-                        UID: Utilities.generateUID('InvoiceBookings'),
-                        organizationId: booking.organizationId,
-                        invoiceId, bookingId
-                    },
-                    context: dbCtx
-                });
-                await _fillInvoice(invoiceId, ctx);
-                notifyTables('create', invoiceId);
-                const fresh = await modelsDB.Invoices.findByPk(invoiceId, { raw: true });
-                return { invoiceId, number: fresh && fresh.number, name: fresh && fresh.name };
+                    prefillTabular: {
+                        invoice_bookings: [{
+                            organizationId: booking.organizationId,
+                            bookingId
+                        }],
+                        invoice_lines: collapsed
+                    }
+                };
             } catch (e) {
                 return { error: (e && e.message) || String(e) };
             }
@@ -548,22 +605,85 @@ module.exports = function (modelsDB, Utilities) {
                 }
             }
 
-            const numFields = ['quantity', 'unitPrice', 'taxRate', 'amount', 'sortOrder'];
-            for (const row of (tabularSections.invoice_lines || [])) {
-                for (const f of numFields) {
-                    if (row[f] === '') row[f] = null;
+            const lines = tabularSections.invoice_lines || [];
+            if (lines.length) {
+                // Справочники для авторитетного заполнения строк: ставка НДС ВСЕГДА
+                // из tax_rates (по taxRateId), вручную % нигде не вводится; услуга
+                // подставляет имя и (если ставка не выбрана) ставку своей налоговой
+                // группы на дату документа счёта.
+                const taxRateRows = await modelsDB.TaxRates.findAll({ raw: true });
+                const rateById = {};
+                for (const r of taxRateRows) rateById[r.UID] = Number(r.rate) || 0;
+
+                const needSvc = [...new Set(lines.filter(l => l && l.serviceId).map(l => l.serviceId))];
+                const svcRows = needSvc.length
+                    ? await modelsDB.Services.findAll({ where: { UID: needSvc }, raw: true }) : [];
+                const svcById = {};
+                for (const s of svcRows) svcById[s.UID] = s;
+
+                // Дата документа — для резолва ставки налоговой группы услуги.
+                let invDate = changes && changes.date;
+                if (!invDate) {
+                    const invId2 = parentUID || (changes && changes.UID);
+                    if (invId2) {
+                        try {
+                            const rec2 = await modelsDB.Invoices.findByPk(invId2, { raw: true });
+                            if (rec2) invDate = rec2.date;
+                        } catch (_) {}
+                    }
                 }
-                // Авторитетный пересчёт суммы (клиентский onChange — только для отклика).
-                const qty  = Number(row.quantity);
-                const unit = Number(row.unitPrice);
-                if (Number.isFinite(qty) && Number.isFinite(unit)) {
-                    row.amount = r2(qty * unit);
+                const atDate = invDate ? new Date(invDate) : new Date();
+                let taxCatRates = null;
+                const rateByCategory = async (categoryId) => {
+                    if (!categoryId) return null;
+                    if (!taxCatRates) taxCatRates = await modelsDB.TaxCategoryRates.findAll({ raw: true });
+                    let best = null;
+                    for (const r of taxCatRates) {
+                        if (r.taxCategoryId !== categoryId) continue;
+                        if (r.validFrom && new Date(r.validFrom) > atDate) continue;
+                        if (r.validTo   && new Date(r.validTo)   < atDate) continue;
+                        if (!best || new Date(r.validFrom || 0) > new Date(best.validFrom || 0)) best = r;
+                    }
+                    return best ? (taxRateRows.find(tr => tr.UID === best.rateId) || null) : null;
+                };
+
+                const numFields = ['quantity', 'unitPrice', 'taxRate', 'amount', 'sortOrder'];
+                for (const row of lines) {
+                    for (const f of numFields) {
+                        if (row[f] === '') row[f] = null;
+                    }
+                    if (row.taxRateId === '') row.taxRateId = null;
+
+                    // Услуга из справочника: имя строки, а при пустой ставке — ставка
+                    // её налоговой группы на дату счёта.
+                    const svc = row.serviceId ? svcById[row.serviceId] : null;
+                    if (svc) {
+                        if (!row.label) row.label = svc.name;
+                        if (!row.sectionLabel) row.sectionLabel = svc.name;
+                        if (!row.taxRateId) {
+                            const rr = await rateByCategory(svc.taxCategoryId);
+                            if (rr) row.taxRateId = rr.UID;
+                        }
+                    }
+
+                    // Ставка НДС — авторитетно из справочника по taxRateId
+                    // (снапшот % в taxRate обновляется под выбранную ставку).
+                    if (row.taxRateId && rateById[row.taxRateId] != null) {
+                        row.taxRate = rateById[row.taxRateId];
+                    }
+
+                    // Авторитетный пересчёт суммы (клиентский onChange — только для отклика).
+                    const qty  = Number(row.quantity);
+                    const unit = Number(row.unitPrice);
+                    if (Number.isFinite(qty) && Number.isFinite(unit)) {
+                        row.amount = r2(qty * unit);
+                    }
+                    if (row.quantity  == null) row.quantity  = 0;
+                    if (row.unitPrice == null) row.unitPrice = 0;
+                    if (row.amount    == null) row.amount    = 0;
+                    if (row.taxRate   == null) row.taxRate   = 0;
+                    if (row.sortOrder == null) row.sortOrder = 0;
                 }
-                if (row.quantity  == null) row.quantity  = 0;
-                if (row.unitPrice == null) row.unitPrice = 0;
-                if (row.amount    == null) row.amount    = 0;
-                if (row.taxRate   == null) row.taxRate   = 0;
-                if (row.sortOrder == null) row.sortOrder = 0;
             }
         }
 

@@ -13,49 +13,10 @@
 
 const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-// Группировка строк счёта для ПЕЧАТИ (представление, не учёт).
-// Таблица invoice_lines хранит детализацию (по услуге, возрастной группе,
-// налоговому компоненту) — это источник правды. Печатный документ показывает
-// её свёрнутой. Классификация строк — структурная, по сохранённым полям:
-//   • serviceId есть          → услуга: группируем по serviceId+taxComponent+taxRate
-//                                в одну строку (label = sectionLabel — чистое имя
-//                                услуги; для дроблёных по НДС услуг к имени дописываем
-//                                имя компонента, напр. «Frühstück – Speisen»), сумма
-//                                складывается. Завтрак с делёжкой НДС (Speisen 7% /
-//                                Getränke 19%) остаётся ДВУМЯ строками — по компоненту,
-//                                а не сводится к одной. Услуга без компонентов → одна строка.
-//   • иначе bookingRoomId есть → проживание (Zimmer + дети): оставляем как есть.
-//   • иначе                    → доп.строка (booking_extra_lines): оставляем как есть.
-// Порядок: проживание (по убыванию суммы) → услуги (по убыванию суммы) → доп.строки
-// (в исходном порядке). Ставка у каждой группы одна, поэтому свод MwSt по ставкам
-// (taxGroups ниже) считается из этих же строк без расхождений.
-function groupLinesForPrint(rawLines) {
-    const r2 = v => Math.round(v * 100) / 100;
-    const accommodation = [];
-    const extra = [];
-    const svcGroups = new Map(); // ключ: serviceId|taxComponentName|taxRate
-    for (const ln of rawLines) {
-        if (ln.serviceId) {
-            const rate = ln.taxRate || 0;
-            const comp = ln.taxComponentName || '';
-            const key  = ln.serviceId + '|' + comp + '|' + rate;
-            let g = svcGroups.get(key);
-            if (!g) {
-                const base = ln.sectionLabel || ln.label;
-                g = { label: comp ? base + ' – ' + comp : base, taxRate: rate, amount: 0 };
-                svcGroups.set(key, g);
-            }
-            g.amount = r2(g.amount + (Number(ln.amount) || 0));
-        } else if (ln.bookingRoomId) {
-            accommodation.push(ln);
-        } else {
-            extra.push(ln);
-        }
-    }
-    accommodation.sort((a, b) => b.amount - a.amount);
-    const services = Array.from(svcGroups.values()).sort((a, b) => b.amount - a.amount);
-    return accommodation.concat(services, extra);
-}
+// Печать БЕЗ повторной группировки: ТЧ счёта хранит строки уже в «печатном»
+// виде (WYSIWYG — свёртку делает fillInvoice/prepareFromBooking в apps/invoice,
+// см. _collapseInvoiceLines). Что пользователь видит и правит в форме счёта,
+// то и печатается, строка в строку (порядок — sortOrder).
 
 /**
  * Генерация HTML-документа счёта.
@@ -96,10 +57,10 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     const checkOut    = maxOut ? fmtDate(maxOut) : '';
     const prepayment  = Number(invoice.prepayment) || 0;
 
-    // Свёртка строк для печати: при НЕСКОЛЬКИХ бронях — посекционно (заголовок
-    // «Buchung Nr. X, даты» + свёрнутые строки этой брони); строки без bookingId
-    // (ручные) — в конце без заголовка. Одна бронь — как раньше, без секций.
-    // Свод MwSt (taxGroups) считается из тех же свёрнутых строк.
+    // Строки печатаются КАК ХРАНЯТСЯ (WYSIWYG). При НЕСКОЛЬКИХ бронях —
+    // посекционно (заголовок «Buchung Nr. X, даты» + строки этой брони);
+    // строки без bookingId (ручные) — в конце без заголовка. Одна бронь — без секций.
+    // Свод MwSt (taxGroups) считается из тех же строк.
     const sections = [];
     if (bookings.length > 1) {
         for (const b of bookings) {
@@ -109,13 +70,13 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
                 header: tf('invoice_booking_section', {
                     number: b.number || '', from: fmtDate(b.checkIn), to: fmtDate(b.checkOut)
                 }),
-                lines: groupLinesForPrint(own)
+                lines: own
             });
         }
         const orphan = rawLines.filter(ln => !ln.bookingId || !bookings.some(b => b.UID === ln.bookingId));
-        if (orphan.length) sections.push({ header: null, lines: groupLinesForPrint(orphan) });
+        if (orphan.length) sections.push({ header: null, lines: orphan });
     } else {
-        sections.push({ header: null, lines: groupLinesForPrint(rawLines) });
+        sections.push({ header: null, lines: rawLines });
     }
     const flatLines = sections.reduce((acc, s) => acc.concat(s.lines), []);
 

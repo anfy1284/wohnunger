@@ -157,11 +157,28 @@
                             "name": "ts_invoice_lines",
                             "data": "invoice_lines",
                             "columns": [
-                                { "caption": { "i18n": "section_label" }, "data": "sectionLabel", "width": 160, "inputType": "textbox" },
                                 { "caption": { "i18n": "Description" }, "data": "label", "autoWidth": true, "inputType": "textbox" },
+                                {
+                                    "caption": { "i18n": "Service" },
+                                    "data": "serviceId",
+                                    "width": 170,
+                                    "inputType": "recordSelector",
+                                    "properties": {
+                                        "showSelectionButton": true,
+                                        "selection": { "table": "services", "idField": "UID", "displayField": "name" }
+                                    }
+                                },
                                 { "caption": { "i18n": "Quantity" }, "data": "quantity", "width": 90, "inputType": "number", "events": { "onChange": "onLineQtyOrPriceEdited" } },
                                 { "caption": { "i18n": "unit_price" }, "data": "unitPrice", "width": 100, "inputType": "number", "events": { "onChange": "onLineQtyOrPriceEdited" } },
-                                { "caption": { "i18n": "vat_rate_field" }, "data": "taxRate", "width": 80, "inputType": "number" },
+                                {
+                                    "caption": { "i18n": "tax_rate" },
+                                    "data": "taxRateId",
+                                    "width": 110,
+                                    "inputType": "recordSelector",
+                                    "properties": {
+                                        "selection": { "table": "tax_rates", "idField": "UID", "displayField": "name" }
+                                    }
+                                },
                                 { "caption": { "i18n": "Amount" }, "data": "amount", "width": 110, "inputType": "number" }
                             ],
                             "properties": {

@@ -214,6 +214,17 @@
                     "allowNull": false,
                     "caption": { "i18n": "unit_price" }
                 },
+                "taxRateId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "tax_rates",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "tax_rate" }
+                },
                 "taxRate": {
                     "type": "INTEGER",
                     "allowNull": false,
@@ -338,6 +349,18 @@
             "source": "InvoiceLines",
             "target": "BookingRooms",
             "foreignKey": "bookingRoomId"
+        },
+        {
+            "type": "hasMany",
+            "source": "TaxRates",
+            "target": "InvoiceLines",
+            "foreignKey": "taxRateId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "InvoiceLines",
+            "target": "TaxRates",
+            "foreignKey": "taxRateId"
         }
     ]
 }

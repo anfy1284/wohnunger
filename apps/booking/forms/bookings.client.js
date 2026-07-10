@@ -217,9 +217,11 @@ async function _openInvoiceRecord(invoiceUID) {
     }
 }
 
-// Создать счёт из текущей брони: сохранить форму (если изменена) → RPC → открыть.
-// Обновление кнопки/вкладки «Счета» придёт само по SSE (createFromBooking шлёт
-// dataChanged) — руками ничего не перечитываем.
+// Создать счёт из текущей брони: сохранить бронь (если изменена) → RPC
+// prepareFromBooking (НИЧЕГО не пишет в БД) → открыть ЗАПОЛНЕННУЮ форму НОВОГО
+// счёта (prefill/prefillTabular — «создать на основании»). Счёт попадёт в БД
+// только когда пользователь сохранит форму; кнопка/вкладка «Счета» обновятся
+// по SSE после этого сохранения.
 async function _createInvoiceFromBooking(form) {
     if (form._modified) {
         await form.doAction('save');
@@ -232,12 +234,20 @@ async function _createInvoiceFromBooking(form) {
     var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Preparing invoice…')) : null;
     var result;
     try {
-        result = await callServer('invoice.actions', 'createFromBooking', { bookingId: bookingId });
+        result = await callServer('invoice.actions', 'prepareFromBooking', { bookingId: bookingId });
     } finally {
         if (busyToken != null && window.MySpace && window.MySpace.hideBusy) window.MySpace.hideBusy(busyToken);
     }
     if (!result || result.error) { showAlert(__t('Error: ') + (result && result.error || '')); return; }
-    await _openInvoiceRecord(result.invoiceId);
+
+    if (window.MySpace && typeof window.MySpace.open === 'function') {
+        await window.MySpace.open('uniForm', {
+            mode: 'record',
+            tableName: 'invoices',
+            prefill: result.prefill,
+            prefillTabular: result.prefillTabular
+        });
+    }
 }
 
 // Основной сегмент кнопки: счета есть → открыть последний, нет → создать.
