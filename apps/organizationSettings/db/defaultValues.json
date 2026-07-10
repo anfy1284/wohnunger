@@ -22,6 +22,17 @@
             "typeId": "000000000-orgset-type-str",
             "options": { "referenceTable": "languages", "displayField": "name" },
             "displayOrder": 20
+        },
+        {
+            "UID": "000000000-orgset-fld-pricemode",
+            "name": "pricingDateMode",
+            "displayName": "pricing_date_mode",
+            "typeId": "000000000-orgset-type-enum",
+            "options": [
+                { "value": "bookingDate", "caption": { "i18n": "pricing_mode_booking_date" } },
+                { "value": "invoiceDate", "caption": { "i18n": "pricing_mode_invoice_date" } }
+            ],
+            "displayOrder": 30
         }
     ]
 }

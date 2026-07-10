@@ -181,7 +181,12 @@ async function buildLayout(modelsDB) {
             ctrl.type = 'emunList';
             const enumOpts = Array.isArray(field.options) ? field.options
                 : (typeof field.options === 'string' ? JSON.parse(field.options) : []);
-            ctrl.options = enumOpts.map(o => ({ value: o, caption: o }));
+            // Элемент массива — либо строка-значение (caption = само значение),
+            // либо объект { value, caption } — caption может быть { i18n: 'key' },
+            // его переведут обходчики лейаута (translateLayoutCaptions обходит options).
+            ctrl.options = enumOpts.map(o => (o && typeof o === 'object')
+                ? { value: o.value, caption: o.caption || o.value }
+                : { value: o, caption: o });
         } else if (typeName === 'number') {
             ctrl.type = 'number';
         } else if (opts && typeof opts === 'object' && !Array.isArray(opts) && opts.multiline) {

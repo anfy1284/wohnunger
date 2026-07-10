@@ -17,6 +17,24 @@
         "de": "Sprache für Berichtsdruck",
         "pl": "Język wydruku dokumentów"
     },
+    "pricing_date_mode": {
+        "en": "Pricing date mode",
+        "ru": "Режим даты ценообразования",
+        "de": "Modus des Preisstellungsdatums",
+        "pl": "Tryb daty ustalania cen"
+    },
+    "pricing_mode_booking_date": {
+        "en": "By booking date",
+        "ru": "По дате брони",
+        "de": "Nach Buchungsdatum",
+        "pl": "Według daty rezerwacji"
+    },
+    "pricing_mode_invoice_date": {
+        "en": "By invoice date",
+        "ru": "По дате счёта",
+        "de": "Nach Rechnungsdatum",
+        "pl": "Według daty faktury"
+    },
     "Apply": {
         "en": "Apply",
         "ru": "Применить",
