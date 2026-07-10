@@ -37,6 +37,12 @@
                                         "caption": { "i18n": "booking_name_field" }
                                     },
                                     {
+                                        "type": "date",
+                                        "name": "date",
+                                        "data": "date",
+                                        "caption": { "i18n": "document_date_field" }
+                                    },
+                                    {
                                         "type": "number",
                                         "name": "prepayment",
                                         "data": "prepayment",
