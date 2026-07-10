@@ -1,0 +1,274 @@
+{
+    "models": [
+        {
+            "name": "PriceLists",
+            "tableName": "price_lists",
+            "entityConfig": {
+                "entityType": "document"
+            },
+            "fields": {
+                "name": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": { "i18n": "name_field" }
+                },
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Organization" }
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "Hotel" }
+                },
+                "notes": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": { "i18n": "Notes" }
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "PriceListRoomPrices",
+            "tableName": "price_list_room_prices",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Organization" }
+                },
+                "priceListId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "price_lists",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "price_list_ref" }
+                },
+                "roomId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "rooms",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "Room" }
+                },
+                "dateFrom": {
+                    "type": "DATEONLY",
+                    "allowNull": false,
+                    "caption": { "i18n": "date_from" }
+                },
+                "dateTo": {
+                    "type": "DATEONLY",
+                    "allowNull": false,
+                    "caption": { "i18n": "date_to" }
+                },
+                "guestsCount": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "caption": { "i18n": "guests_count" }
+                },
+                "price": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": { "i18n": "base_rate_price" }
+                }
+            },
+            "tabularSection": {
+                "parentTable": "price_lists",
+                "parentField": "priceListId",
+                "caption": { "i18n": "price_list_rooms_tab" }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "PriceListServicePrices",
+            "tableName": "price_list_service_prices",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Organization" }
+                },
+                "priceListId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "price_lists",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "price_list_ref" }
+                },
+                "serviceId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "services",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "Service" }
+                },
+                "roomId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "rooms",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "SET NULL",
+                    "caption": { "i18n": "Room" }
+                },
+                "ageFrom": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "caption": { "i18n": "age_from" }
+                },
+                "ageTo": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "caption": { "i18n": "age_to" }
+                },
+                "price": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "caption": { "i18n": "Price" }
+                }
+            },
+            "tabularSection": {
+                "parentTable": "price_lists",
+                "parentField": "priceListId",
+                "caption": { "i18n": "price_list_services_tab" }
+            },
+            "options": {
+                "timestamps": true
+            }
+        }
+    ],
+    "associations": [
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "PriceLists",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "PriceLists",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Hotels",
+            "target": "PriceLists",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "PriceLists",
+            "target": "Hotels",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "hasMany",
+            "source": "PriceLists",
+            "target": "PriceListRoomPrices",
+            "foreignKey": "priceListId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "PriceListRoomPrices",
+            "target": "PriceLists",
+            "foreignKey": "priceListId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Rooms",
+            "target": "PriceListRoomPrices",
+            "foreignKey": "roomId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "PriceListRoomPrices",
+            "target": "Rooms",
+            "foreignKey": "roomId"
+        },
+        {
+            "type": "hasMany",
+            "source": "PriceLists",
+            "target": "PriceListServicePrices",
+            "foreignKey": "priceListId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "PriceListServicePrices",
+            "target": "PriceLists",
+            "foreignKey": "priceListId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Services",
+            "target": "PriceListServicePrices",
+            "foreignKey": "serviceId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "PriceListServicePrices",
+            "target": "Services",
+            "foreignKey": "serviceId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Rooms",
+            "target": "PriceListServicePrices",
+            "foreignKey": "roomId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "PriceListServicePrices",
+            "target": "Rooms",
+            "foreignKey": "roomId"
+        }
+    ]
+}

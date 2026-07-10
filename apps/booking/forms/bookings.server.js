@@ -14,10 +14,16 @@ const formulaEngine = require('../../common/lib/formulaEngine');
 
 module.exports = function (modelsDB, Utilities) {
 
+    // Цены проживания и услуг — ТОЛЬКО через резолвер прайс-листов («срез
+    // последних» по позиции на дату ценообразования), не из таблиц напрямую.
+    const priceResolver = require('../../common/lib/priceResolver')(modelsDB);
+
     // ── Внутренний хелпер: строит строки счёта из данных ТЧ в памяти ────
     // Принимает уже загруженные массивы rooms/guests/roomServices (из tabularSections),
     // остальные справочники загружает из БД сам.
-    async function _buildInvoiceLines({ bookingId, checkIn, checkOut, rooms, guests, roomServices, extraLines, orgId }, ctx) {
+    // pricingDate — дата ценообразования (дата документа брони); по ней берётся
+    // срез прайс-листов. НДС по-прежнему резолвится по дате ЗАЕЗДА (дата услуги).
+    async function _buildInvoiceLines({ bookingId, checkIn, checkOut, rooms, guests, roomServices, extraLines, orgId, hotelId, pricingDate }, ctx) {
         const checkInDate  = new Date(checkIn);
         const checkOutDate = new Date(checkOut);
         const nights       = Math.round((checkOutDate - checkInDate) / 86400000);
@@ -41,8 +47,11 @@ module.exports = function (modelsDB, Utilities) {
         const roomMap  = {};
         for (const r of roomRecs) roomMap[r.UID] = r;
 
-        const roomPrices = roomIds.length
-            ? await modelsDB.RoomPrices.findAll({ where: { roomId: roomIds }, raw: true }) : [];
+        // Срез прайс-листов на дату ценообразования — один на весь расчёт
+        // (батчево: 3 запроса, дальше всё в памяти).
+        const priceSlice = await priceResolver.loadSlice({
+            organizationId: orgId, hotelId, pricingDate
+        });
 
         const serviceIds = [...new Set(roomServices.map(s => s.serviceId).filter(Boolean))];
         const svcRecs    = serviceIds.length
@@ -50,8 +59,11 @@ module.exports = function (modelsDB, Utilities) {
         const svcMap = {};
         for (const s of svcRecs) svcMap[s.UID] = s;
 
-        const svcPrices = serviceIds.length
-            ? await modelsDB.ServicePrices.findAll({ where: { serviceId: serviceIds }, raw: true }) : [];
+        // Актуальные полосы цен услуг («срез последних» по позициям услуги).
+        const svcPrices = [];
+        for (const sid of serviceIds) {
+            svcPrices.push(...priceResolver.pickServicePrices(priceSlice, { serviceId: sid }));
+        }
 
         // Налоговые компоненты услуг (дробление одной услуги на несколько ставок НДС,
         // напр. завтрак → Speisen 7% + Getränke 19%). Если у услуги компонентов нет,
@@ -77,8 +89,8 @@ module.exports = function (modelsDB, Utilities) {
         for (const v of taxRateVals) rateValById[v.UID] = v.rate;
 
         // Полосы цен услуги для конкретной комнаты (СИСТЕМНЫЙ резолв цены).
-        // Прайс-лист service_prices может задавать цену услуги покомнатно (roomId)
-        // ИЛИ общую (roomId == null). Правило: если для этой комнаты есть свои строки —
+        // Прайс-лист может задавать цену услуги покомнатно (roomId) ИЛИ общую
+        // (roomId == null). Правило: если для этой комнаты есть свои строки —
         // берём только их, иначе откатываемся на общие. Так ручная и авто-услуга
         // считаются ОДИНАКОВО (раньше блок №4 брал первую строку, игнорируя roomId,
         // из-за чего цена зависела от порядка записей, а не от комнаты брони).
@@ -89,16 +101,14 @@ module.exports = function (modelsDB, Utilities) {
         };
 
         // Детский тариф проживания (надбавка за детей 2–5 лет) — сумма из ДАННЫХ
-        // (service_prices, запись srv-child), а не числом в коде. Правила начисления
-        // (кто и за сколько ночей) — в блоках №2/№2б ниже. Курортный сбор и финальная
-        // уборка БОЛЬШЕ не хардкодятся: они стали обычными услугами в ТЧ брони и
-        // считаются единым механизмом в блоке №4 (цена из service_prices, количество —
-        // из quantityFormula услуги).
+        // (позиция услуги srv-child в прайс-листе), а не числом в коде. Правила
+        // начисления (кто и за сколько ночей) — в блоках №2/№2б ниже. Курортный сбор
+        // и финальная уборка БОЛЬШЕ не хардкодятся: они стали обычными услугами в ТЧ
+        // брони и считаются единым механизмом в блоке №4 (цена из среза прайс-листов,
+        // количество — из quantityFormula услуги).
         const CHILD_SERVICE_ID = 'srv-child';
-        const auxPrices = await modelsDB.ServicePrices.findAll({
-            where: { serviceId: [CHILD_SERVICE_ID] }, raw: true
-        });
-        // Цена услуги по возрасту: первая полоса service_prices, накрывающая возраст
+        const auxPrices = priceResolver.pickServicePrices(priceSlice, { serviceId: CHILD_SERVICE_ID });
+        // Цена услуги по возрасту: первая полоса среза, накрывающая возраст
         // (или без возрастных границ). fallback — на случай отсутствия записей.
         const auxPriceByAge = (serviceId, age, fallback) => {
             const p = auxPrices.find(x => x.serviceId === serviceId
@@ -227,12 +237,11 @@ module.exports = function (modelsDB, Utilities) {
             // Заполняемость номера (тариф проживания) — гости 6 лет и старше.
             const billingGuests = adults + teen14_15 + kids6_13;
 
-            // 1. Проживание
-            const rp = roomPrices.find(p =>
-                p.roomId === room.roomId &&
-                p.guestsCount === billingGuests &&
-                new Date(p.dateFrom) <= checkInDate && new Date(p.dateTo) >= checkInDate
-            );
+            // 1. Проживание — цена из среза прайс-листов (позиция:
+            // roomId + число оплачиваемых гостей + сезон, накрывающий дату заезда).
+            const rp = priceResolver.pickRoomPrice(priceSlice, {
+                roomId: room.roomId, guestsCount: billingGuests, stayDate: checkInDate
+            });
             if (rp) {
                 lines.push({
                     UID: Utilities.generateUID('InvoiceLines'),
@@ -448,54 +457,7 @@ module.exports = function (modelsDB, Utilities) {
                 }
             }
 
-            // 0.5. Контроль заполняемости: для каждого номера должен существовать тариф
-            //    проживания (room_prices) под текущее число «оплачиваемых» гостей (6+) на
-            //    дату заезда. Если тарифа нет (занятость превышает прайс-лист номера) —
-            //    бронь некорректна: молча терять строку проживания нельзя, поэтому БЛОКИРУЕМ
-            //    сохранение с понятным сообщением (на языке пользователя). Это не внутри
-            //    try/catch ниже (он глушит ошибки) — иначе блокировка бы не сработала.
-            {
-                const rooms = (tabularSections.booking_rooms || []).filter(r => r && r.UID);
-                const guests = tabularSections.booking_guests || [];
-                const bId2 = parentUID || (changes && changes.UID);
-                let dbRec2 = null;
-                if (bId2) { try { dbRec2 = await modelsDB.Bookings.findByPk(bId2, { raw: true }); } catch (_) {} }
-                const ciVal = (changes && changes.checkIn) || (dbRec2 && dbRec2.checkIn);
-                if (rooms.length && ciVal) {
-                    const ci = new Date(ciVal);
-                    const roomIds = [...new Set(rooms.map(r => r.roomId).filter(Boolean))];
-                    const gtRecs = await modelsDB.GuestTypes.findAll({ raw: true });
-                    const gtAge = {};
-                    for (const g of gtRecs) gtAge[g.UID] = g.ageFrom;
-                    const rPrices = roomIds.length
-                        ? await modelsDB.RoomPrices.findAll({ where: { roomId: roomIds }, raw: true }) : [];
-                    const rRecs = roomIds.length
-                        ? await modelsDB.Rooms.findAll({ where: { UID: roomIds }, raw: true }) : [];
-                    const rNum = {};
-                    for (const r of rRecs) rNum[r.UID] = r.number;
-
-                    for (const room of rooms) {
-                        let billingGuests = 0;
-                        for (const g of guests) {
-                            if (g.bookingRoomId !== room.UID) continue;
-                            if (gtAge[g.guestTypeId] >= 6) billingGuests += (g.count || 1);
-                        }
-                        if (billingGuests <= 0) continue;   // нет оплачиваемых гостей — отдельный случай, не блокируем
-                        const has = rPrices.some(p =>
-                            p.roomId === room.roomId &&
-                            p.guestsCount === billingGuests &&
-                            new Date(p.dateFrom) <= ci && new Date(p.dateTo) >= ci
-                        );
-                        if (!has) {
-                            throw new Error(await tfForSession('no_room_price_for_occupancy', ctx.sessionID, {
-                                room: rNum[room.roomId] || room.roomId, guests: billingGuests
-                            }));
-                        }
-                    }
-                }
-            }
-
-            // 1. organizationId
+            // 1. organizationId (до контроля заполняемости — резолверу цен нужна организация)
             if (!changes.organizationId) {
                 try {
                     const globalCtx = require('../../../node_modules/my-old-space/drive_root/globalServerContext');
@@ -513,6 +475,59 @@ module.exports = function (modelsDB, Utilities) {
                 for (const rows of Object.values(tabularSections)) {
                     for (const row of rows) {
                         if (!row.organizationId) row.organizationId = orgId;
+                    }
+                }
+            }
+
+            // 0.5. Контроль заполняемости: для каждого номера в срезе прайс-листов
+            //    должен существовать тариф проживания под текущее число «оплачиваемых»
+            //    гостей (6+) на дату заезда. Дата ценообразования здесь — ВСЕГДА дата
+            //    документа брони (на момент проверки счёта ещё нет). Если тарифа нет
+            //    (занятость превышает прайс-лист номера) — бронь некорректна: молча
+            //    терять строку проживания нельзя, поэтому БЛОКИРУЕМ сохранение с понятным
+            //    сообщением (на языке пользователя). Это не внутри try/catch ниже
+            //    (он глушит ошибки) — иначе блокировка бы не сработала.
+            {
+                const rooms = (tabularSections.booking_rooms || []).filter(r => r && r.UID);
+                const guests = tabularSections.booking_guests || [];
+                const bId2 = parentUID || (changes && changes.UID);
+                let dbRec2 = null;
+                if (bId2) { try { dbRec2 = await modelsDB.Bookings.findByPk(bId2, { raw: true }); } catch (_) {} }
+                const eff2 = Object.assign({}, dbRec2 || {}, changes || {});
+                const ciVal = eff2.checkIn;
+                if (rooms.length && ciVal && eff2.organizationId) {
+                    const ci = new Date(ciVal);
+                    const roomIds = [...new Set(rooms.map(r => r.roomId).filter(Boolean))];
+                    const gtRecs = await modelsDB.GuestTypes.findAll({ raw: true });
+                    const gtAge = {};
+                    for (const g of gtRecs) gtAge[g.UID] = g.ageFrom;
+                    // Новая бронь ещё не имеет даты документа (хук default.documentDate
+                    // сработает при записи) — берём текущий момент, как поставит хук.
+                    const slice = await priceResolver.loadSlice({
+                        organizationId: eff2.organizationId,
+                        hotelId:        eff2.hotelId,
+                        pricingDate:    eff2.date || new Date()
+                    });
+                    const rRecs = roomIds.length
+                        ? await modelsDB.Rooms.findAll({ where: { UID: roomIds }, raw: true }) : [];
+                    const rNum = {};
+                    for (const r of rRecs) rNum[r.UID] = r.number;
+
+                    for (const room of rooms) {
+                        let billingGuests = 0;
+                        for (const g of guests) {
+                            if (g.bookingRoomId !== room.UID) continue;
+                            if (gtAge[g.guestTypeId] >= 6) billingGuests += (g.count || 1);
+                        }
+                        if (billingGuests <= 0) continue;   // нет оплачиваемых гостей — отдельный случай, не блокируем
+                        const has = priceResolver.pickRoomPrice(slice, {
+                            roomId: room.roomId, guestsCount: billingGuests, stayDate: ci
+                        });
+                        if (!has) {
+                            throw new Error(await tfForSession('no_room_price_for_occupancy', ctx.sessionID, {
+                                room: rNum[room.roomId] || room.roomId, guests: billingGuests
+                            }));
+                        }
                     }
                 }
             }
@@ -559,7 +574,14 @@ module.exports = function (modelsDB, Utilities) {
 
                 if (bookingId && checkIn && checkOut && (rooms.length > 0 || extraLines.length > 0)) {
                     const { lines } = await _buildInvoiceLines(
-                        { bookingId, checkIn, checkOut, rooms, guests, roomServices, extraLines, orgId },
+                        {
+                            bookingId, checkIn, checkOut, rooms, guests, roomServices, extraLines,
+                            orgId:       orgId || effective.organizationId,
+                            hotelId:     effective.hotelId,
+                            // Дата ценообразования — дата документа брони (у новой брони
+                            // её ещё нет — хук default.documentDate поставит текущую).
+                            pricingDate: effective.date || new Date()
+                        },
                         ctx
                     );
                     tabularSections.invoice_lines = lines;

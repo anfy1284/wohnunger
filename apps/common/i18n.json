@@ -53,18 +53,6 @@
         "de": "Leistungen",
         "pl": "Usługi"
     },
-    "service_prices": {
-        "en": "Service prices",
-        "ru": "Цены услуг",
-        "de": "Leistungspreise",
-        "pl": "Ceny usług"
-    },
-    "room_prices": {
-        "en": "Room prices",
-        "ru": "Цены номеров",
-        "de": "Zimmerpreise",
-        "pl": "Ceny pokoi"
-    },
     "guest_types": {
         "en": "Guest types",
         "ru": "Типы гостей",

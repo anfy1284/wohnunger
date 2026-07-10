@@ -1,0 +1,38 @@
+{
+    "price_list_app_caption": {
+        "en": "Price lists",
+        "ru": "Прайс-листы",
+        "de": "Preislisten",
+        "pl": "Cenniki"
+    },
+    "PriceList": {
+        "en": "Price list",
+        "ru": "Прайс-лист",
+        "de": "Preisliste",
+        "pl": "Cennik"
+    },
+    "price_list_rooms_tab": {
+        "en": "Accommodation",
+        "ru": "Проживание",
+        "de": "Unterkunft",
+        "pl": "Zakwaterowanie"
+    },
+    "price_list_services_tab": {
+        "en": "Services",
+        "ru": "Услуги",
+        "de": "Leistungen",
+        "pl": "Usługi"
+    },
+    "price_list_ref": {
+        "en": "Price list",
+        "ru": "Прайс-лист",
+        "de": "Preisliste",
+        "pl": "Cennik"
+    },
+    "price_list_season_invalid": {
+        "en": "Season end date must be later than the start date",
+        "ru": "Дата окончания сезона должна быть позже даты начала",
+        "de": "Das Saisonende muss nach dem Saisonbeginn liegen",
+        "pl": "Data końca sezonu musi być późniejsza niż data początku"
+    }
+}

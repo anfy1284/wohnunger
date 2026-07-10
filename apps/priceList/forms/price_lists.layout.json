@@ -1,0 +1,134 @@
+[
+    {
+        "type": "commandBar"
+    },
+    {
+        "type": "group",
+        "caption": "",
+        "noBorder": true,
+        "orientation": "horizontal",
+        "layout": [
+            {
+                "type": "group",
+                "caption": "",
+                "noBorder": true,
+                "alignFields": true,
+                "orientation": "vertical",
+                "layout": [
+                    {
+                        "type": "textbox",
+                        "name": "number",
+                        "data": "number",
+                        "caption": { "i18n": "number_field" }
+                    },
+                    {
+                        "type": "date",
+                        "name": "date",
+                        "data": "date",
+                        "caption": { "i18n": "document_date_field" }
+                    }
+                ]
+            },
+            {
+                "type": "group",
+                "caption": "",
+                "noBorder": true,
+                "alignFields": true,
+                "orientation": "vertical",
+                "layout": [
+                    {
+                        "type": "recordSelector",
+                        "name": "hotelId",
+                        "data": "hotelId",
+                        "caption": { "i18n": "Hotel" },
+                        "properties": {
+                            "selection": {
+                                "table": "hotels",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    },
+                    {
+                        "type": "textbox",
+                        "name": "notes",
+                        "data": "notes",
+                        "caption": { "i18n": "Notes" }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "tabs",
+        "name": "priceListTabs",
+        "tabs": [
+            {
+                "caption": { "i18n": "price_list_rooms_tab" },
+                "layout": [{
+                    "type": "table",
+                    "name": "ts_price_list_room_prices",
+                    "data": "price_list_room_prices",
+                    "columns": [
+                        {
+                            "caption": { "i18n": "Room" },
+                            "data": "roomId",
+                            "width": 180,
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
+                            }
+                        },
+                        { "caption": { "i18n": "date_from" }, "data": "dateFrom", "width": 110, "inputType": "date" },
+                        { "caption": { "i18n": "date_to" }, "data": "dateTo", "width": 110, "inputType": "date" },
+                        { "caption": { "i18n": "guests_count" }, "data": "guestsCount", "width": 110, "inputType": "integer", "defaultValue": 1, "properties": { "minValue": 1 } },
+                        { "caption": { "i18n": "base_rate_price" }, "data": "price", "width": 120, "inputType": "number" }
+                    ],
+                    "properties": {
+                        "editMode": "cell-immediate",
+                        "visibleRows": 12,
+                        "tabularFilter": { "priceListId": "{UID}" },
+                        "hiddenButtons": ["listSettings", "recordOpen"]
+                    }
+                }]
+            },
+            {
+                "caption": { "i18n": "price_list_services_tab" },
+                "layout": [{
+                    "type": "table",
+                    "name": "ts_price_list_service_prices",
+                    "data": "price_list_service_prices",
+                    "columns": [
+                        {
+                            "caption": { "i18n": "Service" },
+                            "data": "serviceId",
+                            "width": 200,
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "selection": { "table": "services", "idField": "UID", "displayField": "name" }
+                            }
+                        },
+                        {
+                            "caption": { "i18n": "Room" },
+                            "data": "roomId",
+                            "width": 150,
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
+                            }
+                        },
+                        { "caption": { "i18n": "age_from" }, "data": "ageFrom", "width": 100, "inputType": "integer" },
+                        { "caption": { "i18n": "age_to" }, "data": "ageTo", "width": 100, "inputType": "integer" },
+                        { "caption": { "i18n": "Price" }, "data": "price", "width": 120, "inputType": "number" }
+                    ],
+                    "properties": {
+                        "editMode": "cell-immediate",
+                        "visibleRows": 12,
+                        "tabularFilter": { "priceListId": "{UID}" },
+                        "hiddenButtons": ["listSettings", "recordOpen"]
+                    }
+                }]
+            }
+        ]
+    }
+]

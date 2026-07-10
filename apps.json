@@ -9,6 +9,10 @@
             "path": "/booking"
         },
         {
+            "name": "priceList",
+            "path": "/priceList"
+        },
+        {
             "name": "organizationSettings",
             "path": "/organizationSettings"
         },
