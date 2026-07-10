@@ -383,18 +383,6 @@
         "de": "Unterkunftszimmer",
         "pl": "Pokój w rezerwacji"
     },
-    "invoice_name": {
-        "en": "Invoice number",
-        "ru": "Номер счёта",
-        "de": "Rechnungsnummer",
-        "pl": "Numer rachunku"
-    },
-    "invoice_date": {
-        "en": "Invoice date",
-        "ru": "Дата счёта",
-        "de": "Rechnungsdatum",
-        "pl": "Data rachunku"
-    },
     "due_date": {
         "en": "Due date",
         "ru": "Оплатить до",
@@ -442,12 +430,6 @@
         "ru": "Гости бронирования",
         "de": "Buchungsgäste",
         "pl": "Goście rezerwacji"
-    },
-    "invoices_tab": {
-        "en": "Invoices",
-        "ru": "Счета",
-        "de": "Rechnungen",
-        "pl": "Rachunki"
     },
     "booking_tab_main": {
         "en": "Main",

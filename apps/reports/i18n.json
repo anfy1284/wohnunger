@@ -1,9 +1,21 @@
 {
-    "No invoice lines. Calculate cost first.": {
-        "en": "No invoice lines. Calculate cost first.",
-        "ru": "Нет строк спецификации. Сначала рассчитайте стоимость.",
-        "de": "Keine Rechnungszeilen. Bitte zuerst die Kosten berechnen.",
-        "pl": "Brak pozycji rachunku. Najpierw oblicz koszt."
+    "No invoice lines. Fill the invoice first.": {
+        "en": "No invoice lines. Fill the invoice first.",
+        "ru": "Нет строк счёта. Сначала заполните счёт.",
+        "de": "Keine Rechnungszeilen. Bitte zuerst die Rechnung ausfüllen.",
+        "pl": "Brak pozycji rachunku. Najpierw wypełnij rachunek."
+    },
+    "invoiceId required": {
+        "en": "invoiceId is required",
+        "ru": "invoiceId обязателен",
+        "de": "invoiceId ist erforderlich",
+        "pl": "invoiceId jest wymagany"
+    },
+    "Invoice not found": {
+        "en": "Invoice not found",
+        "ru": "Счёт не найден",
+        "de": "Rechnung nicht gefunden",
+        "pl": "Nie znaleziono rachunku"
     },
     "invoice_no_label": {
         "en": "Invoice No.",

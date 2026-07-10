@@ -191,42 +191,114 @@ function onServiceCountEdited(rowIndex, newVal, displayVal, ctx) {
     try { svcTbl.data_updateValue(cbKey, false); } catch (e) {}
 }
 
-async function printInvoice(ev, ctx) {
-    var form = ctx.form;
+// ── Адаптивная кнопка счёта (splitButton btnInvoice в commandBar) ─────────
+//
+// Состояние кнопки питается данными вкладки «Счета» (relatedList relInvoices):
+// её onDataRefreshed срабатывает и на первичной загрузке формы, и на каждом
+// SSE-refresh (счёт создан/удалён в этом или ДРУГОМ окне) — без второго RPC.
+//   Счетов нет  → [ Создать счёт ]            (меню пусто, стрелка скрыта)
+//   Счета есть  → [ Открыть счёт №N | ▾ ]     (меню: все счета + «Создать новый»)
+
+var ICON_INVOICE = '/apps/booking_icons/resources/public/16x16/invoice.png';
+var ICON_NEW     = '/apps/general_icons/resources/public/16x16/document_new.png';
+
+function _fmtInvoiceDate(v) {
+    if (!v) return '';
+    var dt = new Date(v);
+    if (isNaN(dt.getTime())) return String(v);
+    var p = function (n) { return String(n).padStart(2, '0'); };
+    return p(dt.getDate()) + '.' + p(dt.getMonth() + 1) + '.' + dt.getFullYear();
+}
+
+// Открыть форму записи счёта (как двойной клик списка: uniForm, mode record).
+async function _openInvoiceRecord(invoiceUID) {
+    if (window.MySpace && typeof window.MySpace.open === 'function') {
+        await window.MySpace.open('uniForm', { mode: 'record', tableName: 'invoices', recordID: invoiceUID });
+    }
+}
+
+// Создать счёт из текущей брони: сохранить форму (если изменена) → RPC → открыть.
+// Обновление кнопки/вкладки «Счета» придёт само по SSE (createFromBooking шлёт
+// dataChanged) — руками ничего не перечитываем.
+async function _createInvoiceFromBooking(form) {
+    if (form._modified) {
+        await form.doAction('save');
+        if (form._modified) return; // сохранение не удалось, ошибка уже показана
+    }
     var uidEntry = form._dataMap && form._dataMap['UID'];
     var bookingId = uidEntry && uidEntry.value;
     if (!bookingId) { showAlert(__t('Please save the booking first')); return; }
 
-    // Если форма изменена — предложить сохранить (пересчёт счёта произойдёт автоматически в onBeforeSave).
-    // Сам диалог-подтверждение показываем БЕЗ индикатора (ждём ответа пользователя).
-    var needSave = false;
-    if (form._modified) {
-        var ok = await showConfirm(__t('Save before printing?'));
-        if (!ok) return;
-        needSave = true;
-    }
-
-    // Бегущий прогрессбар сразу после ответа «да» — закрывает и ощутимое
-    // сохранение (round-trip + пересчёт счёта в onBeforeSave + refresh), и
-    // последующую серверную генерацию счёта. Печать окна покрывается отдельно
-    // индикатором внутри MySpace.open.
     var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Preparing invoice…')) : null;
     var result;
     try {
-        if (needSave) {
-            await form.doAction('save');
-            if (form._modified) return; // сохранение не удалось, ошибка уже показана
-        }
-
-        result = await callServer('reports.actions', 'generateInvoiceHTML', { bookingId: bookingId });
+        result = await callServer('invoice.actions', 'createFromBooking', { bookingId: bookingId });
     } finally {
         if (busyToken != null && window.MySpace && window.MySpace.hideBusy) window.MySpace.hideBusy(busyToken);
     }
-    if (result.error) { showAlert(__t('Error: ') + result.error); return; }
+    if (!result || result.error) { showAlert(__t('Error: ') + (result && result.error || '')); return; }
+    await _openInvoiceRecord(result.invoiceId);
+}
 
-    if (window.MySpace && typeof window.MySpace.open === 'function') {
-        await window.MySpace.open('printPreview', { html: result.html, autoPrint: true });
+// Основной сегмент кнопки: счета есть → открыть последний, нет → создать.
+async function invoiceButtonClick(ev, ctx) {
+    var form = ctx.form;
+    var invoices = form._bookingInvoices || [];
+    if (invoices.length) {
+        await _openInvoiceRecord(invoices[0].UID);
+    } else {
+        await _createInvoiceFromBooking(form);
     }
 }
 
-return { onRoomSelected, onExtraLineActivated, printInvoice, onFormChange, onServiceCountEdited };
+// Колбэк relatedList (events.onDataRefreshed): перечитывает состояние кнопки
+// из уже загруженных данных списка. tbl — сам DynamicTable вкладки «Счета».
+function onInvoicesRefreshed(tbl, ctx) {
+    var form = ctx.form;
+    var btn = form.controlsMap && form.controlsMap['btnInvoice'];
+    if (!btn) return;
+
+    // Собираем загруженные строки (журнал счетов брони короткий — первый экран).
+    var rows = [];
+    try {
+        var cache = tbl && tbl.dataCache ? tbl.dataCache : {};
+        for (var k in cache) {
+            if (cache[k] && cache[k].loaded) rows.push(cache[k]);
+        }
+    } catch (_) {}
+    rows.sort(function (a, b) { return new Date(b.date || 0) - new Date(a.date || 0); });
+    form._bookingInvoices = rows;
+
+    if (!rows.length) {
+        btn.setCaption(__t('create_invoice_btn'));
+        if (typeof btn.setMenu === 'function') btn.setMenu([]);
+        return;
+    }
+
+    var latest = rows[0];
+    btn.setCaption(__t('open_invoice_btn').replace('{number}', latest.number || ''));
+
+    var menu = [];
+    if (rows.length > 1) {
+        rows.forEach(function (inv) {
+            menu.push({
+                caption: __t('invoice_menu_item')
+                    .replace('{number}', inv.number || '')
+                    .replace('{date}', _fmtInvoiceDate(inv.date)),
+                icon: ICON_INVOICE,
+                onClick: function () { _openInvoiceRecord(inv.UID); }
+            });
+        });
+        menu.push({ separator: true });
+    }
+    // «Создать новый счёт» из меню — явное информированное намерение,
+    // предупреждающий диалог не нужен.
+    menu.push({
+        caption: __t('create_new_invoice_menu'),
+        icon: ICON_NEW,
+        onClick: function () { _createInvoiceFromBooking(form); }
+    });
+    if (typeof btn.setMenu === 'function') btn.setMenu(menu);
+}
+
+return { onRoomSelected, onExtraLineActivated, onFormChange, onServiceCountEdited, invoiceButtonClick, onInvoicesRefreshed };

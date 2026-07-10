@@ -60,39 +60,69 @@ function groupLinesForPrint(rawLines) {
 /**
  * Генерация HTML-документа счёта.
  * @param {object} opts
- * @param {object} opts.booking    — запись из таблицы bookings (raw)
+ * @param {object} opts.invoice   — запись из таблицы invoices (raw) — документ «Счёт»
+ * @param {Array}  opts.bookings  — брони счёта (raw, в порядке ТЧ invoice_bookings)
  * @param {object|null} opts.client — запись из таблицы clients  (raw)
  * @param {object|null} opts.hotel  — запись из таблицы hotels   (raw)
  * @param {object|null} opts.org    — запись из таблицы organizations (raw)
  * @param {Array}  opts.lines      — строки InvoiceLines (raw, sorted by sortOrder)
  * @param {function} [opts.t]      — переводчик t(key) уже для нужного языка
+ * @param {function} [opts.tf]     — переводчик с плейсхолдерами tf(key, vars)
  * @param {string} [opts.locale]  — локаль форматирования дат/чисел (напр. 'de-DE')
  * @param {string} [opts.lang]    — код языка документа (для <html lang>)
  * @returns {string} HTML-документ
  */
-function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang, invoiceNote }) {
+function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote }) {
     if (typeof t !== 'function') t = (k) => k;
+    if (typeof tf !== 'function') tf = (k) => k;
     locale = locale || 'de-DE';
     lang   = lang || 'de';
-    // Свёртка строк для печати: проживание сверху, услуги сгруппированы по
-    // ставке, доп.строки снизу (см. groupLinesForPrint). Учётная детализация
-    // остаётся в invoice_lines, документ показывает её свёрнутой.
-    lines = groupLinesForPrint(lines || []);
+    bookings = Array.isArray(bookings) ? bookings : [];
+    const rawLines = lines || [];
     const fmtDate = d => { const dt = new Date(d); return dt.toLocaleDateString(locale); };
     const fmtNum  = (v, dec) => Number(v).toLocaleString(locale, { minimumFractionDigits: dec || 2, maximumFractionDigits: dec || 2 });
 
-    // Номер счёта = номер брони (реквизит number). booking.name теперь содержит
-    // представление (номер + клиент + даты), для «Rechnung Nr.» нужен именно number.
-    const invoiceNum  = booking.number || booking.name || booking.UID.slice(0, 8);
-    const invoiceDate = fmtDate(new Date());
-    const checkIn     = fmtDate(booking.checkIn);
-    const checkOut    = fmtDate(booking.checkOut);
-    const prepayment  = Number(booking.prepayment) || 0;
+    // «Rechnung Nr.» = номер ДОКУМЕНТА счёта (invoices.number), дата — invoices.date.
+    // invoice.name — представление (номер + клиент + дата), в печать не идёт.
+    const invoiceNum  = invoice.number || invoice.UID.slice(0, 8);
+    const invoiceDate = fmtDate(invoice.date || new Date());
+    // Период проживания в шапке — по всем броням счёта (min заезд … max выезд).
+    let minIn = null, maxOut = null;
+    for (const b of bookings) {
+        if (b.checkIn  && (!minIn  || new Date(b.checkIn)  < new Date(minIn)))  minIn  = b.checkIn;
+        if (b.checkOut && (!maxOut || new Date(b.checkOut) > new Date(maxOut))) maxOut = b.checkOut;
+    }
+    const checkIn     = minIn  ? fmtDate(minIn)  : '';
+    const checkOut    = maxOut ? fmtDate(maxOut) : '';
+    const prepayment  = Number(invoice.prepayment) || 0;
+
+    // Свёртка строк для печати: при НЕСКОЛЬКИХ бронях — посекционно (заголовок
+    // «Buchung Nr. X, даты» + свёрнутые строки этой брони); строки без bookingId
+    // (ручные) — в конце без заголовка. Одна бронь — как раньше, без секций.
+    // Свод MwSt (taxGroups) считается из тех же свёрнутых строк.
+    const sections = [];
+    if (bookings.length > 1) {
+        for (const b of bookings) {
+            const own = rawLines.filter(ln => ln.bookingId === b.UID);
+            if (!own.length) continue;
+            sections.push({
+                header: tf('invoice_booking_section', {
+                    number: b.number || '', from: fmtDate(b.checkIn), to: fmtDate(b.checkOut)
+                }),
+                lines: groupLinesForPrint(own)
+            });
+        }
+        const orphan = rawLines.filter(ln => !ln.bookingId || !bookings.some(b => b.UID === ln.bookingId));
+        if (orphan.length) sections.push({ header: null, lines: groupLinesForPrint(orphan) });
+    } else {
+        sections.push({ header: null, lines: groupLinesForPrint(rawLines) });
+    }
+    const flatLines = sections.reduce((acc, s) => acc.concat(s.lines), []);
 
     // Суммы по ставкам MwSt
     let totalBrutto = 0;
     const taxGroups = {};
-    for (const ln of lines) {
+    for (const ln of flatLines) {
         totalBrutto += ln.amount;
         const rate = ln.taxRate || 0;
         if (!taxGroups[rate]) taxGroups[rate] = { brutto: 0, mwst: 0 };
@@ -106,18 +136,23 @@ function renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang
     totalMwSt = Math.round(totalMwSt * 100) / 100;
     const totalNetto = Math.round((totalBrutto - totalMwSt) * 100) / 100;
 
-    // Строки таблицы услуг
+    // Строки таблицы услуг (с заголовками секций при нескольких бронях)
     let rowsHtml = '';
-    for (const ln of lines) {
-        const rate = ln.taxRate || 0;
-        const mwst = Math.round(ln.amount * rate / (100 + rate) * 100) / 100;
-        const mwstCell = rate === 0 ? '&ndash;' : fmtNum(mwst) + ' &euro;';
-        rowsHtml += '<tr>'
-            + '<td>' + esc(ln.label) + '</td>'
-            + '<td class="num">' + rate + '%</td>'
-            + '<td class="num">' + mwstCell + '</td>'
-            + '<td class="num">' + fmtNum(ln.amount) + ' &euro;</td>'
-            + '</tr>\n';
+    for (const sec of sections) {
+        if (sec.header) {
+            rowsHtml += '<tr class="section-head"><td colspan="4">' + esc(sec.header) + '</td></tr>\n';
+        }
+        for (const ln of sec.lines) {
+            const rate = ln.taxRate || 0;
+            const mwst = Math.round(ln.amount * rate / (100 + rate) * 100) / 100;
+            const mwstCell = rate === 0 ? '&ndash;' : fmtNum(mwst) + ' &euro;';
+            rowsHtml += '<tr>'
+                + '<td>' + esc(ln.label) + '</td>'
+                + '<td class="num">' + rate + '%</td>'
+                + '<td class="num">' + mwstCell + '</td>'
+                + '<td class="num">' + fmtNum(ln.amount) + ' &euro;</td>'
+                + '</tr>\n';
+        }
     }
 
     // Итоговые строки по ставкам MwSt (нулевые ставки не отображаем)
@@ -303,6 +338,7 @@ table.inv-table td.num { text-align: right; white-space: nowrap; }
 tr.subtotal td { border-top: 1pt solid #000; font-weight: bold; padding-top: 2.5mm; }
 tr.tax-row td { border-bottom: none; font-size: 9pt; }
 tr.grand-total td { border-top: 1.5pt solid #000; border-bottom: none; font-weight: bold; font-size: 11pt; }
+tr.section-head td { font-weight: bold; padding-top: 3mm; border-bottom: 0.5pt solid #888; }
 
 .note { margin-top: 8mm; font-size: 9pt; }
 </style>

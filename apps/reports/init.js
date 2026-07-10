@@ -64,51 +64,63 @@ module.exports = async function (modelsDB) {
         // ── Серверный скрипт: отчёты ────────────────────────────────────
         loadServerScript('reports.actions', {
 
-            // Генерация HTML-счёта (Rechnung) по bookingId
-            async generateInvoiceHTML({ bookingId } = {}, ctx) {
-                if (!bookingId) return { error: await tForSession('bookingId required', ctx.sessionID) };
+            // Генерация HTML-счёта (Rechnung) по invoiceId (документ invoices).
+            // Строки — invoice_lines счёта; брони — через ТЧ invoice_bookings
+            // (шапке нужны даты проживания; клиент — из invoices.clientId).
+            async generateInvoiceHTML({ invoiceId } = {}, ctx) {
+                if (!invoiceId) return { error: await tForSession('invoiceId required', ctx.sessionID) };
 
-                const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
-                if (!booking) return { error: await tForSession('Booking not found', ctx.sessionID) };
+                const invoice = await modelsDB.Invoices.findByPk(invoiceId, { raw: true });
+                if (!invoice) return { error: await tForSession('Invoice not found', ctx.sessionID) };
 
-                const client = booking.clientId
-                    ? await modelsDB.Clients.findByPk(booking.clientId, { raw: true }) : null;
-                const hotel = booking.hotelId
-                    ? await modelsDB.Hotels.findByPk(booking.hotelId, { raw: true }) : null;
-                const org = booking.organizationId
-                    ? await modelsDB.Organizations.findByPk(booking.organizationId, { raw: true }) : null;
+                const client = invoice.clientId
+                    ? await modelsDB.Clients.findByPk(invoice.clientId, { raw: true }) : null;
+                const hotel = invoice.hotelId
+                    ? await modelsDB.Hotels.findByPk(invoice.hotelId, { raw: true }) : null;
+                const org = invoice.organizationId
+                    ? await modelsDB.Organizations.findByPk(invoice.organizationId, { raw: true }) : null;
 
                 const lines = await modelsDB.InvoiceLines.findAll({
-                    where: { bookingId },
+                    where: { invoiceId },
                     order: [['sortOrder', 'ASC']],
                     raw: true
                 });
-                if (!lines.length) return { error: await tForSession('No invoice lines. Calculate cost first.', ctx.sessionID) };
+                if (!lines.length) return { error: await tForSession('No invoice lines. Fill the invoice first.', ctx.sessionID) };
+
+                // Брони счёта (в порядке добавления в ТЧ) — для дат проживания в шапке
+                // и посекционной печати при нескольких бронях.
+                const links = await modelsDB.InvoiceBookings.findAll({
+                    where: { invoiceId }, order: [['createdAt', 'ASC']], raw: true
+                });
+                const bookingIds = [...new Set(links.map(l => l.bookingId).filter(Boolean))];
+                const bookings = [];
+                for (const bId of bookingIds) {
+                    const b = await modelsDB.Bookings.findByPk(bId, { raw: true });
+                    if (b) bookings.push(b);
+                }
 
                 // Язык печати — из настроек организации (organizationSettings → reportLanguage).
-                // Значение ссылается на справочник languages; код (de/en/ru/pl) резолвит
-                // общий хелпер orgReportLanguage. По умолчанию немецкий. Тот же хелпер
-                // использует booking при построении строк счёта — гарантия единого языка.
+                // Тот же хелпер использует fillInvoice при построении строк — единый язык.
                 const lang = await resolveOrgReportLang(modelsDB, org && org.UID);
 
-                // Примечание в счёте — свободный текст из выбранного в брони
-                // варианта отчёта (report_variants → invoiceNote). Печатается КАК ЕСТЬ,
-                // на том языке, на котором его ввёл пользователь (перевода нет).
-                // Вариант не выбран или примечание пустое → блок не выводится.
+                // Примечание в счёте — из варианта отчёта ПЕРВОЙ брони счёта
+                // (report_variants → invoiceNote). Печатается как есть, без перевода.
                 let invoiceNote = '';
                 try {
-                    if (booking.reportVariantId && modelsDB.ReportVariants) {
-                        const variant = await modelsDB.ReportVariants.findByPk(booking.reportVariantId, { raw: true });
+                    const rvId = bookings.length && bookings[0].reportVariantId;
+                    if (rvId && modelsDB.ReportVariants) {
+                        const variant = await modelsDB.ReportVariants.findByPk(rvId, { raw: true });
                         if (variant && variant.invoiceNote) invoiceNote = String(variant.invoiceNote);
                     }
                 } catch (e) { console.warn('[reports] invoiceNote resolve:', e && e.message); }
 
                 const i18n = require('../../node_modules/my-old-space/drive_root/i18n');
                 const t = (key) => i18n.t(key, lang);
+                const tf = (key, vars) => i18n.tf(key, lang, vars);
                 const localeMap = { en: 'en-GB', ru: 'ru-RU', pl: 'pl-PL', de: 'de-DE' };
                 const locale = localeMap[lang] || 'de-DE';
 
-                const html = renderInvoiceHTML({ booking, client, hotel, org, lines, t, locale, lang, invoiceNote });
+                const html = renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote });
                 return { html };
             },
 

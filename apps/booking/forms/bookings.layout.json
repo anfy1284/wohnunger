@@ -3,10 +3,11 @@
         "type": "commandBar",
         "extraButtons": [
             {
-                "name": "btnPrint",
-                "caption": { "i18n": "print_invoice_btn" },
-                "icon": "/apps/booking_icons/resources/public/16x16/invoice_print.png",
-                "events": { "onClick": "printInvoice" }
+                "name": "btnInvoice",
+                "type": "splitButton",
+                "caption": { "i18n": "create_invoice_btn" },
+                "icon": "/apps/booking_icons/resources/public/16x16/invoice.png",
+                "events": { "onClick": "invoiceButtonClick" }
             }
         ]
     },
@@ -306,6 +307,28 @@
                                 "caption": ""
                             }
                         ]
+                    }
+                ]
+            },
+            {
+                "caption": { "i18n": "invoices_related_tab" },
+                "layout": [
+                    {
+                        "type": "relatedList",
+                        "name": "relInvoices",
+                        "data": "related_invoices",
+                        "caption": "",
+                        "properties": {
+                            "tableName": "invoices",
+                            "fields": ["number", "date", "status", "name"],
+                            "link": {
+                                "via": "invoice_bookings",
+                                "sourceField": "bookingId",
+                                "targetField": "invoiceId"
+                            },
+                            "visibleRows": 10
+                        },
+                        "events": { "onDataRefreshed": "onInvoicesRefreshed" }
                     }
                 ]
             }

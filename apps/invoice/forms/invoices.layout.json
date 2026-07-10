@@ -1,0 +1,206 @@
+[
+    {
+        "type": "commandBar",
+        "extraButtons": [
+            {
+                "name": "btnFill",
+                "caption": { "i18n": "fill_invoice_btn" },
+                "icon": "/apps/booking_icons/resources/public/16x16/calculate.png",
+                "events": { "onClick": "fillInvoice" }
+            },
+            {
+                "name": "btnPrint",
+                "caption": { "i18n": "print_invoice_btn" },
+                "icon": "/apps/booking_icons/resources/public/16x16/invoice_print.png",
+                "events": { "onClick": "printInvoice" }
+            }
+        ]
+    },
+    {
+        "type": "tabs",
+        "name": "invoiceMainTabs",
+        "tabs": [
+            {
+                "caption": { "i18n": "booking_tab_main" },
+                "layout": [
+                    {
+                        "type": "group",
+                        "caption": "",
+                        "noBorder": true,
+                        "orientation": "horizontal",
+                        "layout": [
+                            {
+                                "type": "group",
+                                "caption": "",
+                                "noBorder": true,
+                                "alignFields": true,
+                                "orientation": "vertical",
+                                "layout": [
+                                    {
+                                        "type": "textbox",
+                                        "name": "number",
+                                        "data": "number",
+                                        "caption": { "i18n": "number_field" }
+                                    },
+                                    {
+                                        "type": "date",
+                                        "name": "date",
+                                        "data": "date",
+                                        "caption": { "i18n": "document_date_field" }
+                                    },
+                                    {
+                                        "type": "recordSelector",
+                                        "name": "clientId",
+                                        "data": "clientId",
+                                        "caption": { "i18n": "Client" },
+                                        "properties": {
+                                            "showOpenButton": true,
+                                            "selection": {
+                                                "table": "clients",
+                                                "idField": "UID",
+                                                "displayField": "name"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "recordSelector",
+                                        "name": "hotelId",
+                                        "data": "hotelId",
+                                        "caption": { "i18n": "Hotel" },
+                                        "properties": {
+                                            "selection": {
+                                                "table": "hotels",
+                                                "idField": "UID",
+                                                "displayField": "name"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "group",
+                                "caption": "",
+                                "noBorder": true,
+                                "alignFields": true,
+                                "orientation": "vertical",
+                                "layout": [
+                                    {
+                                        "type": "date",
+                                        "name": "dueDate",
+                                        "data": "dueDate",
+                                        "caption": { "i18n": "due_date" }
+                                    },
+                                    {
+                                        "type": "emunList",
+                                        "name": "status",
+                                        "data": "status",
+                                        "caption": { "i18n": "Status" },
+                                        "options": [
+                                            { "value": "draft",     "caption": { "i18n": "invoice_status_draft" } },
+                                            { "value": "issued",    "caption": { "i18n": "invoice_status_issued" } },
+                                            { "value": "paid",      "caption": { "i18n": "invoice_status_paid" } },
+                                            { "value": "cancelled", "caption": { "i18n": "invoice_status_cancelled" } }
+                                        ]
+                                    },
+                                    {
+                                        "type": "number",
+                                        "name": "prepayment",
+                                        "data": "prepayment",
+                                        "caption": { "i18n": "prepayment_field" }
+                                    },
+                                    {
+                                        "type": "textbox",
+                                        "name": "notes",
+                                        "data": "notes",
+                                        "caption": { "i18n": "Notes" }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "group",
+                        "caption": { "i18n": "invoice_bookings_tab" },
+                        "noBorder": true,
+                        "orientation": "vertical",
+                        "layout": [{
+                            "type": "table",
+                            "name": "ts_invoice_bookings",
+                            "data": "invoice_bookings",
+                            "columns": [
+                                {
+                                    "caption": { "i18n": "booking_ref" },
+                                    "data": "bookingId",
+                                    "autoWidth": true,
+                                    "inputType": "recordSelector",
+                                    "properties": {
+                                        "showSelectionButton": true,
+                                        "selection": { "table": "bookings", "idField": "UID", "displayField": "name" }
+                                    }
+                                }
+                            ],
+                            "properties": {
+                                "editMode": "cell-immediate",
+                                "visibleRows": 4,
+                                "tabularFilter": { "invoiceId": "{UID}" },
+                                "hiddenButtons": ["listSettings", "recordOpen"]
+                            }
+                        }]
+                    },
+                    {
+                        "type": "group",
+                        "caption": { "i18n": "invoice_lines_tab" },
+                        "noBorder": true,
+                        "orientation": "vertical",
+                        "layout": [{
+                            "type": "table",
+                            "name": "ts_invoice_lines",
+                            "data": "invoice_lines",
+                            "columns": [
+                                { "caption": { "i18n": "section_label" }, "data": "sectionLabel", "width": 160, "inputType": "textbox" },
+                                { "caption": { "i18n": "Description" }, "data": "label", "autoWidth": true, "inputType": "textbox" },
+                                { "caption": { "i18n": "Quantity" }, "data": "quantity", "width": 90, "inputType": "number", "events": { "onChange": "onLineQtyOrPriceEdited" } },
+                                { "caption": { "i18n": "unit_price" }, "data": "unitPrice", "width": 100, "inputType": "number", "events": { "onChange": "onLineQtyOrPriceEdited" } },
+                                { "caption": { "i18n": "vat_rate_field" }, "data": "taxRate", "width": 80, "inputType": "number" },
+                                { "caption": { "i18n": "Amount" }, "data": "amount", "width": 110, "inputType": "number" }
+                            ],
+                            "properties": {
+                                "editMode": "cell-immediate",
+                                "visibleRows": 10,
+                                "tabularFilter": { "invoiceId": "{UID}" },
+                                "hiddenButtons": ["listSettings", "recordOpen"]
+                            }
+                        }]
+                    }
+                ]
+            },
+            {
+                "caption": { "i18n": "booking_tab_extra" },
+                "layout": [
+                    {
+                        "type": "group",
+                        "caption": "",
+                        "noBorder": true,
+                        "alignFields": true,
+                        "orientation": "vertical",
+                        "layout": [
+                            {
+                                "type": "recordSelector",
+                                "name": "organizationId",
+                                "data": "organizationId",
+                                "caption": { "i18n": "Organization" },
+                                "properties": {
+                                    "selection": {
+                                        "table": "organizations",
+                                        "idField": "UID",
+                                        "displayField": "name"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

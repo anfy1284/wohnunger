@@ -1,0 +1,110 @@
+{
+    "invoice_app_caption": {
+        "en": "Invoices",
+        "ru": "Счета",
+        "de": "Rechnungen",
+        "pl": "Rachunki"
+    },
+    "invoice_bookings_tab": {
+        "en": "Bookings",
+        "ru": "Бронирования",
+        "de": "Buchungen",
+        "pl": "Rezerwacje"
+    },
+    "create_invoice_btn": {
+        "en": "Create invoice",
+        "ru": "Создать счёт",
+        "de": "Rechnung erstellen",
+        "pl": "Utwórz rachunek"
+    },
+    "open_invoice_btn": {
+        "en": "Open invoice No. {number}",
+        "ru": "Открыть счёт № {number}",
+        "de": "Rechnung Nr. {number} öffnen",
+        "pl": "Otwórz rachunek nr {number}"
+    },
+    "create_new_invoice_menu": {
+        "en": "Create new invoice",
+        "ru": "Создать новый счёт",
+        "de": "Neue Rechnung erstellen",
+        "pl": "Utwórz nowy rachunek"
+    },
+    "invoice_menu_item": {
+        "en": "No. {number} of {date}",
+        "ru": "№ {number} от {date}",
+        "de": "Nr. {number} vom {date}",
+        "pl": "Nr {number} z {date}"
+    },
+    "fill_invoice_btn": {
+        "en": "Fill",
+        "ru": "Заполнить",
+        "de": "Ausfüllen",
+        "pl": "Wypełnij"
+    },
+    "refill_lines_warning": {
+        "en": "Invoice lines will be refilled, manual corrections will be lost. Continue?",
+        "ru": "Строки счёта будут перезаполнены, ручные корректировки будут потеряны. Продолжить?",
+        "de": "Die Rechnungspositionen werden neu befüllt, manuelle Korrekturen gehen verloren. Fortfahren?",
+        "pl": "Pozycje rachunku zostaną wypełnione ponownie, ręczne poprawki zostaną utracone. Kontynuować?"
+    },
+    "invoice_not_found": {
+        "en": "Invoice not found",
+        "ru": "Счёт не найден",
+        "de": "Rechnung nicht gefunden",
+        "pl": "Nie znaleziono rachunku"
+    },
+    "booking_not_found": {
+        "en": "Booking not found",
+        "ru": "Бронирование не найдено",
+        "de": "Buchung nicht gefunden",
+        "pl": "Nie znaleziono rezerwacji"
+    },
+    "Please save the invoice first": {
+        "en": "Please save the invoice first",
+        "ru": "Сначала сохраните счёт",
+        "de": "Bitte speichern Sie die Rechnung zuerst",
+        "pl": "Najpierw zapisz rachunek"
+    },
+    "Calculating…": {
+        "en": "Calculating…",
+        "ru": "Заполнение…",
+        "de": "Wird berechnet…",
+        "pl": "Obliczanie…"
+    },
+    "invoice_status_draft": {
+        "en": "Draft",
+        "ru": "Черновик",
+        "de": "Entwurf",
+        "pl": "Szkic"
+    },
+    "invoice_status_issued": {
+        "en": "Issued",
+        "ru": "Выставлен",
+        "de": "Ausgestellt",
+        "pl": "Wystawiony"
+    },
+    "invoice_status_paid": {
+        "en": "Paid",
+        "ru": "Оплачен",
+        "de": "Bezahlt",
+        "pl": "Opłacony"
+    },
+    "invoice_status_cancelled": {
+        "en": "Cancelled",
+        "ru": "Отменён",
+        "de": "Storniert",
+        "pl": "Anulowany"
+    },
+    "invoice_booking_section": {
+        "en": "Booking No. {{number}}, {{from}} – {{to}}",
+        "ru": "Бронь № {{number}}, {{from}} – {{to}}",
+        "de": "Buchung Nr. {{number}}, {{from}} – {{to}}",
+        "pl": "Rezerwacja nr {{number}}, {{from}} – {{to}}"
+    },
+    "invoices_related_tab": {
+        "en": "Invoices",
+        "ru": "Счета",
+        "de": "Rechnungen",
+        "pl": "Rachunki"
+    }
+}
