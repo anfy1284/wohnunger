@@ -103,11 +103,12 @@ module.exports = async function (modelsDB) {
                 // Тот же хелпер использует fillInvoice при построении строк — единый язык.
                 const lang = await resolveOrgReportLang(modelsDB, org && org.UID);
 
-                // Примечание в счёте — из варианта отчёта ПЕРВОЙ брони счёта
-                // (report_variants → invoiceNote). Печатается как есть, без перевода.
+                // Примечание в счёте — из варианта отчёта, выбранного в самом счёте
+                // (invoices.reportVariantId → report_variants.invoiceNote).
+                // Печатается как есть, без перевода.
                 let invoiceNote = '';
                 try {
-                    const rvId = bookings.length && bookings[0].reportVariantId;
+                    const rvId = invoice && invoice.reportVariantId;
                     if (rvId && modelsDB.ReportVariants) {
                         const variant = await modelsDB.ReportVariants.findByPk(rvId, { raw: true });
                         if (variant && variant.invoiceNote) invoiceNote = String(variant.invoiceNote);

@@ -15,7 +15,7 @@
 // по дате ОКАЗАНИЯ услуги (дата заезда брони) — периодичность касается только цен.
 
 const i18n = require('../../../node_modules/my-old-space/drive_root/i18n');
-const { tForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
+const { tForSession, tfForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
 const { resolveOrgReportLang } = require('../../organizationSettings/lib/orgReportLanguage');
 const { resolveOrgPricingMode } = require('../../organizationSettings/lib/orgPricingMode');
 const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGateway');
@@ -38,6 +38,26 @@ module.exports = function (modelsDB, Utilities) {
         } catch (e) {
             console.warn('[invoice/notifyTables]', e && e.message);
         }
+    }
+
+    // ── Агрегация скидок броней-оснований в одну скидку счёта ─────────────
+    // list: [{ mode:'percent'|'amount', value>0 }] по броням с ненулевой скидкой.
+    //   все amount → сумма; все percent → max; смешанные → max percent (абсолютные
+    //   игнорируем, о чём предупреждаем). warn=true, если ненулевых скидок больше
+    //   одной и они различаются (режимом или значением). Пустой список → discount:null
+    //   (скидку счёта не трогаем).
+    function _aggregateBookingDiscounts(list) {
+        if (!list.length) return { discount: null, warn: false };
+        const percents = list.filter(d => d.mode === 'percent');
+        const amounts  = list.filter(d => d.mode === 'amount');
+        let discount;
+        if (percents.length) {
+            discount = { mode: 'percent', value: Math.max(...percents.map(d => d.value)) };
+        } else {
+            discount = { mode: 'amount', value: r2(amounts.reduce((s, d) => s + d.value, 0)) };
+        }
+        const allSame = list.every(d => d.mode === list[0].mode && d.value === list[0].value);
+        return { discount, warn: list.length > 1 && !allSame };
     }
 
     // ── Построение строк счёта по ОДНОЙ брони ────────────────────────────
@@ -463,6 +483,7 @@ module.exports = function (modelsDB, Utilities) {
 
         const allLines = [];
         let prepaymentSum = 0;
+        const bookingDiscounts = [];
         for (const bookingId of bookingIds) {
             const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
             if (!booking) continue;
@@ -472,10 +493,15 @@ module.exports = function (modelsDB, Utilities) {
             const { lines } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
             prepaymentSum = r2(prepaymentSum + (Number(booking.prepayment) || 0));
 
+            // Скидка брони-основания (переносится в счёт, см. агрегацию ниже).
+            const dv = Number(booking.discountValue) || 0;
+            if (dv > 0) bookingDiscounts.push({ mode: booking.discountMode || 'percent', value: dv });
+
             // ТЧ хранит свёрнутые «печатные» строки (WYSIWYG) — детализация по
             // возрастным группам схлопывается здесь же, как раньше в печати.
             allLines.push(..._collapseInvoiceLines(lines, taxRateRows));
         }
+        const { discount: aggDiscount, warn: discWarn } = _aggregateBookingDiscounts(bookingDiscounts);
         allLines.forEach((ln, i) => {
             ln.invoiceId = invoiceId;
             ln.sortOrder = i + 1;
@@ -491,15 +517,31 @@ module.exports = function (modelsDB, Utilities) {
             for (const k of Object.keys(ln)) { if (!k.startsWith('__')) dbRow[k] = ln[k]; }
             await dbGateway.execute({ operation: 'create', table: 'invoice_lines', data: dbRow, context: dbCtx });
         }
+        // prepayment = Σ броней; скидка = агрегат броней (только если хоть у одной
+        // есть ненулевая — иначе ручную скидку счёта не затираем).
+        const invUpdate = { prepayment: prepaymentSum };
+        if (aggDiscount) {
+            invUpdate.discountMode  = aggDiscount.mode;
+            invUpdate.discountValue = aggDiscount.value;
+        }
         await dbGateway.execute({
             operation: 'update', table: 'invoices',
-            where: { UID: invoiceId }, data: { prepayment: prepaymentSum },
+            where: { UID: invoiceId }, data: invUpdate,
             context: dbCtx
         });
 
+        // Предупреждение пользователю (язык сессии — это UI-алерт, не документ):
+        // у нескольких броней-оснований разные скидки, объединены в одну.
+        let discountNotice = null;
+        if (discWarn && aggDiscount) {
+            const disp = aggDiscount.mode === 'percent'
+                ? (aggDiscount.value + ' %') : (aggDiscount.value + ' €');
+            discountNotice = await tfForSession('discount_multi_booking_warning', ctx.sessionID, { discount: disp });
+        }
+
         notifyTables('update', invoiceId);
         const freshInvoice = await modelsDB.Invoices.findByPk(invoiceId, { raw: true });
-        return { invoice: freshInvoice, lines: allLines };
+        return { invoice: freshInvoice, lines: allLines, discountNotice };
     }
 
     return {
@@ -541,7 +583,10 @@ module.exports = function (modelsDB, Utilities) {
                         hotelId:        booking.hotelId,
                         clientId:       booking.clientId,
                         status:         'draft',
-                        prepayment:     Number(booking.prepayment) || 0
+                        prepayment:     Number(booking.prepayment) || 0,
+                        // Скидка переносится из брони (одна бронь — без агрегации).
+                        discountMode:   booking.discountMode || 'percent',
+                        discountValue:  Number(booking.discountValue) || 0
                     },
                     prefillTabular: {
                         invoice_bookings: [{
@@ -604,6 +649,13 @@ module.exports = function (modelsDB, Utilities) {
                     }
                 }
             }
+
+            // Скидка счёта: пустое/нечисло → 0, отрицательное → 0; режим по умолчанию.
+            if ('discountValue' in changes) {
+                const dv = Number(changes.discountValue);
+                changes.discountValue = Number.isFinite(dv) ? Math.max(0, dv) : 0;
+            }
+            if ('discountMode' in changes && !changes.discountMode) changes.discountMode = 'percent';
 
             const lines = tabularSections.invoice_lines || [];
             if (lines.length) {

@@ -11,6 +11,24 @@
         "de": "Buchungen",
         "pl": "Rezerwacje"
     },
+    "discount_value_field": {
+        "en": "Discount",
+        "ru": "Скидка",
+        "de": "Nachlass",
+        "pl": "Rabat"
+    },
+    "discount_mode_field": {
+        "en": "Discount unit",
+        "ru": "Единица скидки",
+        "de": "Nachlass-Einheit",
+        "pl": "Jednostka rabatu"
+    },
+    "discount_multi_booking_warning": {
+        "en": "Several bookings have different discounts — combined into {discount}. Please check.",
+        "ru": "В нескольких бронях разные скидки — объединены в {discount}. Проверьте.",
+        "de": "Mehrere Buchungen haben unterschiedliche Nachlässe — zusammengefasst zu {discount}. Bitte prüfen.",
+        "pl": "Kilka rezerwacji ma różne rabaty — połączono w {discount}. Sprawdź."
+    },
     "create_invoice_btn": {
         "en": "Create invoice",
         "ru": "Создать счёт",

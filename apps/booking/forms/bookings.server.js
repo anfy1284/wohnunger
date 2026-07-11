@@ -105,6 +105,13 @@ module.exports = function (modelsDB, Utilities) {
                 }
             }
 
+            // Скидка брони (переносится в счёт): пустое/нечисло → 0, отрицательное → 0.
+            if ('discountValue' in changes) {
+                const dv = Number(changes.discountValue);
+                changes.discountValue = Number.isFinite(dv) ? Math.max(0, dv) : 0;
+            }
+            if ('discountMode' in changes && !changes.discountMode) changes.discountMode = 'percent';
+
             // 0.5. Контроль заполняемости: для каждого номера в срезе прайс-листов
             //    должен существовать тариф проживания под текущее число «оплачиваемых»
             //    гостей (6+) на дату заезда. Дата ценообразования здесь — ВСЕГДА дата

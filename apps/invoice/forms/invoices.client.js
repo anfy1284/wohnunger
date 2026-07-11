@@ -28,9 +28,9 @@ async function fillInvoice(ev, ctx) {
     var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Calculating…')) : null;
     var result;
     try {
-        if (form._modified) {
+        if (form.needsSave()) {
             await form.doAction('save');
-            if (form._modified) return; // сохранение не удалось, ошибка уже показана
+            if (form.needsSave()) return; // сохранение не удалось, ошибка уже показана
         }
         result = await callServer('__SERVER_SCRIPT__', 'fillInvoice', { invoiceId: invoiceId });
     } finally {
@@ -50,15 +50,22 @@ async function fillInvoice(ev, ctx) {
         try { if (typeof linesTbl._invokeRenderBodyRows === 'function') linesTbl._invokeRenderBodyRows(); } catch(_) {}
     }
     try {
-        var prepCtrl = form.controlsMap && form.controlsMap['prepayment'];
-        if (prepCtrl && typeof prepCtrl.setValue === 'function' && result.invoice) {
-            prepCtrl.setValue(result.invoice.prepayment);
-        }
-        if (form._dataMap && form._dataMap['prepayment'] && result.invoice) {
-            form._dataMap['prepayment'].value = result.invoice.prepayment;
+        var setField = function (name, val) {
+            var c = form.controlsMap && form.controlsMap[name];
+            if (c && typeof c.setValue === 'function') { try { c.setValue(val); } catch (e) {} }
+            if (form._dataMap && form._dataMap[name]) form._dataMap[name].value = val;
+        };
+        if (result.invoice) {
+            setField('prepayment', result.invoice.prepayment);
+            // Скидка могла быть перенесена/агрегирована из броней — обновляем поля формы.
+            setField('discountValue', result.invoice.discountValue);
+            setField('discountMode', result.invoice.discountMode);
         }
     } catch(_) {}
     try { if (typeof form.setModified === 'function') form.setModified(false); } catch(_) {}
+
+    // Разные скидки в нескольких бронях-основаниях объединены — предупреждаем.
+    if (result.discountNotice) { try { showAlert(result.discountNotice); } catch(_) {} }
 }
 
 // «Печать»: сохранить (если изменено) → серверная генерация HTML → printPreview.
@@ -70,7 +77,7 @@ async function printInvoice(ev, ctx) {
     if (!invoiceId) { showAlert(__t('Please save the invoice first')); return; }
 
     var needSave = false;
-    if (form._modified) {
+    if (form.needsSave()) {
         var ok = await showConfirm(__t('Save before printing?'));
         if (!ok) return;
         needSave = true;
@@ -81,7 +88,7 @@ async function printInvoice(ev, ctx) {
     try {
         if (needSave) {
             await form.doAction('save');
-            if (form._modified) return; // сохранение не удалось, ошибка уже показана
+            if (form.needsSave()) return; // сохранение не удалось, ошибка уже показана
         }
         result = await callServer('reports.actions', 'generateInvoiceHTML', { invoiceId: invoiceId });
     } finally {

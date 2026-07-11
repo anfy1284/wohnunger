@@ -73,19 +73,22 @@ module.exports = async function (modelsDB) {
         // ── Сортировка журнала: по номеру от большего к меньшему ─────────
         layoutMemory.registerListSort('price_lists', [{ field: 'number', order: 'desc' }]);
 
-        // ── Пункт главного меню ───────────────────────────────────────────
+        // ── Пункт в подменю главной кнопки ────────────────────────────────
+        // Рядом с «Настройки пользователя» / «Настройки организации» (id:'main').
+        // order:99 — прямо над настройками (у них order 100/101).
         const mainMenu = require('../../node_modules/my-old-space/apps/main_menu/server.js');
-        mainMenu.addMenuItems([
-            {
-                id: 'price_lists',
+        mainMenu.addMenuItems([{
+            id: 'main',
+            items: [{
                 caption: { i18n: 'price_list_app_caption' },
                 action: 'open',
                 singleton: true,
                 appName: 'uniForm',
+                order: 99,
                 icon: '/apps/booking_icons/resources/public/16x16/price_list_journal.png',
                 params: { mode: 'list', dbTable: 'price_lists' }
-            }
-        ]);
+            }]
+        }]);
 
         console.log('[priceList/init] Layouts registered');
     } catch (e) {

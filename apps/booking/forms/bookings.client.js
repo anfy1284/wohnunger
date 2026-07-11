@@ -223,9 +223,13 @@ async function _openInvoiceRecord(invoiceUID) {
 // только когда пользователь сохранит форму; кнопка/вкладка «Счета» обновятся
 // по SSE после этого сохранения.
 async function _createInvoiceFromBooking(form) {
-    if (form._modified) {
+    // Несохранённая бронь (правки ИЛИ ещё не в БД): предлагаем сохранить —
+    // счёт строится из брони в БД. Отказ — полностью отменяем создание счёта.
+    if (form.needsSave()) {
+        var okSave = await showConfirm(__t('Save before creating invoice?'));
+        if (!okSave) return;
         await form.doAction('save');
-        if (form._modified) return; // сохранение не удалось, ошибка уже показана
+        if (form.needsSave()) return; // сохранение не удалось, ошибка уже показана
     }
     var uidEntry = form._dataMap && form._dataMap['UID'];
     var bookingId = uidEntry && uidEntry.value;

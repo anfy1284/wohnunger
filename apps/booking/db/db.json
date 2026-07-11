@@ -84,16 +84,17 @@
                     "defaultValue": null,
                     "caption": { "i18n": "prepayment_field" }
                 },
-                "reportVariantId": {
+                "discountValue": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": { "i18n": "discount_value_field" }
+                },
+                "discountMode": {
                     "type": "STRING",
-                    "allowNull": true,
-                    "references": {
-                        "model": "report_variants",
-                        "key": "UID"
-                    },
-                    "onUpdate": "CASCADE",
-                    "onDelete": "SET NULL",
-                    "caption": { "i18n": "report_variant_field" }
+                    "allowNull": false,
+                    "defaultValue": "percent",
+                    "caption": { "i18n": "discount_mode_field" }
                 }
             },
             "options": {
@@ -507,18 +508,6 @@
             "source": "BookingExtraLines",
             "target": "TaxRates",
             "foreignKey": "taxRateId"
-        },
-        {
-            "type": "hasMany",
-            "source": "ReportVariants",
-            "target": "Bookings",
-            "foreignKey": "reportVariantId"
-        },
-        {
-            "type": "belongsTo",
-            "source": "Bookings",
-            "target": "ReportVariants",
-            "foreignKey": "reportVariantId"
         }
     ]
 }

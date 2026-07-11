@@ -109,6 +109,22 @@
                                         "caption": { "i18n": "prepayment_field" }
                                     },
                                     {
+                                        "type": "number",
+                                        "name": "discountValue",
+                                        "data": "discountValue",
+                                        "caption": { "i18n": "discount_value_field" }
+                                    },
+                                    {
+                                        "type": "emunList",
+                                        "name": "discountMode",
+                                        "data": "discountMode",
+                                        "caption": { "i18n": "discount_mode_field" },
+                                        "options": [
+                                            { "value": "percent", "caption": "%" },
+                                            { "value": "amount",  "caption": "€" }
+                                        ]
+                                    },
+                                    {
                                         "type": "textbox",
                                         "name": "notes",
                                         "data": "notes",
@@ -209,6 +225,20 @@
                                 "properties": {
                                     "selection": {
                                         "table": "organizations",
+                                        "idField": "UID",
+                                        "displayField": "name"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "recordSelector",
+                                "name": "reportVariantId",
+                                "data": "reportVariantId",
+                                "caption": { "i18n": "report_variant_field" },
+                                "properties": {
+                                    "showOpenButton": true,
+                                    "selection": {
+                                        "table": "report_variants",
                                         "idField": "UID",
                                         "displayField": "name"
                                     }

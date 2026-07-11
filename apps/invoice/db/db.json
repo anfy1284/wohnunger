@@ -66,6 +66,29 @@
                     "type": "TEXT",
                     "allowNull": true,
                     "caption": { "i18n": "Notes" }
+                },
+                "discountValue": {
+                    "type": "FLOAT",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": { "i18n": "discount_value_field" }
+                },
+                "discountMode": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "percent",
+                    "caption": { "i18n": "discount_mode_field" }
+                },
+                "reportVariantId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "report_variants",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "SET NULL",
+                    "caption": { "i18n": "report_variant_field" }
                 }
             },
             "options": {
@@ -289,6 +312,18 @@
             "source": "Invoices",
             "target": "Organizations",
             "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "ReportVariants",
+            "target": "Invoices",
+            "foreignKey": "reportVariantId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Invoices",
+            "target": "ReportVariants",
+            "foreignKey": "reportVariantId"
         },
         {
             "type": "hasMany",

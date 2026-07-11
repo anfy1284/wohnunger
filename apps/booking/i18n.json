@@ -132,6 +132,18 @@
         "de": "Anzahlung",
         "pl": "Zaliczka"
     },
+    "discount_value_field": {
+        "en": "Discount",
+        "ru": "Скидка",
+        "de": "Nachlass",
+        "pl": "Rabat"
+    },
+    "discount_mode_field": {
+        "en": "Discount unit",
+        "ru": "Единица скидки",
+        "de": "Nachlass-Einheit",
+        "pl": "Jednostka rabatu"
+    },
     "Client": {
         "en": "Client",
         "ru": "Клиент",
@@ -296,6 +308,12 @@
         "ru": "Сохранить перед печатью?",
         "de": "Vor dem Drucken speichern?",
         "pl": "Zapisać przed wydrukiem?"
+    },
+    "Save before creating invoice?": {
+        "en": "Save before creating invoice?",
+        "ru": "Сохранить перед созданием счёта?",
+        "de": "Vor dem Erstellen der Rechnung speichern?",
+        "pl": "Zapisać przed utworzeniem faktury?"
     },
     "Preparing invoice…": {
         "en": "Preparing invoice…",

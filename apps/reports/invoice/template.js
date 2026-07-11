@@ -80,22 +80,56 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     }
     const flatLines = sections.reduce((acc, s) => acc.concat(s.lines), []);
 
-    // Суммы по ставкам MwSt
-    let totalBrutto = 0;
+    // Суммы по ставкам MwSt (брутто ДО скидки — Zwischensumme).
+    let subtotalBrutto = 0;
     const taxGroups = {};
     for (const ln of flatLines) {
-        totalBrutto += ln.amount;
+        subtotalBrutto += ln.amount;
         const rate = ln.taxRate || 0;
         if (!taxGroups[rate]) taxGroups[rate] = { brutto: 0, mwst: 0 };
-        const mwst = Math.round(ln.amount * rate / (100 + rate) * 100) / 100;
         taxGroups[rate].brutto += ln.amount;
-        taxGroups[rate].mwst   += mwst;
     }
-    // totalNetto считаем как brutto - sum(mwst) чтобы избежать расхождений при округлении
+    subtotalBrutto = Math.round(subtotalBrutto * 100) / 100;
+
+    // Скидка на общую сумму (документальный реквизит invoices.discountMode/Value):
+    // процент или абсолют. Раскладывается ПРОПОРЦИОНАЛЬНО брутто каждой налоговой
+    // группы (k = скидочный/исходный брутто), поэтому НДС по группам пересчитывается
+    // корректно. Копеечный дрейф распределения гасим в крупнейшую группу.
+    const discMode = invoice.discountMode || 'percent';
+    const discInput = Number(invoice.discountValue) || 0;
+    let discount = (discMode === 'percent')
+        ? Math.round(subtotalBrutto * discInput / 100 * 100) / 100
+        : Math.round(discInput * 100) / 100;
+    if (discount < 0) discount = 0;
+    if (discount > subtotalBrutto) discount = subtotalBrutto; // итог не уходит в минус
+    const discPctLabel = discInput.toLocaleString(locale, { maximumFractionDigits: 2 });
+
+    const discountedBrutto = Math.round((subtotalBrutto - discount) * 100) / 100;
+    const k = subtotalBrutto > 0 ? discountedBrutto / subtotalBrutto : 0;
+
+    const rateKeys = Object.keys(taxGroups);
+    let allocSum = 0, maxRate = null;
+    for (const rate of rateKeys) {
+        const g = taxGroups[rate];
+        g.bruttoDisc = Math.round(g.brutto * k * 100) / 100;
+        allocSum = Math.round((allocSum + g.bruttoDisc) * 100) / 100;
+        if (maxRate === null || g.brutto > taxGroups[maxRate].brutto) maxRate = rate;
+    }
+    if (maxRate !== null) {
+        const drift = Math.round((discountedBrutto - allocSum) * 100) / 100;
+        if (drift !== 0) taxGroups[maxRate].bruttoDisc = Math.round((taxGroups[maxRate].bruttoDisc + drift) * 100) / 100;
+    }
+
+    // НДС по группам — из скидочного брутто (davon MwSt в своде).
     let totalMwSt = 0;
-    for (const g of Object.values(taxGroups)) totalMwSt += g.mwst;
+    for (const rate of rateKeys) {
+        const g = taxGroups[rate];
+        const r = Number(rate);
+        g.mwst = Math.round(g.bruttoDisc * r / (100 + r) * 100) / 100;
+        totalMwSt += g.mwst;
+    }
     totalMwSt = Math.round(totalMwSt * 100) / 100;
-    const totalNetto = Math.round((totalBrutto - totalMwSt) * 100) / 100;
+    const totalNetto = Math.round((discountedBrutto - totalMwSt) * 100) / 100;
 
     // Строки таблицы услуг (с заголовками секций при нескольких бронях)
     let rowsHtml = '';
@@ -132,8 +166,15 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     const totalsHtml =
         '<tr class="subtotal">'
         + '<td colspan="3" class="num">' + t('invoice_subtotal') + '</td>'
-        + '<td class="num">' + fmtNum(totalBrutto) + ' &euro;</td>'
+        + '<td class="num">' + fmtNum(subtotalBrutto) + ' &euro;</td>'
         + '</tr>\n'
+        + (discount > 0
+            ? '<tr class="tax-row">'
+              + '<td colspan="3" class="num">' + t('invoice_discount')
+                 + (discMode === 'percent' ? ' (' + discPctLabel + '%)' : '') + '</td>'
+              + '<td class="num">&minus;' + fmtNum(discount) + ' &euro;</td>'
+              + '</tr>\n'
+            : '')
         + '<tr class="tax-row">'
         + '<td colspan="3" class="num">' + t('invoice_net_amount') + '</td>'
         + '<td class="num">' + fmtNum(totalNetto) + ' &euro;</td>'
@@ -141,7 +182,7 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
         + taxSummaryHtml
         + '<tr class="grand-total">'
         + '<td colspan="3" class="num">' + t('invoice_total_amount') + '</td>'
-        + '<td class="num">' + fmtNum(totalBrutto) + ' &euro;</td>'
+        + '<td class="num">' + fmtNum(discountedBrutto) + ' &euro;</td>'
         + '</tr>\n'
         + (prepayment > 0
             ? '<tr class="tax-row">'
@@ -150,7 +191,7 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
               + '</tr>\n'
               + '<tr class="grand-total">'
               + '<td colspan="3" class="num">' + t('invoice_balance_due') + '</td>'
-              + '<td class="num">' + fmtNum(Math.round((totalBrutto - prepayment) * 100) / 100) + ' &euro;</td>'
+              + '<td class="num">' + fmtNum(Math.round((discountedBrutto - prepayment) * 100) / 100) + ' &euro;</td>'
               + '</tr>\n'
             : '');
 

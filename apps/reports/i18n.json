@@ -77,6 +77,12 @@
         "de": "Zwischensumme",
         "pl": "Suma częściowa"
     },
+    "invoice_discount": {
+        "en": "Discount",
+        "ru": "Скидка",
+        "de": "Nachlass",
+        "pl": "Rabat"
+    },
     "invoice_net_amount": {
         "en": "Net amount",
         "ru": "Сумма нетто",
