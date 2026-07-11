@@ -32,37 +32,25 @@
                                 "orientation": "vertical",
                                 "layout": [
                                     {
-                                        "type": "textbox",
-                                        "name": "number",
-                                        "data": "number",
-                                        "caption": { "i18n": "booking_name_field" }
-                                    },
-                                    {
-                                        "type": "date",
-                                        "name": "date",
-                                        "data": "date",
-                                        "caption": { "i18n": "document_date_field" }
-                                    },
-                                    {
-                                        "type": "number",
-                                        "name": "prepayment",
-                                        "data": "prepayment",
-                                        "caption": { "i18n": "prepayment_field" }
-                                    },
-                                    {
-                                        "type": "number",
-                                        "name": "discountValue",
-                                        "data": "discountValue",
-                                        "caption": { "i18n": "discount_value_field" }
-                                    },
-                                    {
-                                        "type": "emunList",
-                                        "name": "discountMode",
-                                        "data": "discountMode",
-                                        "caption": { "i18n": "discount_mode_field" },
-                                        "options": [
-                                            { "value": "percent", "caption": "%" },
-                                            { "value": "amount",  "caption": "€" }
+                                        "type": "group",
+                                        "caption": { "i18n": "booking_name_field" },
+                                        "noBorder": true,
+                                        "orientation": "horizontal",
+                                        "layout": [
+                                            {
+                                                "type": "textbox",
+                                                "name": "number",
+                                                "data": "number",
+                                                "caption": "",
+                                                "properties": { "width": 150 }
+                                            },
+                                            {
+                                                "type": "date",
+                                                "name": "date",
+                                                "data": "date",
+                                                "caption": { "i18n": "document_date_field" },
+                                                "properties": { "width": 110 }
+                                            }
                                         ]
                                     },
                                     {
@@ -78,6 +66,38 @@
                                                 "displayField": "name"
                                             }
                                         }
+                                    },
+                                    {
+                                        "type": "number",
+                                        "name": "prepayment",
+                                        "data": "prepayment",
+                                        "caption": { "i18n": "prepayment_field" }
+                                    },
+                                    {
+                                        "type": "group",
+                                        "caption": { "i18n": "discount_value_field" },
+                                        "noBorder": true,
+                                        "orientation": "horizontal",
+                                        "layout": [
+                                            {
+                                                "type": "number",
+                                                "name": "discountValue",
+                                                "data": "discountValue",
+                                                "caption": "",
+                                                "properties": { "width": 90 }
+                                            },
+                                            {
+                                                "type": "emunList",
+                                                "name": "discountMode",
+                                                "data": "discountMode",
+                                                "caption": "",
+                                                "properties": { "width": 60 },
+                                                "options": [
+                                                    { "value": "percent", "caption": "%" },
+                                                    { "value": "amount",  "caption": "€" }
+                                                ]
+                                            }
+                                        ]
                                     }
                                 ]
                             },
