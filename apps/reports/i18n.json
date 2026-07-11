@@ -184,5 +184,29 @@
         "ru": "Вариант отчёта",
         "de": "Berichtsvariante",
         "pl": "Wariant raportu"
+    },
+    "priceListId required": {
+        "en": "priceListId is required",
+        "ru": "priceListId обязателен",
+        "de": "priceListId ist erforderlich",
+        "pl": "priceListId jest wymagany"
+    },
+    "Price list not found": {
+        "en": "Price list not found",
+        "ru": "Прайс-лист не найден",
+        "de": "Preisliste nicht gefunden",
+        "pl": "Nie znaleziono cennika"
+    },
+    "No accommodation prices in the price list.": {
+        "en": "No accommodation prices in the price list.",
+        "ru": "В прайс-листе нет цен проживания.",
+        "de": "Die Preisliste enthält keine Unterkunftspreise.",
+        "pl": "Cennik nie zawiera cen zakwaterowania."
+    },
+    "price_list_print_persons": {
+        "en": "{{n}} pers.",
+        "ru": "{{n}} чел.",
+        "de": "{{n}} Pers.",
+        "pl": "{{n}} os."
     }
 }

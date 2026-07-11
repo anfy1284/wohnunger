@@ -1,6 +1,14 @@
 [
     {
-        "type": "commandBar"
+        "type": "commandBar",
+        "extraButtons": [
+            {
+                "name": "btnPrint",
+                "caption": { "i18n": "price_list_print_btn" },
+                "icon": "/apps/general_icons/resources/public/16x16/print.png",
+                "events": { "onClick": "printPriceList" }
+            }
+        ]
     },
     {
         "type": "group",
@@ -79,8 +87,15 @@
                                 "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
                             }
                         },
-                        { "caption": { "i18n": "date_from" }, "data": "dateFrom", "width": 110, "inputType": "date" },
-                        { "caption": { "i18n": "date_to" }, "data": "dateTo", "width": 110, "inputType": "date" },
+                        {
+                            "caption": { "i18n": "Season" },
+                            "data": "seasonId",
+                            "width": 180,
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "selection": { "table": "seasons", "idField": "UID", "displayField": "name" }
+                            }
+                        },
                         { "caption": { "i18n": "guests_count" }, "data": "guestsCount", "width": 110, "inputType": "integer", "defaultValue": 1, "properties": { "minValue": 1 } },
                         { "caption": { "i18n": "base_rate_price" }, "data": "price", "width": 120, "inputType": "number" }
                     ],
@@ -88,7 +103,7 @@
                         "editMode": "cell-immediate",
                         "visibleRows": 12,
                         "tabularFilter": { "priceListId": "{UID}" },
-                        "hiddenButtons": ["listSettings", "recordOpen"]
+                        "hiddenButtons": ["recordOpen"]
                     }
                 }]
             },
@@ -125,7 +140,7 @@
                         "editMode": "cell-immediate",
                         "visibleRows": 12,
                         "tabularFilter": { "priceListId": "{UID}" },
-                        "hiddenButtons": ["listSettings", "recordOpen"]
+                        "hiddenButtons": ["recordOpen"]
                     }
                 }]
             }

@@ -16,7 +16,7 @@ module.exports = function (modelsDB, Utilities) {
         // ── Серверное событие формы: вызывается ДО записи в БД ────────────
         // 1. Заполняет organizationId в записи и во всех строках ТЧ (паттерн booking).
         // 2. Санитизация числовых полей строк ТЧ ("" → null, PostgreSQL не примет "").
-        // 3. Контроль сезона в строках проживания: dateFrom < dateTo.
+        // 3. Контроль строк проживания: сезон обязателен (справочник seasons).
         async onBeforeSave({ record, changes, tabularSections, parentUID }, ctx) {
             // 1. organizationId
             if (!changes.organizationId) {
@@ -58,10 +58,12 @@ module.exports = function (modelsDB, Utilities) {
                 }
             }
 
-            // 3. Сезонный интервал строк проживания: dateFrom < dateTo
+            // 3. Сезон в строках проживания обязателен (в модели seasonId
+            //    nullable ради мягкой миграции существующих таблиц — поэтому
+            //    обязательность контролируется здесь).
             for (const row of (tabularSections.price_list_room_prices || [])) {
-                if (row.dateFrom && row.dateTo && new Date(row.dateTo) <= new Date(row.dateFrom)) {
-                    throw new Error(await tForSession('price_list_season_invalid', ctx.sessionID));
+                if (!row.seasonId) {
+                    throw new Error(await tForSession('price_list_season_required', ctx.sessionID));
                 }
             }
         }

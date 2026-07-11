@@ -10,12 +10,16 @@
 // Структура приложения (паттерн разделённых файлов, эталон — apps/booking):
 //   forms/price_lists.layout.json — JSON-лейаут формы записи
 //   forms/price_lists.server.js   — серверные функции (onBeforeSave)
+//   forms/price_lists.client.js   — клиентский JS (кнопка «Печать»)
 //   db/db.json                    — схема БД (документ + 2 ТЧ)
 //   i18n.json                     — переводы
 
+const path = require('path');
+const fs   = require('fs');
+
 module.exports = async function (modelsDB) {
     try {
-        const { loadServerScript, Utilities } = require('../../node_modules/my-old-space');
+        const { loadScript, loadServerScript, Utilities } = require('../../node_modules/my-old-space');
         const layoutMemory = require('../../node_modules/my-old-space/drive_root/layoutMemory');
         const entityHooks  = require('../../node_modules/my-old-space/drive_root/entityHooks');
 
@@ -54,12 +58,16 @@ module.exports = async function (modelsDB) {
             'user'
         );
 
+        const clientSource = fs.readFileSync(path.join(__dirname, 'forms/price_lists.client.js'), 'utf8');
+        const clientUID = await loadScript(clientSource, 'user');
+
         await layoutMemory.saveLayout({
             appName:      'uniForm',
             mode:         'record',
             tableName:    'price_lists',
             roles:        'user',
             layout:       require('./forms/price_lists.layout.json'),
+            clientScript: clientUID,
             appCaption:   { i18n: 'price_list_app_caption' },
             recordCaption:{ i18n: 'PriceList' },
             formIcon:     '/apps/booking_icons/resources/public/16x16/price_list.png',

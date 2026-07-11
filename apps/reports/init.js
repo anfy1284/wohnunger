@@ -13,6 +13,7 @@ module.exports = async function (modelsDB) {
         const { loadServerScript } = require('../../node_modules/my-old-space');
         const layoutMemory = require('../../node_modules/my-old-space/drive_root/layoutMemory');
         const { renderInvoiceHTML } = require('./invoice/template');
+        const { renderPriceListHTML } = require('./priceList/template');
 
         // ── Справочник «Варианты отчёта» (таблица report_variants) ───────────
         // Хранит предзаданные примечания в счёте (invoiceNote). Вариант выбирается
@@ -122,6 +123,51 @@ module.exports = async function (modelsDB) {
                 const locale = localeMap[lang] || 'de-DE';
 
                 const html = renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote });
+                return { html };
+            },
+
+            // Генерация печатной формы прайс-листа (только тарифная таблица)
+            // по priceListId (документ price_lists). Строки — ТЧ проживания
+            // документа КАК ХРАНЯТСЯ (WYSIWYG); сезоны/периоды — из справочника
+            // seasons/season_periods; комнаты — для заголовков групп колонок.
+            async generatePriceListHTML({ priceListId } = {}, ctx) {
+                if (!priceListId) return { error: await tForSession('priceListId required', ctx.sessionID) };
+
+                const priceList = await modelsDB.PriceLists.findByPk(priceListId, { raw: true });
+                if (!priceList) return { error: await tForSession('Price list not found', ctx.sessionID) };
+
+                // Порядок строк = порядок ввода в ТЧ (createdAt) — печать
+                // воспроизводит сетку так, как её заполнил пользователь.
+                const rows = await modelsDB.PriceListRoomPrices.findAll({
+                    where: { priceListId },
+                    order: [['createdAt', 'ASC']],
+                    raw: true
+                });
+                if (!rows.length) return { error: await tForSession('No accommodation prices in the price list.', ctx.sessionID) };
+
+                const seasonIds = [...new Set(rows.map(r => r.seasonId).filter(Boolean))];
+                const roomIds   = [...new Set(rows.map(r => r.roomId).filter(Boolean))];
+                const [seasons, periods, rooms] = await Promise.all([
+                    modelsDB.Seasons.findAll({ where: { UID: seasonIds }, raw: true }),
+                    modelsDB.SeasonPeriods.findAll({ where: { seasonId: seasonIds }, raw: true }),
+                    modelsDB.Rooms.findAll({ where: { UID: roomIds }, raw: true })
+                ]);
+                const seasonsById = {};
+                for (const s of seasons) seasonsById[s.UID] = s;
+                const periodsBySeason = {};
+                for (const p of periods) (periodsBySeason[p.seasonId] = periodsBySeason[p.seasonId] || []).push(p);
+                const roomsById = {};
+                for (const r of rooms) roomsById[r.UID] = r;
+
+                // Язык печати — из настроек организации (organizationSettings → reportLanguage).
+                const lang = await resolveOrgReportLang(modelsDB, priceList.organizationId);
+                const i18n = require('../../node_modules/my-old-space/drive_root/i18n');
+                const t = (key) => i18n.t(key, lang);
+                const tf = (key, vars) => i18n.tf(key, lang, vars);
+                const localeMap = { en: 'en-GB', ru: 'ru-RU', pl: 'pl-PL', de: 'de-DE' };
+                const locale = localeMap[lang] || 'de-DE';
+
+                const html = renderPriceListHTML({ priceList, rows, seasonsById, periodsBySeason, roomsById, t, tf, locale, lang });
                 return { html };
             },
 

@@ -29,10 +29,28 @@
         "de": "Preisliste",
         "pl": "Cennik"
     },
-    "price_list_season_invalid": {
-        "en": "Season end date must be later than the start date",
-        "ru": "Дата окончания сезона должна быть позже даты начала",
-        "de": "Das Saisonende muss nach dem Saisonbeginn liegen",
-        "pl": "Data końca sezonu musi być późniejsza niż data początku"
+    "price_list_season_required": {
+        "en": "Select a season in every accommodation price row",
+        "ru": "Укажите сезон в каждой строке цен проживания",
+        "de": "Bitte in jeder Unterkunftspreiszeile eine Saison auswählen",
+        "pl": "Wybierz sezon w każdym wierszu cen zakwaterowania"
+    },
+    "price_list_print_btn": {
+        "en": "Print",
+        "ru": "Печать",
+        "de": "Drucken",
+        "pl": "Drukuj"
+    },
+    "Please save the price list first": {
+        "en": "Please save the price list first",
+        "ru": "Сначала сохраните прайс-лист",
+        "de": "Bitte speichern Sie die Preisliste zuerst",
+        "pl": "Najpierw zapisz cennik"
+    },
+    "Preparing price list…": {
+        "en": "Preparing price list…",
+        "ru": "Подготовка прайс-листа…",
+        "de": "Preisliste wird vorbereitet…",
+        "pl": "Przygotowywanie cennika…"
     }
 }

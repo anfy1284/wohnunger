@@ -334,5 +334,47 @@
         "ru": "Примечания",
         "de": "Anmerkungen",
         "pl": "Uwagi"
+    },
+    "Season": {
+        "en": "Season",
+        "ru": "Сезон",
+        "de": "Saison",
+        "pl": "Sezon"
+    },
+    "season_name": {
+        "en": "Season name",
+        "ru": "Название сезона",
+        "de": "Saisonbezeichnung",
+        "pl": "Nazwa sezonu"
+    },
+    "seasons_app_caption": {
+        "en": "Seasons",
+        "ru": "Сезоны",
+        "de": "Saisons",
+        "pl": "Sezony"
+    },
+    "season_record_caption": {
+        "en": "Season",
+        "ru": "Сезон",
+        "de": "Saison",
+        "pl": "Sezon"
+    },
+    "season_periods_tab": {
+        "en": "Periods",
+        "ru": "Периоды",
+        "de": "Zeiträume",
+        "pl": "Okresy"
+    },
+    "season_period_dates_required": {
+        "en": "Fill in both dates in every season period row",
+        "ru": "Заполните обе даты в каждой строке периодов сезона",
+        "de": "Bitte in jeder Zeitraumzeile beide Daten ausfüllen",
+        "pl": "Wypełnij obie daty w każdym wierszu okresu sezonu"
+    },
+    "season_period_invalid": {
+        "en": "Period end date must be later than the start date",
+        "ru": "Дата окончания периода должна быть позже даты начала",
+        "de": "Das Enddatum des Zeitraums muss nach dem Anfangsdatum liegen",
+        "pl": "Data końca okresu musi być późniejsza niż data początku"
     }
 }

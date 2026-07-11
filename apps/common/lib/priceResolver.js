@@ -10,8 +10,9 @@
 // позицию. Документ не обязан повторять весь прайс — может устанавливать
 // только изменившиеся позиции.
 //
-// Ключ позиции проживания: roomId + guestsCount + сезон (строка применима,
-// если её сезонный интервал dateFrom..dateTo накрывает дату проживания).
+// Ключ позиции проживания: roomId + guestsCount + сезон (справочник seasons;
+// строка применима, если ОДИН ИЗ периодов её сезона (ТЧ season_periods,
+// dateFrom..dateTo) накрывает дату проживания).
 // Ключ позиции услуги: serviceId + roomId + возрастная полоса.
 //
 // Все консьюмеры цен (расчёт строк счёта, контроль заполняемости брони)
@@ -35,11 +36,13 @@ const { Op } = require('sequelize');
 module.exports = function (modelsDB) {
 
     // ── Срез прайс-листов на дату ценообразования ────────────────────
-    // Три запроса: документы + обе ТЧ всех подходящих документов.
+    // Четыре запроса: документы + обе ТЧ всех подходящих документов +
+    // периоды сезонов организации (справочник seasons, ТЧ season_periods).
     // docs отсортированы по date DESC (при равенстве — по createdAt DESC),
     // строки ТЧ несут _docIdx (0 = самый поздний документ).
+    // seasonPeriods: { seasonId: [{ dateFrom, dateTo }, ...] }.
     async function loadSlice({ organizationId, hotelId, pricingDate }) {
-        const empty = { docs: [], roomRows: [], svcRows: [] };
+        const empty = { docs: [], roomRows: [], svcRows: [], seasonPeriods: {} };
         if (!organizationId) return empty;
         const till = pricingDate ? new Date(pricingDate) : new Date();
         if (isNaN(till.getTime())) return empty;
@@ -57,18 +60,33 @@ module.exports = function (modelsDB) {
         docs.forEach((doc, i) => { docIdx[doc.UID] = i; });
         const docIds = docs.map(doc => doc.UID);
 
-        const [roomRows, svcRows] = await Promise.all([
+        const [roomRows, svcRows, periodRows] = await Promise.all([
             modelsDB.PriceListRoomPrices.findAll({ where: { priceListId: docIds }, raw: true }),
-            modelsDB.PriceListServicePrices.findAll({ where: { priceListId: docIds }, raw: true })
+            modelsDB.PriceListServicePrices.findAll({ where: { priceListId: docIds }, raw: true }),
+            modelsDB.SeasonPeriods.findAll({ where: { organizationId }, raw: true })
         ]);
         for (const r of roomRows) r._docIdx = docIdx[r.priceListId];
         for (const r of svcRows)  r._docIdx = docIdx[r.priceListId];
-        return { docs, roomRows, svcRows };
+        const seasonPeriods = {};
+        for (const p of periodRows) {
+            (seasonPeriods[p.seasonId] = seasonPeriods[p.seasonId] || []).push(p);
+        }
+        return { docs, roomRows, svcRows, seasonPeriods };
     }
 
     // ── Цена проживания из среза ─────────────────────────────────────
-    // Позиция: roomId + guestsCount + сезон (интервал накрывает stayDate).
+    // Позиция: roomId + guestsCount + сезон (один из периодов сезона
+    // накрывает stayDate, границы включительно).
     // Побеждает строка самого позднего документа, содержащего позицию.
+    function seasonCoversDay(slice, seasonId, day) {
+        const periods = seasonId && slice.seasonPeriods && slice.seasonPeriods[seasonId];
+        if (!periods) return false;
+        for (const p of periods) {
+            if (new Date(p.dateFrom) <= day && new Date(p.dateTo) >= day) return true;
+        }
+        return false;
+    }
+
     function pickRoomPrice(slice, { roomId, guestsCount, stayDate }) {
         if (!slice || !roomId || !stayDate) return null;
         const day = new Date(stayDate);
@@ -77,7 +95,7 @@ module.exports = function (modelsDB) {
         for (const r of slice.roomRows) {
             if (r.roomId !== roomId) continue;
             if (Number(r.guestsCount) !== Number(guestsCount)) continue;
-            if (new Date(r.dateFrom) > day || new Date(r.dateTo) < day) continue;
+            if (!seasonCoversDay(slice, r.seasonId, day)) continue;
             if (!best || r._docIdx < best._docIdx) best = r;
         }
         return best ? { price: best.price, priceListId: best.priceListId } : null;

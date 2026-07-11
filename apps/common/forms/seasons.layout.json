@@ -1,0 +1,55 @@
+[
+    {
+        "type": "commandBar"
+    },
+    {
+        "type": "group",
+        "caption": "",
+        "noBorder": true,
+        "alignFields": true,
+        "orientation": "vertical",
+        "layout": [
+            {
+                "type": "textbox",
+                "name": "number",
+                "data": "number",
+                "caption": { "i18n": "number_field" }
+            },
+            {
+                "type": "textbox",
+                "name": "name",
+                "data": "name",
+                "caption": { "i18n": "season_name" }
+            },
+            {
+                "type": "recordSelector",
+                "name": "hotelId",
+                "data": "hotelId",
+                "caption": { "i18n": "Hotel" },
+                "properties": {
+                    "selection": {
+                        "table": "hotels",
+                        "idField": "UID",
+                        "displayField": "name"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "type": "table",
+        "name": "ts_season_periods",
+        "data": "season_periods",
+        "caption": { "i18n": "season_periods_tab" },
+        "columns": [
+            { "caption": { "i18n": "date_from" }, "data": "dateFrom", "width": 120, "inputType": "date" },
+            { "caption": { "i18n": "date_to" }, "data": "dateTo", "width": 120, "inputType": "date" }
+        ],
+        "properties": {
+            "editMode": "cell-immediate",
+            "visibleRows": 10,
+            "tabularFilter": { "seasonId": "{UID}" },
+            "hiddenButtons": ["recordOpen"]
+        }
+    }
+]

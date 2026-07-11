@@ -516,6 +516,91 @@
             }
         },
         {
+            "name": "Seasons",
+            "tableName": "seasons",
+            "entityConfig": {
+                "entityType": "directory"
+            },
+            "fields": {
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "caption": { "i18n": "season_name" }
+                },
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Organization" }
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "SET NULL",
+                    "caption": { "i18n": "Hotel" }
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "SeasonPeriods",
+            "tableName": "season_periods",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Organization" }
+                },
+                "seasonId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "seasons",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Season" }
+                },
+                "dateFrom": {
+                    "type": "DATEONLY",
+                    "allowNull": false,
+                    "caption": { "i18n": "date_from" }
+                },
+                "dateTo": {
+                    "type": "DATEONLY",
+                    "allowNull": false,
+                    "caption": { "i18n": "date_to" }
+                }
+            },
+            "tabularSection": {
+                "parentTable": "seasons",
+                "parentField": "seasonId",
+                "caption": { "i18n": "season_periods_tab" }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
             "name": "BookingStatuses",
             "tableName": "booking_statuses",
             "fields": {
@@ -752,6 +837,54 @@
             "source": "Services",
             "target": "TaxCategories",
             "foreignKey": "taxCategoryId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "Seasons",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Seasons",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Hotels",
+            "target": "Seasons",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Seasons",
+            "target": "Hotels",
+            "foreignKey": "hotelId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Seasons",
+            "target": "SeasonPeriods",
+            "foreignKey": "seasonId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "SeasonPeriods",
+            "target": "Seasons",
+            "foreignKey": "seasonId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "SeasonPeriods",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "SeasonPeriods",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
         }
     ]
 }

@@ -81,15 +81,16 @@
                     "onDelete": "RESTRICT",
                     "caption": { "i18n": "Room" }
                 },
-                "dateFrom": {
-                    "type": "DATEONLY",
-                    "allowNull": false,
-                    "caption": { "i18n": "date_from" }
-                },
-                "dateTo": {
-                    "type": "DATEONLY",
-                    "allowNull": false,
-                    "caption": { "i18n": "date_to" }
+                "seasonId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "seasons",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "Season" }
                 },
                 "guestsCount": {
                     "type": "INTEGER",
@@ -221,6 +222,18 @@
             "source": "PriceListRoomPrices",
             "target": "PriceLists",
             "foreignKey": "priceListId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Seasons",
+            "target": "PriceListRoomPrices",
+            "foreignKey": "seasonId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "PriceListRoomPrices",
+            "target": "Seasons",
+            "foreignKey": "seasonId"
         },
         {
             "type": "hasMany",
