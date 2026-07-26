@@ -449,6 +449,12 @@
                     "allowNull": false,
                     "translatable": true,
                     "caption": { "i18n": "tax_category_name" }
+                },
+                "invoiceNote": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "translatable": true,
+                    "caption": { "i18n": "tax_category_invoice_note" }
                 }
             },
             "options": {

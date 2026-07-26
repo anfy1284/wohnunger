@@ -245,6 +245,12 @@
         "de": "Kategoriebezeichnung",
         "pl": "Nazwa kategorii"
     },
+    "tax_category_invoice_note": {
+        "en": "Invoice note (legal basis for the rate)",
+        "ru": "Примечание в счёте (основание ставки)",
+        "de": "Rechnungshinweis (Rechtsgrundlage des Satzes)",
+        "pl": "Uwaga na rachunku (podstawa prawna stawki)"
+    },
     "tax_split_mode": {
         "en": "Split mode",
         "ru": "Способ деления",

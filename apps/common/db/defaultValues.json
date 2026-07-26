@@ -1,11 +1,14 @@
 {
     "tax_categories": [
-        { "UID": "000000000-tax-cat-0001", "code": "accommodation", "name": "Beherbergung" },
-        { "UID": "000000000-tax-cat-0002", "code": "food",          "name": "Speisen" },
-        { "UID": "000000000-tax-cat-0003", "code": "beverage",      "name": "Getränke" },
-        { "UID": "000000000-tax-cat-0004", "code": "standard",      "name": "Regelsatz" },
-        { "UID": "000000000-tax-cat-0005", "code": "reduced",       "name": "Ermäßigt" },
-        { "UID": "000000000-tax-cat-0006", "code": "exempt",        "name": "Steuerfrei" }
+        { "UID": "000000000-tax-cat-0001", "code": "accommodation", "name": "Accommodation",  "invoiceNote": null },
+        { "UID": "000000000-tax-cat-0002", "code": "food",          "name": "Food",           "invoiceNote": null },
+        { "UID": "000000000-tax-cat-0003", "code": "beverage",      "name": "Beverages",      "invoiceNote": null },
+        { "UID": "000000000-tax-cat-0004", "code": "standard",      "name": "Standard rate",  "invoiceNote": null },
+        { "UID": "000000000-tax-cat-0005", "code": "reduced",       "name": "Reduced rate",   "invoiceNote": null },
+        { "UID": "000000000-tax-cat-0006", "code": "pass_through",  "name": "Pass-through item",
+          "invoiceNote": "Collected in the name and for the account of the municipality (visitor's tax) — pass-through item pursuant to § 10 (1) sentence 4 UStG, not subject to VAT." },
+        { "UID": "000000000-tax-cat-0007", "code": "exempt_longterm", "name": "VAT-exempt (long-term letting)",
+          "invoiceNote": "VAT-exempt letting pursuant to § 4 no. 12 (a) UStG (accommodation for a period exceeding six months)." }
     ],
     "tax_rates": [
         { "UID": "000000000-taxrate-v007", "name": "7%",  "rate": 7,  "displayOrder": 10 },
@@ -19,7 +22,8 @@
         { "UID": "000000000-tax-rate-0004", "taxCategoryId": "000000000-tax-cat-0003", "rateId": "000000000-taxrate-v019", "validFrom": null,         "validTo": null },
         { "UID": "000000000-tax-rate-0005", "taxCategoryId": "000000000-tax-cat-0004", "rateId": "000000000-taxrate-v019", "validFrom": null,         "validTo": null },
         { "UID": "000000000-tax-rate-0006", "taxCategoryId": "000000000-tax-cat-0005", "rateId": "000000000-taxrate-v007", "validFrom": null,         "validTo": null },
-        { "UID": "000000000-tax-rate-0007", "taxCategoryId": "000000000-tax-cat-0006", "rateId": "000000000-taxrate-v000", "validFrom": null,         "validTo": null }
+        { "UID": "000000000-tax-rate-0007", "taxCategoryId": "000000000-tax-cat-0006", "rateId": "000000000-taxrate-v000", "validFrom": null,         "validTo": null },
+        { "UID": "000000000-tax-rate-0008", "taxCategoryId": "000000000-tax-cat-0007", "rateId": "000000000-taxrate-v000", "validFrom": null,         "validTo": null }
     ],
     "booking_statuses": [
         { "UID": "000000000-bk-status-0001", "code": "draft",      "name": "Draft",      "color": "#9E9E9E", "displayOrder": 10 },
@@ -108,6 +112,39 @@
         { "UID": "tr-bks-pl-0002", "recordId": "000000000-bk-status-0002", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Potwierdzone" },
         { "UID": "tr-bks-pl-0003", "recordId": "000000000-bk-status-0003", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Zameldowany" },
         { "UID": "tr-bks-pl-0004", "recordId": "000000000-bk-status-0004", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Wymeldowany" },
-        { "UID": "tr-bks-pl-0005", "recordId": "000000000-bk-status-0005", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Anulowane" }
+        { "UID": "tr-bks-pl-0005", "recordId": "000000000-bk-status-0005", "tableName": "booking_statuses", "fieldName": "name", "language": "pl", "value": "Anulowane" },
+
+        { "UID": "tr-tc-de-0001", "recordId": "000000000-tax-cat-0001", "tableName": "tax_categories", "fieldName": "name", "language": "de", "value": "Beherbergung" },
+        { "UID": "tr-tc-de-0002", "recordId": "000000000-tax-cat-0002", "tableName": "tax_categories", "fieldName": "name", "language": "de", "value": "Speisen" },
+        { "UID": "tr-tc-de-0003", "recordId": "000000000-tax-cat-0003", "tableName": "tax_categories", "fieldName": "name", "language": "de", "value": "Getränke" },
+        { "UID": "tr-tc-de-0004", "recordId": "000000000-tax-cat-0004", "tableName": "tax_categories", "fieldName": "name", "language": "de", "value": "Regelsatz" },
+        { "UID": "tr-tc-de-0005", "recordId": "000000000-tax-cat-0005", "tableName": "tax_categories", "fieldName": "name", "language": "de", "value": "Ermäßigt" },
+        { "UID": "tr-tc-de-0006", "recordId": "000000000-tax-cat-0006", "tableName": "tax_categories", "fieldName": "name", "language": "de", "value": "Durchlaufender Posten" },
+        { "UID": "tr-tc-de-0007", "recordId": "000000000-tax-cat-0007", "tableName": "tax_categories", "fieldName": "name", "language": "de", "value": "Steuerfrei (Langzeitvermietung)" },
+
+        { "UID": "tr-tc-ru-0001", "recordId": "000000000-tax-cat-0001", "tableName": "tax_categories", "fieldName": "name", "language": "ru", "value": "Проживание" },
+        { "UID": "tr-tc-ru-0002", "recordId": "000000000-tax-cat-0002", "tableName": "tax_categories", "fieldName": "name", "language": "ru", "value": "Питание" },
+        { "UID": "tr-tc-ru-0003", "recordId": "000000000-tax-cat-0003", "tableName": "tax_categories", "fieldName": "name", "language": "ru", "value": "Напитки" },
+        { "UID": "tr-tc-ru-0004", "recordId": "000000000-tax-cat-0004", "tableName": "tax_categories", "fieldName": "name", "language": "ru", "value": "Основная ставка" },
+        { "UID": "tr-tc-ru-0005", "recordId": "000000000-tax-cat-0005", "tableName": "tax_categories", "fieldName": "name", "language": "ru", "value": "Пониженная ставка" },
+        { "UID": "tr-tc-ru-0006", "recordId": "000000000-tax-cat-0006", "tableName": "tax_categories", "fieldName": "name", "language": "ru", "value": "Транзитная позиция" },
+        { "UID": "tr-tc-ru-0007", "recordId": "000000000-tax-cat-0007", "tableName": "tax_categories", "fieldName": "name", "language": "ru", "value": "Освобождено от НДС (долгосрочная аренда)" },
+
+        { "UID": "tr-tc-pl-0001", "recordId": "000000000-tax-cat-0001", "tableName": "tax_categories", "fieldName": "name", "language": "pl", "value": "Zakwaterowanie" },
+        { "UID": "tr-tc-pl-0002", "recordId": "000000000-tax-cat-0002", "tableName": "tax_categories", "fieldName": "name", "language": "pl", "value": "Wyżywienie" },
+        { "UID": "tr-tc-pl-0003", "recordId": "000000000-tax-cat-0003", "tableName": "tax_categories", "fieldName": "name", "language": "pl", "value": "Napoje" },
+        { "UID": "tr-tc-pl-0004", "recordId": "000000000-tax-cat-0004", "tableName": "tax_categories", "fieldName": "name", "language": "pl", "value": "Stawka podstawowa" },
+        { "UID": "tr-tc-pl-0005", "recordId": "000000000-tax-cat-0005", "tableName": "tax_categories", "fieldName": "name", "language": "pl", "value": "Stawka obniżona" },
+        { "UID": "tr-tc-pl-0006", "recordId": "000000000-tax-cat-0006", "tableName": "tax_categories", "fieldName": "name", "language": "pl", "value": "Pozycja przejściowa" },
+        { "UID": "tr-tc-pl-0007", "recordId": "000000000-tax-cat-0007", "tableName": "tax_categories", "fieldName": "name", "language": "pl", "value": "Zwolnione z VAT (najem długoterminowy)" },
+
+        { "UID": "tr-tcn-de-0006", "recordId": "000000000-tax-cat-0006", "tableName": "tax_categories", "fieldName": "invoiceNote", "language": "de", "value": "Im Namen und für Rechnung der Gemeinde vereinnahmt (Kurbeitrag) — durchlaufender Posten gemäß § 10 Abs. 1 Satz 4 UStG, unterliegt nicht der Umsatzsteuer." },
+        { "UID": "tr-tcn-de-0007", "recordId": "000000000-tax-cat-0007", "tableName": "tax_categories", "fieldName": "invoiceNote", "language": "de", "value": "Steuerfreie Vermietung gemäß § 4 Nr. 12 Buchst. a UStG (Beherbergung von mehr als sechs Monaten Dauer)." },
+
+        { "UID": "tr-tcn-ru-0006", "recordId": "000000000-tax-cat-0006", "tableName": "tax_categories", "fieldName": "invoiceNote", "language": "ru", "value": "Взимается от имени и за счёт общины (курортный сбор) — транзитная позиция согласно § 10 абз. 1 предл. 4 UStG, НДС не облагается." },
+        { "UID": "tr-tcn-ru-0007", "recordId": "000000000-tax-cat-0007", "tableName": "tax_categories", "fieldName": "invoiceNote", "language": "ru", "value": "Освобождённая от НДС аренда согласно § 4 п. 12 подп. a UStG (проживание сроком более шести месяцев)." },
+
+        { "UID": "tr-tcn-pl-0006", "recordId": "000000000-tax-cat-0006", "tableName": "tax_categories", "fieldName": "invoiceNote", "language": "pl", "value": "Pobierane w imieniu i na rachunek gminy (opłata uzdrowiskowa) — pozycja przejściowa zgodnie z § 10 ust. 1 zd. 4 UStG, nie podlega VAT." },
+        { "UID": "tr-tcn-pl-0007", "recordId": "000000000-tax-cat-0007", "tableName": "tax_categories", "fieldName": "invoiceNote", "language": "pl", "value": "Najem zwolniony z VAT zgodnie z § 4 pkt 12 lit. a UStG (zakwaterowanie na okres dłuższy niż sześć miesięcy)." }
     ]
 }

@@ -36,10 +36,34 @@
         "pl": "Data rachunku"
     },
     "invoice_period_label": {
-        "en": "Period",
-        "ru": "Период",
-        "de": "Zeitraum",
-        "pl": "Okres"
+        "en": "Service period",
+        "ru": "Период оказания услуг",
+        "de": "Leistungszeitraum",
+        "pl": "Okres świadczenia usług"
+    },
+    "invoice_due_date_label": {
+        "en": "Payment due",
+        "ru": "Срок оплаты",
+        "de": "Zahlbar bis",
+        "pl": "Termin płatności"
+    },
+    "invoice_col_pos": {
+        "en": "No.",
+        "ru": "№",
+        "de": "Pos.",
+        "pl": "Lp."
+    },
+    "invoice_col_qty": {
+        "en": "Qty",
+        "ru": "Кол-во",
+        "de": "Menge",
+        "pl": "Ilość"
+    },
+    "invoice_col_unit_price": {
+        "en": "Unit price",
+        "ru": "Цена за ед.",
+        "de": "Einzelpreis",
+        "pl": "Cena jedn."
     },
     "invoice_col_description": {
         "en": "Service / Description",
@@ -65,11 +89,29 @@
         "de": "Gesamtpreis",
         "pl": "Cena całkowita"
     },
-    "invoice_of_which_vat": {
-        "en": "incl. VAT",
-        "ru": "в т.ч. НДС",
-        "de": "davon MwSt.",
-        "pl": "w tym VAT"
+    "invoice_col_net": {
+        "en": "Net",
+        "ru": "Нетто",
+        "de": "Netto",
+        "pl": "Netto"
+    },
+    "invoice_col_gross": {
+        "en": "Gross",
+        "ru": "Брутто",
+        "de": "Brutto",
+        "pl": "Brutto"
+    },
+    "invoice_vat_breakdown_title": {
+        "en": "Breakdown by VAT rate",
+        "ru": "Разбивка по ставкам НДС",
+        "de": "Aufschlüsselung nach Steuersätzen",
+        "pl": "Podział według stawek VAT"
+    },
+    "invoice_sum_label": {
+        "en": "Total",
+        "ru": "Итого",
+        "de": "Summe",
+        "pl": "Razem"
     },
     "invoice_subtotal": {
         "en": "Subtotal",
@@ -148,6 +190,54 @@
         "ru": "из",
         "de": "von",
         "pl": "z"
+    },
+    "invoice_missing_data_title": {
+        "en": "Attention: mandatory invoice details are missing (§ 14 UStG)",
+        "ru": "Внимание: не заполнены обязательные реквизиты счёта (§ 14 UStG)",
+        "de": "Achtung: Pflichtangaben der Rechnung fehlen (§ 14 UStG)",
+        "pl": "Uwaga: brakuje obowiązkowych danych rachunku (§ 14 UStG)"
+    },
+    "invoice_missing_data_hint": {
+        "en": "This notice is shown in the preview only and is not printed. An invoice without these details is legally defective — the recipient cannot deduct input VAT.",
+        "ru": "Это предупреждение видно только в предпросмотре и не печатается. Счёт без этих реквизитов юридически дефектен — получатель не сможет принять НДС к вычету.",
+        "de": "Dieser Hinweis erscheint nur in der Vorschau und wird nicht gedruckt. Eine Rechnung ohne diese Angaben ist rechtlich fehlerhaft — der Empfänger kann keinen Vorsteuerabzug geltend machen.",
+        "pl": "Ta informacja jest widoczna tylko w podglądzie i nie jest drukowana. Rachunek bez tych danych jest wadliwy prawnie — odbiorca nie odliczy VAT."
+    },
+    "invoice_missing_org_name": {
+        "en": "Supplier name is not set (organization)",
+        "ru": "Не заполнено наименование организации-исполнителя",
+        "de": "Name des leistenden Unternehmers fehlt (Organisation)",
+        "pl": "Brak nazwy usługodawcy (organizacja)"
+    },
+    "invoice_missing_org_address": {
+        "en": "Supplier address is not set (organization)",
+        "ru": "Не заполнен адрес организации-исполнителя",
+        "de": "Anschrift des leistenden Unternehmers fehlt (Organisation)",
+        "pl": "Brak adresu usługodawcy (organizacja)"
+    },
+    "invoice_missing_tax_number": {
+        "en": "Tax number / VAT ID of the organization is not set",
+        "ru": "Не заполнен налоговый номер (Steuernummer/USt-IdNr) организации",
+        "de": "Steuernummer bzw. USt-IdNr. der Organisation fehlt",
+        "pl": "Brak numeru podatkowego (Steuernummer/USt-IdNr) organizacji"
+    },
+    "invoice_missing_client_name": {
+        "en": "Recipient name is not set (client)",
+        "ru": "Не заполнено наименование получателя (клиента)",
+        "de": "Name des Leistungsempfängers fehlt (Kunde)",
+        "pl": "Brak nazwy odbiorcy (klient)"
+    },
+    "invoice_missing_client_address": {
+        "en": "Recipient address is not set — mandatory for invoices above 250 EUR",
+        "ru": "Не заполнен адрес получателя — обязателен для счетов свыше 250 €",
+        "de": "Anschrift des Leistungsempfängers fehlt — Pflicht bei Rechnungen über 250 EUR",
+        "pl": "Brak adresu odbiorcy — wymagany dla rachunków powyżej 250 EUR"
+    },
+    "invoice_missing_number": {
+        "en": "Invoice number is not assigned",
+        "ru": "Не присвоен номер счёта",
+        "de": "Rechnungsnummer ist nicht vergeben",
+        "pl": "Nie nadano numeru rachunku"
     },
     "invoice_note": {
         "en": "Invoice note (printed as-is)",

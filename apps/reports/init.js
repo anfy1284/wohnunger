@@ -104,6 +104,29 @@ module.exports = async function (modelsDB) {
                 // Тот же хелпер использует fillInvoice при построении строк — единый язык.
                 const lang = await resolveOrgReportLang(modelsDB, org && org.UID);
 
+                // Основания ставок НДС (§ 14 Abs. 4 Nr. 8 UStG) — ДАННЫЕ справочника
+                // tax_categories.invoiceNote, а не текст в шаблоне: одна ставка 0%
+                // может значить «durchlaufender Posten» (§ 10 Abs. 1 S. 4) или
+                // освобождение (§ 4 Nr. 12a). Строка счёта хранит снапшот категории.
+                // Перевод — на язык ДОКУМЕНТА (не сессии), поэтому lookup берём явно.
+                const taxCategories = {};
+                try {
+                    const catIds = [...new Set(lines.map(l => l.taxCategoryId).filter(Boolean))];
+                    if (catIds.length && modelsDB.TaxCategories) {
+                        const cats = await modelsDB.TaxCategories.findAll({ where: { UID: catIds }, raw: true });
+                        const tmw = require('../../node_modules/my-old-space/drive_root/translationMiddleware');
+                        const lookup = (lang && lang !== 'en')
+                            ? await tmw.getTranslationLookup('tax_categories', lang, modelsDB) : null;
+                        for (const c of cats) {
+                            const tr = lookup && lookup.get(c.UID + '|invoiceNote');
+                            taxCategories[c.UID] = {
+                                name: (lookup && lookup.get(c.UID + '|name')) || c.name,
+                                invoiceNote: tr !== undefined && tr !== null ? tr : c.invoiceNote
+                            };
+                        }
+                    }
+                } catch (e) { console.warn('[reports] taxCategories resolve:', e && e.message); }
+
                 // Примечание в счёте — из варианта отчёта, выбранного в самом счёте
                 // (invoices.reportVariantId → report_variants.invoiceNote).
                 // Печатается как есть, без перевода.
@@ -122,7 +145,7 @@ module.exports = async function (modelsDB) {
                 const localeMap = { en: 'en-GB', ru: 'ru-RU', pl: 'pl-PL', de: 'de-DE' };
                 const locale = localeMap[lang] || 'de-DE';
 
-                const html = renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote });
+                const html = renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote, taxCategories });
                 return { html };
             },
 

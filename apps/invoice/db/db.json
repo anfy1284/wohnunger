@@ -248,6 +248,17 @@
                     "onDelete": "RESTRICT",
                     "caption": { "i18n": "tax_rate" }
                 },
+                "taxCategoryId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "tax_categories",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "tax_category" }
+                },
                 "taxRate": {
                     "type": "INTEGER",
                     "allowNull": false,
@@ -396,6 +407,18 @@
             "source": "InvoiceLines",
             "target": "TaxRates",
             "foreignKey": "taxRateId"
+        },
+        {
+            "type": "hasMany",
+            "source": "TaxCategories",
+            "target": "InvoiceLines",
+            "foreignKey": "taxCategoryId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "InvoiceLines",
+            "target": "TaxCategories",
+            "foreignKey": "taxCategoryId"
         }
     ]
 }

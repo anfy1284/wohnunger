@@ -170,6 +170,12 @@ module.exports = function (modelsDB, Utilities) {
         }
         const rateByCode = (code, fallback) => resolveRate(catCodeToId[code], fallback);
         const svcRate = svc => resolveRate(svc.taxCategoryId, 0);
+        // Налоговая категория пишется в строку СНАПШОТОМ (как и % ставки): из неё
+        // печатная форма берёт основание ставки (tax_categories.invoiceNote) —
+        // напр. «durchlaufender Posten § 10 Abs. 1 S. 4 UStG» для курсбора.
+        // Одна и та же ставка 0% может иметь РАЗНЫЕ основания, поэтому хранить
+        // достаточно ставки нельзя.
+        const ACCOMMODATION_CAT = catCodeToId['accommodation'] || null;
 
         // Делит строку услуги на компоненты НДС (percent/amount/remainder),
         // поглощая копеечный дрейф. Логика без изменений (см. историю в booking).
@@ -202,6 +208,7 @@ module.exports = function (modelsDB, Utilities) {
                     taxComponentName: c.name,
                     unitPrice: unitPart,
                     taxRate: resolveRate(c.taxCategoryId, base.taxRate),
+                    taxCategoryId: c.taxCategoryId || base.taxCategoryId || null,
                     amount
                 }));
                 amtSum = r2(amtSum + amount);
@@ -263,6 +270,7 @@ module.exports = function (modelsDB, Utilities) {
                     label:    tfInv('room_line_label', { room: rLabel, guests: billingGuests, nights }),
                     quantity: nights, unitPrice: rp.price,
                     taxRate:  rateByCode('accommodation', 0),
+                    taxCategoryId: ACCOMMODATION_CAT,
                     amount:   r2(rp.price * nights), sortOrder: ++sortOrd
                 });
             }
@@ -277,6 +285,7 @@ module.exports = function (modelsDB, Utilities) {
                     sectionLabel: tInv('accommodation_section'),
                     label:    tfInv('children_3_5_line_label', { room: rLabel, count: kids3_5, nights }),
                     quantity: qty, unitPrice: childNightPrice, taxRate: rateByCode('accommodation', 0),
+                    taxCategoryId: ACCOMMODATION_CAT,
                     amount:   r2(qty * childNightPrice), sortOrder: ++sortOrd
                 });
             }
@@ -291,6 +300,7 @@ module.exports = function (modelsDB, Utilities) {
                     sectionLabel: tInv('accommodation_section'),
                     label:    tfInv('children_2_line_label', { room: rLabel, count: kids2, nights }),
                     quantity: qty2, unitPrice: childNightPrice, taxRate: rateByCode('accommodation', 0),
+                    taxCategoryId: ACCOMMODATION_CAT,
                     amount:   r2(qty2 * childNightPrice), sortOrder: ++sortOrd
                 });
             }
@@ -332,6 +342,7 @@ module.exports = function (modelsDB, Utilities) {
                             sectionLabel: svc.name,
                             label:    ageLabel,
                             quantity: qty, unitPrice: sp.price, taxRate: svcRate(svc),
+                            taxCategoryId: svc.taxCategoryId || null,
                             amount:   r2(qty * sp.price), sortOrder: ++sortOrd
                         }, rs.serviceId);
                     }
@@ -347,6 +358,7 @@ module.exports = function (modelsDB, Utilities) {
                             serviceId: rs.serviceId, sectionLabel: svc.name,
                             label:    svcLabel,
                             quantity: qty, unitPrice: price, taxRate: svcRate(svc),
+                            taxCategoryId: svc.taxCategoryId || null,
                             amount:   r2(qty * price), sortOrder: ++sortOrd
                         }, rs.serviceId);
                     }
@@ -416,7 +428,9 @@ module.exports = function (modelsDB, Utilities) {
             if (ln.serviceId) {
                 const rate = ln.taxRate || 0;
                 const comp = ln.taxComponentName || '';
-                const key = ln.serviceId + '|' + comp + '|' + rate;
+                // Категория — часть ключа: одинаковая ставка с РАЗНЫМ основанием
+                // (0% durchlaufender Posten vs 0% § 4 Nr. 12a) не должна сливаться.
+                const key = ln.serviceId + '|' + comp + '|' + rate + '|' + (ln.taxCategoryId || '');
                 let g = svcGroups.get(key);
                 if (!g) {
                     const base = ln.sectionLabel || ln.label;
@@ -447,6 +461,7 @@ module.exports = function (modelsDB, Utilities) {
                 quantity:         uniform ? qtySum : 1,
                 unitPrice:        uniform ? (Number(g.rows[0].unitPrice) || 0) : amount,
                 taxRate:          g.proto.taxRate || 0,
+                taxCategoryId:    g.proto.taxCategoryId || null,
                 amount
             });
         }
@@ -705,6 +720,7 @@ module.exports = function (modelsDB, Utilities) {
                         if (row[f] === '') row[f] = null;
                     }
                     if (row.taxRateId === '') row.taxRateId = null;
+                    if (row.taxCategoryId === '') row.taxCategoryId = null;
 
                     // Услуга из справочника: имя строки, а при пустой ставке — ставка
                     // её налоговой группы на дату счёта.
@@ -712,6 +728,7 @@ module.exports = function (modelsDB, Utilities) {
                     if (svc) {
                         if (!row.label) row.label = svc.name;
                         if (!row.sectionLabel) row.sectionLabel = svc.name;
+                        if (!row.taxCategoryId) row.taxCategoryId = svc.taxCategoryId || null;
                         if (!row.taxRateId) {
                             const rr = await rateByCategory(svc.taxCategoryId);
                             if (rr) row.taxRateId = rr.UID;
@@ -722,6 +739,18 @@ module.exports = function (modelsDB, Utilities) {
                     // (снапшот % в taxRate обновляется под выбранную ставку).
                     if (row.taxRateId && rateById[row.taxRateId] != null) {
                         row.taxRate = rateById[row.taxRateId];
+                    }
+
+                    // Снапшот налоговой категории действителен, только пока её
+                    // ставка на дату счёта совпадает с фактической ставкой строки.
+                    // Пользователь вручную сменил ставку → основание («durchlaufender
+                    // Posten» и т.п.) к строке больше не относится, снимаем его,
+                    // иначе сноска в печати уедет не на ту строку свода.
+                    if (row.taxCategoryId) {
+                        const catRate = await rateByCategory(row.taxCategoryId);
+                        if (!catRate || Number(catRate.rate) !== Number(row.taxRate || 0)) {
+                            row.taxCategoryId = null;
+                        }
                     }
 
                     // Авторитетный пересчёт суммы (клиентский onChange — только для отклика).
