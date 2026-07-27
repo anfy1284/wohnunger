@@ -31,9 +31,12 @@ const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'
  * @param {function} [opts.tf]     — переводчик с плейсхолдерами tf(key, vars)
  * @param {string} [opts.locale]  — локаль форматирования дат/чисел (напр. 'de-DE')
  * @param {string} [opts.lang]    — код языка документа (для <html lang>)
- * @param {object} [opts.taxCategories] — { [UID]: { name, invoiceNote } } налоговые
- *        категории строк счёта, УЖЕ на языке документа. `invoiceNote` — основание
- *        ставки (§ 14 Abs. 4 Nr. 8 UStG): печатается сноской под сводом НДС.
+ * @param {object} [opts.taxCategories] — { [UID]: { name, invoiceNote, discountable } }
+ *        налоговые категории строк счёта, УЖЕ на языке документа. `invoiceNote` —
+ *        основание ставки/освобождения (§ 14 Abs. 4 Nr. 8 UStG): печатается сноской
+ *        под сводом НДС. `discountable === false` — на оборот этой категории скидка
+ *        не распространяется (durchlaufender Posten): строка исключается из базы
+ *        скидки и печатается полной суммой.
  * @returns {string} HTML-документ
  */
 function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote, taxCategories }) {
@@ -94,54 +97,84 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     }
     const flatLines = sections.reduce((acc, s) => acc.concat(s.lines), []);
 
-    // Суммы по ставкам MwSt (брутто ДО скидки — Zwischensumme).
-    // Вместе со ставкой копим налоговые категории строк — из них берутся
-    // основания ставки для сносок (данные, не текст шаблона).
-    let subtotalBrutto = 0;
-    const taxGroups = {};
+    // Zwischensumme (брутто всех строк до скидки) и БАЗА СКИДКИ.
+    // База ≠ Zwischensumme: скидка распространяется не на весь документ.
+    // Durchlaufender Posten (курсбор) — деньги общины, а не оборот отеля
+    // (§ 10 Abs. 1 Satz 4 UStG); отель не вправе его уменьшать, иначе
+    // (а) гостю выставлено меньше, чем причитается общине, (б) сумма получена
+    // и передана НЕ без изменений → признак durchlaufender Posten теряется и
+    // позиция превращается в собственный оборот отеля. Признак — ДАННЫЕ
+    // справочника (`tax_categories.discountable`), не код шаблона.
+    const catMap = taxCategories || {};
+    // Скидочность решается ПО СТРОКЕ, а не по налоговой группе: одна ставка 0%
+    // несёт и pass_through (скидка запрещена), и exempt_longterm § 4 Nr. 12a
+    // (собственный освобождённый оборот — скидка допустима), группировка по
+    // ставке такое различие не выражает. Нет снапшота категории (пользователь
+    // вручную сменил ставку в строке) → строка считается скидочной.
+    const isDiscountable = (ln) => {
+        const c = ln.taxCategoryId ? catMap[ln.taxCategoryId] : null;
+        return !(c && c.discountable === false);
+    };
+    let subtotalBrutto = 0, discountBase = 0;
     for (const ln of flatLines) {
         subtotalBrutto += ln.amount;
-        const rate = ln.taxRate || 0;
-        if (!taxGroups[rate]) taxGroups[rate] = { brutto: 0, mwst: 0, cats: new Set() };
-        taxGroups[rate].brutto += ln.amount;
-        if (ln.taxCategoryId) taxGroups[rate].cats.add(ln.taxCategoryId);
+        if (isDiscountable(ln)) discountBase += ln.amount;
     }
     subtotalBrutto = Math.round(subtotalBrutto * 100) / 100;
+    discountBase   = Math.round(discountBase * 100) / 100;
 
-    // Скидка на общую сумму (документальный реквизит invoices.discountMode/Value):
-    // процент или абсолют. Раскладывается ПРОПОРЦИОНАЛЬНО брутто каждой налоговой
-    // группы (k = скидочный/исходный брутто), поэтому НДС по группам пересчитывается
-    // корректно. Копеечный дрейф распределения гасим в крупнейшую группу.
+    // Скидка (документальный реквизит invoices.discountMode/Value): процент от
+    // скидочной базы либо абсолют, но не больше базы.
     const discMode = invoice.discountMode || 'percent';
     const discInput = Number(invoice.discountValue) || 0;
     let discount = (discMode === 'percent')
-        ? Math.round(subtotalBrutto * discInput / 100 * 100) / 100
+        ? Math.round(discountBase * discInput / 100 * 100) / 100
         : Math.round(discInput * 100) / 100;
     if (discount < 0) discount = 0;
-    if (discount > subtotalBrutto) discount = subtotalBrutto; // итог не уходит в минус
+    if (discount > discountBase) discount = discountBase; // недискаунтируемое не трогаем
     const discPctLabel = discInput.toLocaleString(locale, { maximumFractionDigits: 2 });
 
     const discountedBrutto = Math.round((subtotalBrutto - discount) * 100) / 100;
-    const k = subtotalBrutto > 0 ? discountedBrutto / subtotalBrutto : 0;
 
-    const rateKeys = Object.keys(taxGroups);
-    let allocSum = 0, maxRate = null;
-    for (const rate of rateKeys) {
-        const g = taxGroups[rate];
-        g.bruttoDisc = Math.round(g.brutto * k * 100) / 100;
-        allocSum = Math.round((allocSum + g.bruttoDisc) * 100) / 100;
-        if (maxRate === null || g.brutto > taxGroups[maxRate].brutto) maxRate = rate;
+    // Раскладка скидки ПО СТРОКАМ пропорционально их брутто (k = остаток/база).
+    // Копеечный дрейф гасим в самую крупную скидочную строку.
+    const k = discountBase > 0 ? (discountBase - discount) / discountBase : 1;
+    const lineBrutto = new Map();
+    let allocSum = 0, driftLine = null;
+    for (const ln of flatLines) {
+        if (isDiscountable(ln)) {
+            const v = Math.round(ln.amount * k * 100) / 100;
+            lineBrutto.set(ln, v);
+            allocSum = Math.round((allocSum + v) * 100) / 100;
+            if (!driftLine || ln.amount > driftLine.amount) driftLine = ln;
+        } else {
+            lineBrutto.set(ln, Math.round(ln.amount * 100) / 100);
+        }
     }
-    if (maxRate !== null) {
-        const drift = Math.round((discountedBrutto - allocSum) * 100) / 100;
-        if (drift !== 0) taxGroups[maxRate].bruttoDisc = Math.round((taxGroups[maxRate].bruttoDisc + drift) * 100) / 100;
+    if (driftLine) {
+        const drift = Math.round((discountBase - discount - allocSum) * 100) / 100;
+        if (drift !== 0) lineBrutto.set(driftLine, Math.round((lineBrutto.get(driftLine) + drift) * 100) / 100);
+    }
+
+    // Группировка по ставке — из УЖЕ скидочных сумм строк. Вместе со ставкой
+    // копим налоговые категории строк: из них берутся основания ставки для
+    // сносок (данные, не текст шаблона).
+    const taxGroups = {};
+    for (const ln of flatLines) {
+        const rate = ln.taxRate || 0;
+        if (!taxGroups[rate]) taxGroups[rate] = { bruttoDisc: 0, mwst: 0, netto: 0, cats: new Set() };
+        const g = taxGroups[rate];
+        g.bruttoDisc = Math.round((g.bruttoDisc + lineBrutto.get(ln)) * 100) / 100;
+        if (ln.taxCategoryId) g.cats.add(ln.taxCategoryId);
     }
 
     // НДС и НЕТТО по группам — из скидочного брутто.
-    // Нетто по КАЖДОЙ ставке — обязательный реквизит § 14 Abs. 4 Nr. 8 UStG
-    // («nach Steuersätzen aufgeschlüsseltes Entgelt»), печатается в своде ниже.
+    // Нетто по КАЖДОЙ ставке — обязательный реквизит § 14 Abs. 4 Nr. 7 UStG
+    // («nach Steuersätzen und einzelnen Steuerbefreiungen aufgeschlüsseltes
+    // Entgelt»; Nr. 8 — сама ставка, сумма налога и Hinweis auf die
+    // Steuerbefreiung), печатается в своде ниже.
     let totalMwSt = 0;
-    for (const rate of rateKeys) {
+    for (const rate of Object.keys(taxGroups)) {
         const g = taxGroups[rate];
         const r = Number(rate);
         g.mwst   = Math.round(g.bruttoDisc * r / (100 + r) * 100) / 100;
@@ -209,7 +242,7 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
             : '')
         + '</table>';
 
-    // ── Свод по ставкам НДС (§ 14 Abs. 4 Nr. 8 UStG) ─────────────────────
+    // ── Свод по ставкам НДС (§ 14 Abs. 4 Nr. 7/8 UStG) ───────────────────
     // Нетто (Entgelt), НДС и брутто — ОТДЕЛЬНОЙ строкой на каждую ставку,
     // включая 0% (требование «nach Steuersätzen UND Steuerbefreiungen
     // aufgeschlüsselt»). Итоговая строка сверяется с общими суммами документа.
@@ -217,11 +250,10 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     // строках, и нумеруем в порядке появления. Одна ставка может нести несколько
     // оснований (напр. 0% = курсбор + освобождение § 4 Nr. 12a) — тогда у неё
     // будет несколько маркеров.
-    const cats = taxCategories || {};
     const footnotes = [];          // тексты по порядку
     const footnoteIdx = new Map(); // текст → номер (1-based)
     const noteNumFor = (catId) => {
-        const c = cats[catId];
+        const c = catMap[catId];
         const txt = c && c.invoiceNote ? String(c.invoiceNote).trim() : '';
         if (!txt) return 0;
         if (!footnoteIdx.has(txt)) { footnotes.push(txt); footnoteIdx.set(txt, footnotes.length); }

@@ -5,7 +5,7 @@
         { "UID": "000000000-tax-cat-0003", "code": "beverage",      "name": "Beverages",      "invoiceNote": null },
         { "UID": "000000000-tax-cat-0004", "code": "standard",      "name": "Standard rate",  "invoiceNote": null },
         { "UID": "000000000-tax-cat-0005", "code": "reduced",       "name": "Reduced rate",   "invoiceNote": null },
-        { "UID": "000000000-tax-cat-0006", "code": "pass_through",  "name": "Pass-through item",
+        { "UID": "000000000-tax-cat-0006", "code": "pass_through",  "name": "Pass-through item", "discountable": false,
           "invoiceNote": "Collected in the name and for the account of the municipality (visitor's tax) — pass-through item pursuant to § 10 (1) sentence 4 UStG, not subject to VAT." },
         { "UID": "000000000-tax-cat-0007", "code": "exempt_longterm", "name": "VAT-exempt (long-term letting)",
           "invoiceNote": "VAT-exempt letting pursuant to § 4 no. 12 (a) UStG (accommodation for a period exceeding six months)." }

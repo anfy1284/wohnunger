@@ -455,6 +455,12 @@
                     "allowNull": true,
                     "translatable": true,
                     "caption": { "i18n": "tax_category_invoice_note" }
+                },
+                "discountable": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": true,
+                    "caption": { "i18n": "tax_category_discountable" }
                 }
             },
             "options": {

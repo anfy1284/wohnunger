@@ -121,7 +121,11 @@ module.exports = async function (modelsDB) {
                             const tr = lookup && lookup.get(c.UID + '|invoiceNote');
                             taxCategories[c.UID] = {
                                 name: (lookup && lookup.get(c.UID + '|name')) || c.name,
-                                invoiceNote: tr !== undefined && tr !== null ? tr : c.invoiceNote
+                                invoiceNote: tr !== undefined && tr !== null ? tr : c.invoiceNote,
+                                // Признак «на этот оборот скидка распространяется».
+                                // false у durchlaufender Posten: курсбор — деньги общины,
+                                // отель не вправе их уменьшать (см. раскладку скидки в шаблоне).
+                                discountable: c.discountable !== false
                             };
                         }
                     }

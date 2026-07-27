@@ -251,6 +251,12 @@
         "de": "Rechnungshinweis (Rechtsgrundlage des Satzes)",
         "pl": "Uwaga na rachunku (podstawa prawna stawki)"
     },
+    "tax_category_discountable": {
+        "en": "Discount may be applied",
+        "ru": "Скидка применима",
+        "de": "Nachlass zulässig",
+        "pl": "Rabat dopuszczalny"
+    },
     "tax_split_mode": {
         "en": "Split mode",
         "ru": "Способ деления",
