@@ -312,16 +312,25 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     const orgTaxNumber  = org    && org.taxNumber ? esc(org.taxNumber) : '';
     const orgIban       = org    && org.iban   ? esc(org.iban)   : '';
     const orgBic        = org    && org.bic    ? esc(org.bic)    : '';
+    const orgBankName   = org    && org.bankName ? esc(org.bankName) : '';
+    const orgAccHolder  = org    && org.accountHolder ? esc(org.accountHolder) : '';
 
     // ── Колонтитул (Pflichtangaben), повторяется на каждом листе ──
+    // Банковский блок: банк / IBAN / BIC / владелец счёта — пустые
+    // реквизиты не оставляют пустых строк.
+    const bankLines = [
+        orgBankName,
+        orgIban      ? 'IBAN:&nbsp;' + orgIban : '',
+        orgBic       ? 'BIC:&nbsp;' + orgBic : '',
+        orgAccHolder
+    ].filter(Boolean);
+
     const footerInner =
         '<div class="ft-col ft-org">' + orgName + (orgAddress ? '<br/>' + orgAddress : '') + '</div>'
         + '<div class="ft-col ft-center">'
         + (orgTaxNumber ? t('invoice_tax_number_label') + ': ' + orgTaxNumber + '<br/>' : '')
         + '<span class="page-num"></span></div>'
-        + '<div class="ft-col ft-bank">'
-        + (orgIban ? 'IBAN:&nbsp;' + orgIban : '')
-        + (orgBic ? '<br/>BIC:&nbsp;' + orgBic : '') + '</div>';
+        + '<div class="ft-col ft-bank">' + bankLines.join('<br/>') + '</div>';
 
     // ── Бегущая шапка на листах со 2-го (повтор номера счёта/клиента) ──
     const runHeadInner =

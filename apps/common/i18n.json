@@ -155,6 +155,12 @@
         "de": "Steuernummer",
         "pl": "Numer podatkowy (NIP)"
     },
+    "BankName": {
+        "en": "Bank",
+        "ru": "Банк",
+        "de": "Bank",
+        "pl": "Bank"
+    },
     "IBAN": {
         "en": "IBAN",
         "ru": "IBAN",
@@ -166,6 +172,12 @@
         "ru": "BIC",
         "de": "BIC",
         "pl": "BIC"
+    },
+    "AccountHolder": {
+        "en": "Account holder",
+        "ru": "Владелец счёта",
+        "de": "Kontoinhaber",
+        "pl": "Właściciel rachunku"
     },
     "is_active": {
         "en": "Active",

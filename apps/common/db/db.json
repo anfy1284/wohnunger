@@ -58,6 +58,11 @@
                     "allowNull": true,
                     "caption": { "i18n": "TaxNumber" }
                 },
+                "bankName": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": { "i18n": "BankName" }
+                },
                 "iban": {
                     "type": "STRING",
                     "allowNull": true,
@@ -67,6 +72,11 @@
                     "type": "STRING",
                     "allowNull": true,
                     "caption": { "i18n": "BIC" }
+                },
+                "accountHolder": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": { "i18n": "AccountHolder" }
                 },
                 "description": {
                     "type": "STRING",
