@@ -68,8 +68,9 @@ Server form functions receive `(params, ctx)` where `ctx = { sessionID, user, ro
 ### Access control / Row-Level Security
 `dbGateway.js` (repo root) registers an **app-level middleware** that runs before every DB operation. It resolves the user *only* from `sessionID` (never trusts a passed `userId`/`role`), then constrains `read/findOne/count/update/delete` to rows the user may see, filtering by `organizationId` / `hotelId` / `userId` (the `required_access_fields` in `app.config.json`).
 - `admin` role bypasses filtering.
-- Tables in `excluded_tables` (`app.config.json`) are skipped — these are global reference tables. `organizations` is excluded but still gets a special-cased RLS filter by its own `UID`.
-- **Internal/system calls** must pass `context.sessionID === '__SYS_INTERNAL__'` (`SYSTEM_SESSION_ID`) to bypass RLS — never pass a fake `userId`/`role` instead. Grep `__SYS_INTERNAL__` to audit every bypass.
+- Filters are combined with **OR**, not AND: a row is visible if *any* of them matches.
+- Tables in `excluded_tables` (`app.config.json`) are skipped — meaning **visible to everyone**, not "admin-only". These are global *public* reference tables. `organizations` is excluded but still gets a special-cased RLS filter by its own `UID`. A system table with no organization (scheduler, backup, db-version bookkeeping) does **not** go here — give it a nullable `organizationId` left `NULL` instead: the startup validator passes and non-admins can't see the rows. Tabular sections need their own access field too — inheriting from the parent doesn't satisfy the validator (see `invoice_lines`).
+- **Internal/system calls** must pass `context.sessionID === '__SYS_INTERNAL__'` (`SYSTEM_SESSION_ID`) to bypass RLS — never pass a fake `userId`/`role` instead. Grep `__SYS_INTERNAL__` to audit every bypass. Its scope is a mechanism's *own* bookkeeping tables. Background work acting **on behalf of a user** (scheduler tasks, mailings) must instead run under a real **service session** — a `sessions` row owned by the task's owner — so RLS applies through the same code path as for a live user. Details: section 33 of `АРХИТЕКТУРА_ПРОЕКТА.md`.
 - Policy: every non-excluded table **must** have at least one `required_access_field`; this is validated at startup.
 
 ### i18n
