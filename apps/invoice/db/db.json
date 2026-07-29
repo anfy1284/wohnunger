@@ -54,7 +54,14 @@
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "draft",
-                    "caption": { "i18n": "Status" }
+                    "caption": { "i18n": "Status" },
+                    "inputType": "emunList",
+                    "options": [
+                        { "value": "draft",     "caption": { "i18n": "invoice_status_draft" } },
+                        { "value": "issued",    "caption": { "i18n": "invoice_status_issued" } },
+                        { "value": "paid",      "caption": { "i18n": "invoice_status_paid" } },
+                        { "value": "cancelled", "caption": { "i18n": "invoice_status_cancelled" } }
+                    ]
                 },
                 "prepayment": {
                     "type": "FLOAT",
@@ -77,7 +84,12 @@
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "percent",
-                    "caption": { "i18n": "discount_mode_field" }
+                    "caption": { "i18n": "discount_mode_field" },
+                    "inputType": "emunList",
+                    "options": [
+                        { "value": "percent", "caption": "%" },
+                        { "value": "amount",  "caption": "€" }
+                    ]
                 },
                 "reportVariantId": {
                     "type": "STRING",

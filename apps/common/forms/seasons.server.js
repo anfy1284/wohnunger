@@ -8,6 +8,8 @@
 // Каждая функция получает (params, ctx) где ctx = { sessionID, user, role }.
 
 const { tForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
+// Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
+const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -48,8 +50,11 @@ module.exports = function (modelsDB, Utilities) {
             }
 
             // 2. Контроль периодов
+            // Заполненность проверяется через isEmptyDate: пустая дата в
+            // проекте — 0001-01-01, а не NULL, поэтому `!row.dateFrom`
+            // пропустило бы незаполненный период как заполненный.
             for (const row of (tabularSections.season_periods || [])) {
-                if (!row.dateFrom || !row.dateTo) {
+                if (isEmptyDate(row.dateFrom) || isEmptyDate(row.dateTo)) {
                     throw new Error(await tForSession('season_period_dates_required', ctx.sessionID));
                 }
                 if (new Date(row.dateTo) <= new Date(row.dateFrom)) {

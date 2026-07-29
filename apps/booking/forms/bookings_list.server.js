@@ -13,6 +13,8 @@
 
 const globalRootCtx = require('../../../node_modules/my-old-space/drive_root/globalServerContext');
 const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGateway');
+// Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
+const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -82,7 +84,10 @@ module.exports = function (modelsDB, Utilities) {
             // Брони отеля (RLS), фильтр пересечения с окном.
             const from = result.from, to = result.to;
             const allBookings = await dbGateway.execute({ operation: 'read', table: 'bookings', where: { hotelId }, options: { raw: true }, context: ctxDb }) || [];
-            const bookings = allBookings.filter(b => b.checkIn && b.checkOut && overlaps(b, from, to));
+            // Даты проверяются через isEmptyDate: пустая дата в проекте —
+            // 0001-01-01, а не NULL, поэтому `b.checkIn &&` пропустило бы
+            // бронь без дат в шахматку.
+            const bookings = allBookings.filter(b => !isEmptyDate(b.checkIn) && !isEmptyDate(b.checkOut) && overlaps(b, from, to));
             if (!bookings.length) return result;
 
             const bookingIds = bookings.map(b => b.UID);

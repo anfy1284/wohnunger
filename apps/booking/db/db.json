@@ -94,7 +94,12 @@
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "percent",
-                    "caption": { "i18n": "discount_mode_field" }
+                    "caption": { "i18n": "discount_mode_field" },
+                    "inputType": "emunList",
+                    "options": [
+                        { "value": "percent", "caption": "%" },
+                        { "value": "amount",  "caption": "€" }
+                    ]
                 }
             },
             "options": {

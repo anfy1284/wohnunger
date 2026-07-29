@@ -11,6 +11,9 @@
 // Работает одинаково в превью (iframe, непрерывный скролл) и при печати.
 // ─────────────────────────────────────────────────────────────────────
 
+// Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
+const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
+
 const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // Печать БЕЗ повторной группировки: ТЧ счёта хранит строки уже в «печатном»
@@ -62,17 +65,20 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     const invoiceNum  = invoice.number || invoice.UID.slice(0, 8);
     const invoiceDate = fmtDate(invoice.date || new Date());
     // Период проживания в шапке — по всем броням счёта (min заезд … max выезд).
+    // Заполненность даты проверяется через isEmptyDate, а не через `if (date)`:
+    // пустая дата в проекте — 0001-01-01, значение истинное. Простая проверка
+    // напечатала бы в счёте «01.01.0001» — в документе, который уходит клиенту.
     let minIn = null, maxOut = null;
     for (const b of bookings) {
-        if (b.checkIn  && (!minIn  || new Date(b.checkIn)  < new Date(minIn)))  minIn  = b.checkIn;
-        if (b.checkOut && (!maxOut || new Date(b.checkOut) > new Date(maxOut))) maxOut = b.checkOut;
+        if (!isEmptyDate(b.checkIn)  && (!minIn  || new Date(b.checkIn)  < new Date(minIn)))  minIn  = b.checkIn;
+        if (!isEmptyDate(b.checkOut) && (!maxOut || new Date(b.checkOut) > new Date(maxOut))) maxOut = b.checkOut;
     }
     const checkIn     = minIn  ? fmtDate(minIn)  : '';
     const checkOut    = maxOut ? fmtDate(maxOut) : '';
     const prepayment  = Number(invoice.prepayment) || 0;
     // Срок оплаты (invoices.dueDate) — не реквизит § 14 UStG, но если задан, он
     // обязан попасть в печать (иначе введённые данные теряются).
-    const dueDate     = invoice.dueDate ? fmtDate(invoice.dueDate) : '';
+    const dueDate     = isEmptyDate(invoice.dueDate) ? '' : fmtDate(invoice.dueDate);
 
     // Строки печатаются КАК ХРАНЯТСЯ (WYSIWYG). При НЕСКОЛЬКИХ бронях —
     // посекционно (заголовок «Buchung Nr. X, даты» + строки этой брони);
@@ -318,11 +324,15 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     // ── Колонтитул (Pflichtangaben), повторяется на каждом листе ──
     // Банковский блок: банк / IBAN / BIC / владелец счёта — пустые
     // реквизиты не оставляют пустых строк.
+    // КАЖДЫЙ реквизит идёт с подписью: без неё значение, которое читателю
+    // непонятно, печатается голым (в счёте 00010 у клиента в подвале стояли
+    // «123» и «456» — название банка и владелец счёта). Документ уходит
+    // бухгалтерии контрагента: неподписанное значение там недопустимо.
     const bankLines = [
-        orgBankName,
+        orgBankName  ? t('invoice_bank_label')           + ':&nbsp;' + orgBankName  : '',
         orgIban      ? 'IBAN:&nbsp;' + orgIban : '',
         orgBic       ? 'BIC:&nbsp;' + orgBic : '',
-        orgAccHolder
+        orgAccHolder ? t('invoice_account_holder_label') + ':&nbsp;' + orgAccHolder : ''
     ].filter(Boolean);
 
     const footerInner =

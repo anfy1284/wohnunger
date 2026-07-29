@@ -168,7 +168,8 @@
                                             "properties": {
                                                 "showSelectionButton": true,
                                                 "selection": { "table": "services", "idField": "UID", "displayField": "name" }
-                                            }
+                                            },
+                                            "events": { "onChange": "onLineServiceSelected" }
                                         },
                                         { "caption": { "i18n": "Quantity" }, "data": "quantity", "width": 90, "inputType": "number", "events": { "onChange": "onLineQtyOrPriceEdited" } },
                                         { "caption": { "i18n": "unit_price" }, "data": "unitPrice", "width": 100, "inputType": "number", "events": { "onChange": "onLineQtyOrPriceEdited" } },
@@ -181,7 +182,7 @@
                                                 "selection": { "table": "tax_rates", "idField": "UID", "displayField": "name" }
                                             }
                                         },
-                                        { "caption": { "i18n": "Amount" }, "data": "amount", "width": 110, "inputType": "number" }
+                                        { "caption": { "i18n": "Amount" }, "data": "amount", "width": 110, "inputType": "number", "total": "sum" }
                                     ],
                                     "properties": {
                                         "editMode": "cell-immediate",

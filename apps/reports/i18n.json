@@ -155,6 +155,18 @@
         "de": "Steuernr.",
         "pl": "NIP"
     },
+    "invoice_bank_label": {
+        "en": "Bank",
+        "ru": "Банк",
+        "de": "Bank",
+        "pl": "Bank"
+    },
+    "invoice_account_holder_label": {
+        "en": "Account holder",
+        "ru": "Владелец счёта",
+        "de": "Kontoinhaber",
+        "pl": "Właściciel rachunku"
+    },
     "invoice_phone_label": {
         "en": "Phone",
         "ru": "Тел.",

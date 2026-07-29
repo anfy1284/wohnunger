@@ -244,6 +244,11 @@ async function _createInvoiceFromBooking(form) {
     }
     if (!result || result.error) { showAlert(__t('Error: ') + (result && result.error || '')); return; }
 
+    // Услуги брони, не попавшие в счёт (нет цены в прайс-листе / начисляются
+    // расчётом автоматически). Показываем ДО открытия формы счёта — иначе
+    // недостача денег в спецификации остаётся незамеченной.
+    if (result.skippedNotice) { try { await showAlert(result.skippedNotice); } catch(_) {} }
+
     if (window.MySpace && typeof window.MySpace.open === 'function') {
         await window.MySpace.open('uniForm', {
             mode: 'record',

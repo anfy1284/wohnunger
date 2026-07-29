@@ -39,6 +39,9 @@ async function printPriceList(ev, ctx) {
     if (!result || result.error) { showAlert(__t('Error: ') + (result && result.error || '')); return; }
 
     if (window.MySpace && typeof window.MySpace.open === 'function') {
+        // autoPrint: сразу окно предпросмотра печати браузера, в один клик.
+        // Решение владельца (2026-07-29) — см. тот же комментарий в
+        // apps/invoice/forms/invoices.client.js и бэклог B4.
         await window.MySpace.open('printPreview', { html: result.html, autoPrint: true });
     }
 }

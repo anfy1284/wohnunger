@@ -12,6 +12,8 @@
 
 const { tForSession, tfForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
 const formulaEngine = require('../../common/lib/formulaEngine');
+// Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
+const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -75,7 +77,9 @@ module.exports = function (modelsDB, Utilities) {
                     try { dbRec = await modelsDB.Bookings.findByPk(bId, { raw: true }); } catch (_) {}
                 }
                 const eff = Object.assign({}, dbRec || {}, changes || {});
-                if (eff.checkIn && eff.checkOut) {
+                // Пустая дата — 0001-01-01, а не NULL: проверять через
+                // isEmptyDate, иначе сравнение уйдёт на незаполненных датах.
+                if (!isEmptyDate(eff.checkIn) && !isEmptyDate(eff.checkOut)) {
                     const ci = new Date(eff.checkIn), co = new Date(eff.checkOut);
                     if (!isNaN(ci.getTime()) && !isNaN(co.getTime()) && co <= ci) {
                         throw new Error(await tForSession('checkout_after_checkin', ctx.sessionID));

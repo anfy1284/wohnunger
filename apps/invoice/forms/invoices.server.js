@@ -15,10 +15,31 @@
 // по дате ОКАЗАНИЯ услуги (дата заезда брони) — периодичность касается только цен.
 
 const i18n = require('../../../node_modules/my-old-space/drive_root/i18n');
+const formulaEngine = require('../../common/lib/formulaEngine');
 const { tForSession, tfForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
 const { resolveOrgReportLang } = require('../../organizationSettings/lib/orgReportLanguage');
 const { resolveOrgPricingMode } = require('../../organizationSettings/lib/orgPricingMode');
 const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGateway');
+// Пустая дата — это 0001-01-01, а не NULL (правило проекта, см.
+// drive_root/db/emptyValues.js). Проверять заполненность даты через
+// `if (r.validTo)` НЕЛЬЗЯ: 0001-01-01 — истинное значение, и такая
+// проверка объявит период действия истёкшим.
+const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
+
+// ── Периоды действия (validFrom..validTo) ────────────────────────────
+// Пустая граница означает «ограничения нет». Проверять её через
+// `if (r.validTo)` НЕЛЬЗЯ: пустая дата в проекте — 0001-01-01, значение
+// истинное, и такая проверка объявила бы период истёкшим. Практически это
+// значит, что КАЖДАЯ ставка НДС без даты окончания перестала бы
+// применяться, а счета остались бы без налога.
+const periodCovers = (r, day) =>
+    (isEmptyDate(r.validFrom) || new Date(r.validFrom) <= day) &&
+    (isEmptyDate(r.validTo)   || new Date(r.validTo)   >= day);
+
+// Для выбора «самой поздней из подходящих» пустое начало — минус
+// бесконечность: строка без даты начала действует всегда, но любая строка
+// с датой её перебивает.
+const validFromOrder = r => (isEmptyDate(r.validFrom) ? -Infinity : new Date(r.validFrom).getTime());
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -145,8 +166,7 @@ module.exports = function (modelsDB, Utilities) {
         const auxPrices = priceResolver.pickServicePrices(priceSlice, { serviceId: CHILD_SERVICE_ID });
         const auxPriceByAge = (serviceId, age, fallback) => {
             const p = auxPrices.find(x => x.serviceId === serviceId
-                && (x.ageFrom == null || x.ageFrom <= age)
-                && (x.ageTo == null || x.ageTo >= age));
+                && priceResolver.ageBandMatches(x, age, age));
             return p ? p.price : fallback;
         };
         const childNightPrice = auxPriceByAge(CHILD_SERVICE_ID, 3, 10);     // Kinder 2–5: 10 €/Nacht
@@ -154,15 +174,49 @@ module.exports = function (modelsDB, Utilities) {
         const lines = [];
         let sortOrd = 0;
 
+        // Услуги брони, которые НЕ дали ни одной строки счёта. Раньше такие услуги
+        // выпадали молча (нет цены в прайсе / услуга начисляется расчётом сам) —
+        // деньги пропадали из счёта без единого признака. Список уходит на клиент
+        // предупреждением (см. fillInvoice / prepareFromBooking).
+        //   reason: 'auto'    — начисляется расчётом автоматически, строка не нужна;
+        //   reason: 'noprice' — в срезе прайс-листов нет подходящей цены;
+        //   reason: 'manual'  — количество введено вручную и РАСХОДИТСЯ с правилом
+        //                       услуги: строка в счёт попадает (ручной ввод законно
+        //                       перебивает правило), но молчать об этом нельзя.
+        // Ноль по правилу услуги сюда НЕ попадает: это штатное состояние, а не
+        // потерянные деньги (решение владельца 2026-07-29).
+        const skipped = [];
+        const addSkipped = (name, reason, vars) => {
+            if (!name) return;
+            if (skipped.some(s => s.service === name && s.reason === reason)) return;
+            skipped.push({ service: name, reason, vars: vars || null });
+        };
+
+        // Количество услуги по её собственному правилу (services.quantityFormula)
+        // на срок этой брони. null — правила нет либо оно не вычисляется.
+        // Тот же движок и тот же реестр переменных, что и в пересчёте брони
+        // (apps/booking/forms/bookings.server.js) — второго источника правды нет.
+        const formulaVars = formulaEngine.resolveVariables({
+            checkIn: booking.checkIn, checkOut: booking.checkOut
+        });
+        const ruleQuantity = (svc) => {
+            const f = ((svc && svc.quantityFormula) || '').trim();
+            if (!f) return null;
+            let q = null;
+            try { q = formulaEngine.evaluate(f, formulaVars); } catch (_) { return null; }
+            if (q == null || !isFinite(q)) return null;
+            return Math.max(0, Math.round(q));
+        };
+
         // Ставка налоговой группы на дату ЗАЕЗДА (дата оказания услуги).
+        // periodCovers/validFromOrder — на уровне модуля, см. верх файла.
         function resolveRate(categoryId, fallback) {
             if (!categoryId) return fallback;
             let best = null;
             for (const r of taxCatRates) {
                 if (r.taxCategoryId !== categoryId) continue;
-                if (r.validFrom && new Date(r.validFrom) > checkInDate) continue;
-                if (r.validTo   && new Date(r.validTo)   < checkInDate) continue;
-                if (!best || new Date(r.validFrom || 0) > new Date(best.validFrom || 0)) best = r;
+                if (!periodCovers(r, checkInDate)) continue;
+                if (!best || validFromOrder(r) > validFromOrder(best)) best = r;
             }
             if (!best) return fallback;
             const val = rateValById[best.rateId];
@@ -223,11 +277,8 @@ module.exports = function (modelsDB, Utilities) {
         }
 
         // Компонент действует, если дата услуги (заезд) попадает в validFrom..validTo.
-        function componentApplies(c) {
-            if (c.validFrom && new Date(c.validFrom) > checkInDate) return false;
-            if (c.validTo   && new Date(c.validTo)   < checkInDate) return false;
-            return true;
-        }
+        // Пустая граница = ограничения нет (см. periodCovers выше).
+        const componentApplies = c => periodCovers(c, checkInDate);
 
         function emitServiceLine(base, serviceId) {
             const all = compMap[serviceId];
@@ -311,9 +362,42 @@ module.exports = function (modelsDB, Utilities) {
                 const svc = svcMap[rs.serviceId];
                 if (!svc) continue;
                 const cnt = Number(rs.count);
-                if (!cnt) continue;
+
+                // Сверка количества с правилом услуги. Ручной ввод (autoQuantity=false)
+                // правило перебивает — это законно, но пользователь обязан узнать, что
+                // счёт расходится с прайс-листом: счёт 00010 получил 120 € уборки,
+                // которую правило «только при проживании ≤ 3 ночей» начислять запрещает,
+                // и ни один из двух проверяющих этого не заметил.
+                const ruleQty = ruleQuantity(svc);
+                if (ruleQty != null && rs.autoQuantity === false && ruleQty !== cnt) {
+                    addSkipped(svc.name, 'manual', { count: cnt, expected: ruleQty });
+                }
+                if (!cnt) {
+                    // Ноль по правилу услуги — ШТАТНОЕ состояние, а не потерянные
+                    // деньги: условие услуги просто не выполнилось (уборка при
+                    // проживании > 3 ночей). Решение владельца 2026-07-29: об этом
+                    // не сообщать, сообщение было лишним. Предупреждаем только о
+                    // РАСХОЖДЕНИИ ручного ввода с правилом (см. выше) — там счёт
+                    // молча расходится с прайс-листом, и это пользователю важно.
+                    continue;
+                }
+
+                // Детский тариф проживания начисляется блоком №2 ИЗ СОСТАВА ГОСТЕЙ
+                // (kids3_5/kids2 × ночи). Если эта же услуга добавлена ещё и строкой
+                // ТЧ брони, начисление удваивается — ровно это дал счёт 00009
+                // (две строки по 75 € за одного ребёнка). Услуга-носитель цены не
+                // является отдельно продаваемой: строку игнорируем и говорим об этом.
+                if (rs.serviceId === CHILD_SERVICE_ID) {
+                    addSkipped(svc.name, 'auto');
+                    continue;
+                }
+
+                const linesBefore = lines.length;
                 const roomPriceRows = pricesForRoom(rs.serviceId, room.roomId);
-                const agePrices = roomPriceRows.filter(sp => sp.ageFrom != null);
+                // Полоса есть, если заполнена хотя бы одна граница. Прямое
+                // `ageFrom != null` здесь было бы неверно: по правилу умолчаний
+                // «пусто» у числа — это 0, а не NULL (см. priceResolver).
+                const agePrices = roomPriceRows.filter(sp => priceResolver.hasAgeBand(sp));
 
                 if (agePrices.length > 0) {
                     const groups = [
@@ -328,10 +412,7 @@ module.exports = function (modelsDB, Utilities) {
                         if (ag.n <= 0) continue;
                         const gt = gtMap[ag.gtId];
                         if (!gt) continue;
-                        const sp = agePrices.find(p =>
-                            p.ageFrom <= gt.ageFrom &&
-                            (p.ageTo == null || p.ageTo >= (gt.ageTo != null ? gt.ageTo : gt.ageFrom))
-                        );
+                        const sp = agePrices.find(p => priceResolver.ageBandMatches(p, gt.ageFrom, gt.ageTo));
                         if (!sp || sp.price === 0) continue;
                         const qty = ag.n * cnt;
                         const ageLabel = tfInv('service_age_group_label', { name: svc.name, ageGroup: tInv(ag.lblKey), count: ag.n, perRoom: cnt });
@@ -347,7 +428,7 @@ module.exports = function (modelsDB, Utilities) {
                         }, rs.serviceId);
                     }
                 } else {
-                    const sp    = roomPriceRows.find(p => p.ageFrom == null);
+                    const sp    = roomPriceRows.find(p => !priceResolver.hasAgeBand(p));
                     const price = sp ? sp.price : 0;
                     if (price > 0) {
                         const qty = cnt;
@@ -363,6 +444,12 @@ module.exports = function (modelsDB, Utilities) {
                         }, rs.serviceId);
                     }
                 }
+
+                // Услуга включена и количество задано, а строк не появилось —
+                // значит в срезе прайс-листов на дату расчёта нет подходящей цены
+                // (нет позиции вообще, либо возрастные полосы не накрывают гостей).
+                // Молчать здесь нельзя: это недобор денег в счёте.
+                if (lines.length === linesBefore) addSkipped(svc.name, 'noprice');
             }
         }
 
@@ -407,7 +494,32 @@ module.exports = function (modelsDB, Utilities) {
             delete ln._sortPriority;
             delete ln._isExtra;
         });
-        return { lines, booking };
+        return { lines, booking, skipped };
+    }
+
+    // Сообщение «эти услуги брони в счёт не попали» — UI-алерт пользователю,
+    // поэтому на языке СЕССИИ (в отличие от строк счёта — они на языке организации).
+    const SKIPPED_REASON_KEYS = {
+        auto:    'service_skipped_auto',
+        noprice: 'service_skipped_no_price',
+        manual:  'service_manual_quantity_differs'
+    };
+
+    async function _skippedNotice(skipped, sessionID) {
+        if (!skipped || !skipped.length) return null;
+        // Сообщение обязано показать, ГДЕ лежит правило, а не просто сослаться на него:
+        // владелец не видел ни формулы, ни поля. Названия справочника и реквизита
+        // берём из ТЕХ ЖЕ ключей i18n, что и сам интерфейс, — иначе подсказка
+        // однажды начнёт называть поле не так, как оно подписано на экране.
+        const dirName   = await tForSession('services', sessionID);
+        const fieldName = await tForSession('quantity_formula', sessionID);
+        const parts = [];
+        for (const s of skipped) {
+            const key = SKIPPED_REASON_KEYS[s.reason] || SKIPPED_REASON_KEYS.noprice;
+            const vars = Object.assign({ service: s.service, dir: dirName, field: fieldName }, s.vars || {});
+            parts.push('• ' + await tfForSession(key, sessionID, vars));
+        }
+        return await tForSession('services_skipped_title', sessionID) + '\n' + parts.join('\n');
     }
 
     // ── Свёртка детальных строк в «печатный» вид (WYSIWYG) ───────────────
@@ -499,13 +611,17 @@ module.exports = function (modelsDB, Utilities) {
         const allLines = [];
         let prepaymentSum = 0;
         const bookingDiscounts = [];
+        const allSkipped = [];
         for (const bookingId of bookingIds) {
             const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
             if (!booking) continue;
             const pricingDate = (mode === 'invoiceDate')
                 ? (invoice.date || new Date())
                 : (booking.date || invoice.date || new Date());
-            const { lines } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
+            const { lines, skipped } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
+            for (const s of (skipped || [])) {
+                if (!allSkipped.some(x => x.service === s.service && x.reason === s.reason)) allSkipped.push(s);
+            }
             prepaymentSum = r2(prepaymentSum + (Number(booking.prepayment) || 0));
 
             // Скидка брони-основания (переносится в счёт, см. агрегацию ниже).
@@ -556,7 +672,8 @@ module.exports = function (modelsDB, Utilities) {
 
         notifyTables('update', invoiceId);
         const freshInvoice = await modelsDB.Invoices.findByPk(invoiceId, { raw: true });
-        return { invoice: freshInvoice, lines: allLines, discountNotice };
+        const skippedNotice = await _skippedNotice(allSkipped, ctx.sessionID);
+        return { invoice: freshInvoice, lines: allLines, discountNotice, skippedNotice };
     }
 
     return {
@@ -587,12 +704,13 @@ module.exports = function (modelsDB, Utilities) {
                 const pricingDate = (mode === 'invoiceDate')
                     ? new Date()
                     : (booking.date || new Date());
-                const { lines } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
+                const { lines, skipped } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
                 const taxRateRows = await modelsDB.TaxRates.findAll({ raw: true });
                 const collapsed = _collapseInvoiceLines(lines, taxRateRows);
                 collapsed.forEach((ln, i) => { ln.sortOrder = i + 1; });
 
                 return {
+                    skippedNotice: await _skippedNotice(skipped, ctx.sessionID),
                     prefill: {
                         organizationId: booking.organizationId,
                         hotelId:        booking.hotelId,
@@ -610,6 +728,98 @@ module.exports = function (modelsDB, Utilities) {
                         }],
                         invoice_lines: collapsed
                     }
+                };
+            } catch (e) {
+                return { error: (e && e.message) || String(e) };
+            }
+        },
+
+        // ── RPC: значения по умолчанию для РУЧНОЙ строки счёта ────────────
+        // Пользователь выбрал услугу в пустой строке ТЧ «Спецификация» — форма
+        // обязана сразу показать цену и ставку, а не оставлять их пустыми
+        // (иначе строка молча уходит в счёт нулём). Цена — из среза прайс-листов
+        // (только позиция БЕЗ возрастной полосы: у полосной услуги цена зависит
+        // от гостя, ручная строка такого контекста не имеет). Ставка — из
+        // налоговой группы услуги на дату счёта.
+        async getServiceLineDefaults({ invoiceId, serviceId }, ctx) {
+            if (!serviceId) return {};
+            try {
+                const svc = await modelsDB.Services.findByPk(serviceId, { raw: true });
+                if (!svc) return {};
+                const invoice = invoiceId ? await modelsDB.Invoices.findByPk(invoiceId, { raw: true }) : null;
+                const orgId   = (invoice && invoice.organizationId) || svc.organizationId;
+                const hotelId = (invoice && invoice.hotelId) || svc.hotelId || null;
+                const atDate  = (invoice && invoice.date) ? new Date(invoice.date) : new Date();
+
+                // Комнаты счёта: позиция услуги в прайс-листе опознаётся по связке
+                // «услуга + комната + возрастная полоса» (Endreinigung стоит по-разному
+                // в разных квартирах). Ручная строка сама комнату не несёт — берём её
+                // из броней-оснований счёта, ТОЧНО ТАК ЖЕ, как это делает расчёт
+                // (`pricesForRoom`). Брать «первую попавшуюся» позицию нельзя: счёт по
+                // FeWo III получал цену уборки FeWo I и молча ошибался на 10 €.
+                let invoiceRoomIds = [];
+                if (invoiceId) {
+                    const links = await modelsDB.InvoiceBookings.findAll({ where: { invoiceId }, raw: true });
+                    const bIds = [...new Set(links.map(l => l.bookingId).filter(Boolean))];
+                    if (bIds.length) {
+                        const brooms = await modelsDB.BookingRooms.findAll({ where: { bookingId: bIds }, raw: true });
+                        invoiceRoomIds = [...new Set(brooms.map(r => r.roomId).filter(Boolean))];
+                    }
+                }
+
+                let unitPrice = null;
+                // 'ambiguous' — цена у услуги покомнатная, а комната счёта не одна
+                // (или её вообще нет): подставлять что-то наугад запрещено.
+                let priceIssue = null;
+                if (orgId) {
+                    // Ручная строка не привязана к брони — дата ценообразования
+                    // для неё это дата самого счёта (режим pricingDateMode
+                    // различает бронь и счёт только для строк, идущих ИЗ брони).
+                    const slice = await priceResolver.loadSlice({ organizationId: orgId, hotelId, pricingDate: atDate });
+                    const bands = priceResolver.pickServicePrices(slice, { serviceId });
+                    const flat  = bands.filter(p => !priceResolver.hasAgeBand(p));
+                    const roomBands = flat.filter(p => p.roomId != null);
+                    if (roomBands.length) {
+                        // Услуга тарифицируется покомнатно.
+                        const mine = (invoiceRoomIds.length === 1)
+                            ? roomBands.filter(p => p.roomId === invoiceRoomIds[0])
+                            : [];
+                        if (mine.length) unitPrice = Number(mine[0].price);
+                        else {
+                            const common = flat.filter(p => p.roomId == null);
+                            if (common.length) unitPrice = Number(common[0].price);
+                            else priceIssue = 'ambiguous';
+                        }
+                    } else {
+                        const common = flat.filter(p => p.roomId == null);
+                        if (common.length) unitPrice = Number(common[0].price);
+                    }
+                }
+
+                // Ставка НДС — ссылкой на справочник, снапшот % пишет onBeforeSave.
+                let taxRateId = null, taxRateName = null;
+                if (svc.taxCategoryId) {
+                    const [catRates, rates] = await Promise.all([
+                        modelsDB.TaxCategoryRates.findAll({ raw: true }),
+                        modelsDB.TaxRates.findAll({ raw: true })
+                    ]);
+                    let best = null;
+                    for (const r of catRates) {
+                        if (r.taxCategoryId !== svc.taxCategoryId) continue;
+                        if (!periodCovers(r, atDate)) continue;
+                        if (!best || validFromOrder(r) > validFromOrder(best)) best = r;
+                    }
+                    const rr = best ? rates.find(x => x.UID === best.rateId) : null;
+                    if (rr) { taxRateId = rr.UID; taxRateName = rr.name; }
+                }
+
+                return {
+                    label: svc.name, sectionLabel: svc.name,
+                    unitPrice, taxRateId, taxRateName,
+                    taxCategoryId: svc.taxCategoryId || null,
+                    // Цены нет ни одной подходящей — форма скажет об этом вслух.
+                    noPrice: unitPrice == null,
+                    priceIssue
                 };
             } catch (e) {
                 return { error: (e && e.message) || String(e) };
@@ -707,9 +917,8 @@ module.exports = function (modelsDB, Utilities) {
                     let best = null;
                     for (const r of taxCatRates) {
                         if (r.taxCategoryId !== categoryId) continue;
-                        if (r.validFrom && new Date(r.validFrom) > atDate) continue;
-                        if (r.validTo   && new Date(r.validTo)   < atDate) continue;
-                        if (!best || new Date(r.validFrom || 0) > new Date(best.validFrom || 0)) best = r;
+                        if (!periodCovers(r, atDate)) continue;
+                        if (!best || validFromOrder(r) > validFromOrder(best)) best = r;
                     }
                     return best ? (taxRateRows.find(tr => tr.UID === best.rateId) || null) : null;
                 };

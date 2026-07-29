@@ -66,6 +66,52 @@ async function fillInvoice(ev, ctx) {
 
     // Разные скидки в нескольких бронях-основаниях объединены — предупреждаем.
     if (result.discountNotice) { try { showAlert(result.discountNotice); } catch(_) {} }
+    // Услуги брони, не попавшие в счёт (нет цены / начисляются автоматически).
+    // Раньше они исчезали молча — счёт недосчитывался денег без единого признака.
+    if (result.skippedNotice) { try { showAlert(result.skippedNotice); } catch(_) {} }
+}
+
+// Колоночное событие onChange колонки «Услуга» в спецификации счёта: подставляет
+// в РУЧНУЮ строку название, цену из прайс-листа и ставку НДС услуги. Без этого
+// строка оставалась с пустой ценой/ставкой и уходила в счёт нулём.
+async function onLineServiceSelected(rowIndex, newVal, displayVal, ctx) {
+    var form = ctx.form;
+    var tbl = form.controlsMap && form.controlsMap['ts_invoice_lines'];
+    if (!tbl || !newVal) return;
+    var rows = tbl.data_getRows(tbl.dataKey);
+    var row = rows && rows[rowIndex];
+    if (!row) return;
+
+    var uidEntry = form._dataMap && form._dataMap['UID'];
+    var res = await callServer('__SERVER_SCRIPT__', 'getServiceLineDefaults', {
+        invoiceId: uidEntry && uidEntry.value,
+        serviceId: newVal
+    });
+    if (!res || res.error) return;
+
+    if (!row.label) row.label = res.label || '';
+    if (!row.sectionLabel) row.sectionLabel = res.sectionLabel || '';
+    if (res.taxRateId && !row.taxRateId) {
+        row.taxRateId = res.taxRateId;
+        row.__taxRateId_display = res.taxRateName;
+    }
+    if (res.taxCategoryId && !row.taxCategoryId) row.taxCategoryId = res.taxCategoryId;
+    if (res.unitPrice != null && !Number(row.unitPrice)) row.unitPrice = res.unitPrice;
+    if (!Number(row.quantity)) row.quantity = 1;
+    var qty = Number(row.quantity), unit = Number(row.unitPrice);
+    if (isFinite(qty) && isFinite(unit)) row.amount = Math.round(qty * unit * 100) / 100;
+
+    tbl.data_updateValue(tbl.dataKey, rows);
+    try { if (typeof tbl._invokeRenderBodyRows === 'function') tbl._invokeRenderBodyRows(); } catch(_) {}
+    try { if (typeof form.setModified === 'function') form.setModified(true); } catch(_) {}
+
+    // Цены в прайс-листе нет — говорим вслух, иначе пользователь увидит пустую
+    // цену и решит, что программа «не подтягивает». Отдельный случай: цена у услуги
+    // РАЗНАЯ по квартирам, а счёт охватывает не одну квартиру — угадывать нельзя,
+    // молчаливая подстановка чужой цены хуже пустого поля.
+    if (res.noPrice) {
+        try { showAlert(__t(res.priceIssue === 'ambiguous' ? 'service_price_room_specific_alert' : 'service_no_price_alert')); } catch(_) {}
+    }
 }
 
 // «Печать»: сохранить (если изменено) → серверная генерация HTML → printPreview.
@@ -96,6 +142,14 @@ async function printInvoice(ev, ctx) {
     }
     if (result.error) { showAlert(__t('Error: ') + result.error); return; }
 
+    // autoPrint: printPreview не открывает своё окно, а сразу зовёт window.print()
+    // в скрытом iframe — пользователь получает штатное окно предпросмотра печати
+    // браузера в один клик. Решение владельца (2026-07-29): собственное окно
+    // предпросмотра для ERP уместно, но пока преждевременно, а промежуточный шаг
+    // стоил лишнего нажатия. Вернуть его можно будет, когда оно будет сделано по
+    // правилам проекта — управление в командной панели сверху, переводы, иконки
+    // (бэклог B4). Для агентов-тестировщиков системное окно печати блокирует
+    // расширение браузера — это ограничение стенда, не продукта.
     if (window.MySpace && typeof window.MySpace.open === 'function') {
         await window.MySpace.open('printPreview', { html: result.html, autoPrint: true });
     }
@@ -114,7 +168,8 @@ function onLineQtyOrPriceEdited(rowIndex, newVal, displayVal, ctx) {
     var unit = Number(row.unitPrice);
     if (!isFinite(qty) || !isFinite(unit)) return;
     var amount = Math.round(qty * unit * 100) / 100;
-    row.amount = amount;
+    // Запись через штатный API строки: он же обновляет итоговую строку ТЧ.
+    try { tbl.data_updateParentArray(tbl.dataKey, rowIndex, { data: 'amount' }, amount); } catch (e) { row.amount = amount; }
     // Точечное обновление ячейки суммы (без перерисовки всей ТЧ — не терять фокус).
     var cellKey = tbl.dataKey + '__r' + rowIndex + '__amount';
     var cell = form.controlsMap && form.controlsMap[cellKey];
@@ -124,4 +179,4 @@ function onLineQtyOrPriceEdited(rowIndex, newVal, displayVal, ctx) {
     try { tbl.data_updateValue(cellKey, amount); } catch (e) {}
 }
 
-return { fillInvoice, printInvoice, onLineQtyOrPriceEdited };
+return { fillInvoice, printInvoice, onLineQtyOrPriceEdited, onLineServiceSelected };

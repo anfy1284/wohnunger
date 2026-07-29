@@ -32,6 +32,45 @@
 // ─────────────────────────────────────────────────────────────────────
 
 const { Op } = require('sequelize');
+// Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
+const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
+
+// ── Пустой возраст: 0 и NULL — одно и то же ──────────────────────────
+// Правило проекта: NULL в базе допустим только у полей-ссылок, у числа
+// «пусто» — это 0 (см. ИНСТРУКЦИИ_ДЛЯ_AI.md, «1С — глобальный образец»).
+// Возрастные границы — числа, поэтому «ограничения нет» = 0.
+//
+// Почему это ОБЯЗАНО жить здесь, а не у каждого потребителя: разночтение
+// «0 или NULL» уже стоило пропавшей из счёта платы за собаку. Строка с
+// границами 0..0 трактовалась как полоса «от нуля до нуля лет», под
+// которую не подходит ни один гость, услуга молча давала ноль, а позиция
+// при этом считалась ОТДЕЛЬНОЙ от старой (с NULL) — и новая цена не
+// заменяла прежнюю, а вставала рядом.
+//
+// В базе одновременно лежат NULL (записаны после правки круга 2) и нули
+// (записаны до неё и после введения правила умолчаний). Обе формы обязаны
+// схлопываться в одну позицию — иначе миграция значений сама породит
+// дубли позиций.
+const isEmptyAge = v => v == null || Number(v) === 0;
+
+// Нормализованная граница: пусто → 0. Для ключа позиции и сравнений.
+const ageNum = v => (isEmptyAge(v) ? 0 : Number(v));
+
+// Есть ли у строки возрастная полоса вообще.
+// Нет полосы = обе границы пусты. Полоса «0..1» (младенцы) полосой
+// является — у неё заполнена верхняя граница.
+const hasAgeBand = row => !(isEmptyAge(row.ageFrom) && isEmptyAge(row.ageTo));
+
+// Подходит ли полоса строки под возрастной диапазон гостя.
+// ageTo = 0 при заполненном ageFrom означает «верхней границы нет»,
+// а не «до нуля лет».
+function ageBandMatches(row, guestAgeFrom, guestAgeTo) {
+    const from = ageNum(row.ageFrom);
+    const to   = isEmptyAge(row.ageTo) ? Infinity : Number(row.ageTo);
+    const gFrom = ageNum(guestAgeFrom);
+    const gTo   = guestAgeTo != null && Number(guestAgeTo) !== 0 ? Number(guestAgeTo) : gFrom;
+    return from <= gFrom && to >= gTo;
+}
 
 module.exports = function (modelsDB) {
 
@@ -82,6 +121,10 @@ module.exports = function (modelsDB) {
         const periods = seasonId && slice.seasonPeriods && slice.seasonPeriods[seasonId];
         if (!periods) return false;
         for (const p of periods) {
+            // Незаполненный период не накрывает ничего. Проверять через
+            // isEmptyDate обязательно: пустая дата — 0001-01-01, и без
+            // проверки такой период накрыл бы всё «с начала времён».
+            if (isEmptyDate(p.dateFrom) || isEmptyDate(p.dateTo)) continue;
             if (new Date(p.dateFrom) <= day && new Date(p.dateTo) >= day) return true;
         }
         return false;
@@ -111,7 +154,10 @@ module.exports = function (modelsDB) {
         const byPos = new Map();
         for (const r of slice.svcRows) {
             if (r.serviceId !== serviceId) continue;
-            const key = `${r.roomId || ''}|${r.ageFrom != null ? r.ageFrom : ''}|${r.ageTo != null ? r.ageTo : ''}`;
+            // Границы нормализуются (пусто → 0), поэтому строка с NULL и
+            // строка с 0 — ОДНА позиция: более поздний документ заменяет
+            // более ранний, а не создаёт вторую позицию рядом.
+            const key = `${r.roomId || ''}|${ageNum(r.ageFrom)}|${ageNum(r.ageTo)}`;
             const cur = byPos.get(key);
             if (!cur || r._docIdx < cur._docIdx) byPos.set(key, r);
         }
@@ -129,5 +175,11 @@ module.exports = function (modelsDB) {
         return pickServicePrices(slice, { serviceId });
     }
 
-    return { loadSlice, pickRoomPrice, pickServicePrices, resolveRoomPrice, resolveServicePrices };
+    return {
+        loadSlice, pickRoomPrice, pickServicePrices, resolveRoomPrice, resolveServicePrices,
+        // Работа с возрастными границами — только через эти помощники.
+        // Прямые сравнения `ageFrom != null` в коде потребителей запрещены:
+        // они не видят разницы между «пусто» и «ноль».
+        isEmptyAge, ageNum, hasAgeBand, ageBandMatches
+    };
 };

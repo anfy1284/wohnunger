@@ -217,7 +217,7 @@
                                     "name": "ts_booking_room_services",
                                     "data": "booking_room_services",
                                     "columns": [
-                                        { "caption": "✓", "data": "included", "width": 28, "inputType": "checkbox", "defaultValue": true },
+                                        { "caption": "✓", "tooltip": { "i18n": "service_included_hint" }, "data": "included", "width": 28, "inputType": "checkbox", "defaultValue": true },
                                         {
                                             "caption": { "i18n": "Service" },
                                             "data": "serviceId",
@@ -228,7 +228,7 @@
                                                 "selection": { "table": "services", "idField": "UID", "displayField": "name" }
                                             }
                                         },
-                                        { "caption": "🔄", "data": "autoQuantity", "width": 28, "inputType": "checkbox", "defaultValue": true },
+                                        { "caption": "🔄", "tooltip": { "i18n": "service_auto_quantity_hint" }, "data": "autoQuantity", "width": 28, "inputType": "checkbox", "defaultValue": true },
                                         { "caption": { "i18n": "Quantity" }, "data": "count", "width": 110, "inputType": "integer", "defaultValue": 1, "properties": { "minValue": 0 }, "events": { "onChange": "onServiceCountEdited" } }
                                     ],
                                     "properties": {

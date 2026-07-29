@@ -1,4 +1,16 @@
 {
+    "service_included_hint": {
+        "en": "Charge this service on the invoice. Unchecked = the guest does not pay for it.",
+        "ru": "Начислять услугу в счёте. Галочка снята — гость за услугу не платит.",
+        "de": "Leistung in der Rechnung berechnen. Häkchen entfernt = der Gast zahlt sie nicht.",
+        "pl": "Naliczaj usługę na rachunku. Bez zaznaczenia gość za nią nie płaci."
+    },
+    "service_auto_quantity_hint": {
+        "en": "Quantity is calculated automatically (by nights etc.). Uncheck to enter it by hand.",
+        "ru": "Количество считается автоматически (по ночам и т.п.). Снимите галочку, чтобы ввести вручную.",
+        "de": "Menge wird automatisch berechnet (nach Nächten usw.). Häkchen entfernen, um sie manuell einzugeben.",
+        "pl": "Ilość liczona automatycznie (wg nocy itp.). Odznacz, aby wpisać ręcznie."
+    },
     "booking_list_tab": {
         "en": "List",
         "ru": "Список",

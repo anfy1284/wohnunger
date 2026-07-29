@@ -119,6 +119,42 @@
         "de": "Buchung Nr. {{number}}, {{from}} – {{to}}",
         "pl": "Rezerwacja nr {{number}}, {{from}} – {{to}}"
     },
+    "services_skipped_title": {
+        "en": "Please check the booking services:",
+        "ru": "Обратите внимание на услуги брони:",
+        "de": "Bitte prüfen Sie die Leistungen der Buchung:",
+        "pl": "Zwróć uwagę na usługi rezerwacji:"
+    },
+    "service_manual_quantity_differs": {
+        "en": "{{service}} — the quantity in the booking was typed by hand: {{count}}. The service itself gives {{expected}} for this length of stay («{{dir}}» → «{{service}}» → field «{{field}}»). The invoice uses the hand-typed value — please check that this is what you meant.",
+        "ru": "{{service}} — в брони количество введено вручную: {{count}}. Сама услуга при таком сроке проживания даёт {{expected}} («{{dir}}» → «{{service}}» → поле «{{field}}»). В счёт взято введённое вручную — проверьте, так ли задумано.",
+        "de": "{{service}} — in der Buchung wurde die Menge von Hand eingetragen: {{count}}. Die Leistung selbst ergibt bei dieser Aufenthaltsdauer {{expected}} („{{dir}}“ → „{{service}}“ → Feld „{{field}}“). In die Rechnung ging der von Hand eingetragene Wert — bitte prüfen, ob das so gewollt ist.",
+        "pl": "{{service}} — w rezerwacji ilość wpisano ręcznie: {{count}}. Sama usługa przy takiej długości pobytu daje {{expected}} («{{dir}}» → «{{service}}» → pole «{{field}}»). Do rachunku trafiła wartość wpisana ręcznie — sprawdź, czy o to chodziło."
+    },
+    "service_skipped_auto": {
+        "en": "{{service}} — charged automatically from the guest list, a separate service line is not needed. Please remove it from the booking.",
+        "ru": "{{service}} — начисляется автоматически по составу гостей, отдельная строка услуги не нужна. Удалите её из брони.",
+        "de": "{{service}} — wird automatisch nach der Gästeliste berechnet, eine eigene Leistungszeile ist nicht nötig. Bitte aus der Buchung entfernen.",
+        "pl": "{{service}} — naliczana automatycznie na podstawie listy gości, osobny wiersz usługi nie jest potrzebny. Usuń go z rezerwacji."
+    },
+    "service_skipped_no_price": {
+        "en": "{{service}} — no matching price in the price list for the calculation date, so nothing was charged.",
+        "ru": "{{service}} — в прайс-листе на дату расчёта нет подходящей цены, поэтому услуга не начислена.",
+        "de": "{{service}} — in der Preisliste zum Berechnungsdatum ist kein passender Preis hinterlegt, deshalb wurde nichts berechnet.",
+        "pl": "{{service}} — w cenniku na datę wyliczenia brak pasującej ceny, dlatego nic nie naliczono."
+    },
+    "service_price_room_specific_alert": {
+        "en": "This service is priced per apartment, and the invoice does not point to a single apartment — please enter the unit price manually.",
+        "ru": "Цена этой услуги задана отдельно по квартирам, а счёт не относится к одной квартире — введите цену вручную.",
+        "de": "Diese Leistung wird je Wohnung unterschiedlich berechnet, und die Rechnung betrifft nicht genau eine Wohnung — bitte den Einzelpreis manuell eingeben.",
+        "pl": "Cena tej usługi jest ustalana osobno dla każdego apartamentu, a rachunek nie dotyczy jednego apartamentu — wprowadź cenę ręcznie."
+    },
+    "service_no_price_alert": {
+        "en": "No price for this service in the price list — please enter the unit price manually.",
+        "ru": "В прайс-листе нет цены для этой услуги — введите цену вручную.",
+        "de": "Für diese Leistung ist in der Preisliste kein Preis hinterlegt — bitte den Einzelpreis manuell eingeben.",
+        "pl": "Brak ceny tej usługi w cenniku — wprowadź cenę ręcznie."
+    },
     "invoices_related_tab": {
         "en": "Invoices",
         "ru": "Счета",
