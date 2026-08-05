@@ -94,6 +94,30 @@ function invalidateAccessCache() {
 }
 
 /**
+ * Сужение запроса по организации служебной сессии (`sessions.scopeOrganizationId`).
+ *
+ * Служебная сессия регламентного задания принадлежит владельцу задачи, но задача
+ * организации не должна видеть данные ДРУГИХ организаций владельца. Поэтому поверх
+ * обычных фильтров (или их отсутствия у admin) накладывается AND-условие
+ * `organizationId = <scope>`. Это всегда СУЖЕНИЕ: сессия не может увидеть больше,
+ * чем владелец. Применяется и к роли `admin` — иначе админская задача организации
+ * залезла бы в чужие данные.
+ *
+ * Таблиц без атрибута `organizationId` не касается (сузить нечем).
+ */
+function applyOrganizationScope(request, Model, scopeOrgId) {
+    if (!scopeOrgId || !Model || !Model.rawAttributes || !Model.rawAttributes.organizationId) return;
+    const scopeCond = { organizationId: scopeOrgId };
+    const { Op } = require('sequelize');
+    const existingWhere = request.where;
+    if (existingWhere && Object.keys(existingWhere).length > 0) {
+        request.where = { [Op.and]: [existingWhere, scopeCond] };
+    } else {
+        request.where = scopeCond;
+    }
+}
+
+/**
  * Middleware для контроля доступа на основе обязательных реквизитов (required_access_fields).
  * Накладывает обязательные фильтры на запросы чтения, обновления и удаления.
  * 
@@ -111,12 +135,15 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
     }
 
     // Резолвим пользователя только через сессию — никогда не доверяем userId/role из контекста
+    const globalCtx = require('./node_modules/my-old-space/drive_root/globalServerContext');
     let userId = null;
     let role = null;
+    // Организация служебной сессии (регламентное задание организации). Пусто у
+    // обычных пользовательских и системных сессий.
+    let scopeOrgId = null;
     if (sessionID) {
         try {
-            const globalRoot = require('./node_modules/my-old-space/drive_root/globalServerContext');
-            const user = await globalRoot.getUserBySessionID(sessionID);
+            const user = await globalCtx.getUserBySessionID(sessionID);
             if (user) {
                 userId = user.UID;
                 try {
@@ -126,6 +153,7 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
                     log.error('[project/dbGateway] Error fetching role:', e.message);
                 }
             }
+            scopeOrgId = await globalCtx.getSessionScopeOrganizationId(sessionID);
         } catch (e) {
             log.error('[project/dbGateway] Error resolving session:', e.message);
         }
@@ -138,8 +166,16 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
         invalidateAccessCache();
     }
 
-    // Пропускаем проверку для админа
+    const FILTERED_OPS = ['read', 'findOne', 'count', 'update', 'delete'];
+    const modelNameEarly = globalCtx.getModelNameForTable(table);
+    const ModelEarly = modelNameEarly ? globalCtx.modelsDB[modelNameEarly] : null;
+
+    // Пропускаем проверку для админа — но сужение по организации служебной сессии
+    // действует и на него (админская задача организации не лезет в чужие данные).
     if (role === 'admin') {
+        if (scopeOrgId && FILTERED_OPS.includes(operation)) {
+            applyOrganizationScope(request, ModelEarly, scopeOrgId);
+        }
         return await next(request);
     }
 
@@ -147,16 +183,15 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
     const { requiredFields, excludedSet } = getAccessConfig();
 
     // Если таблица в исключениях (и это не organizations) или это не операция с фильтрами - просто идем дальше
-    if ((excludedSet.has(table) && table !== 'organizations') || !['read', 'findOne', 'count', 'update', 'delete'].includes(operation)) {
+    if ((excludedSet.has(table) && table !== 'organizations') || !FILTERED_OPS.includes(operation)) {
         return await next(request);
     }
 
     // Получаем модель для проверки наличия полей
-    const globalCtx = require('./node_modules/my-old-space/drive_root/globalServerContext');
-    const modelName = globalCtx.getModelNameForTable(table);
+    const modelName = modelNameEarly;
     if (!modelName) return await next(request);
-    
-    const Model = globalCtx.modelsDB[modelName];
+
+    const Model = ModelEarly;
 
     if (Model && Model.rawAttributes) {
         const attributes = Model.rawAttributes;
@@ -216,6 +251,12 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
                 request.where = { UID: '__BLOCK_ACCESS__' };
             }
         }
+    }
+
+    // Сужение по организации служебной сессии — ПОСЛЕ обычных OR-фильтров,
+    // отдельным AND-условием (см. applyOrganizationScope).
+    if (scopeOrgId) {
+        applyOrganizationScope(request, Model, scopeOrgId);
     }
 
     return await next(request);
