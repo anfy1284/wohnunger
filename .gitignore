@@ -9,3 +9,9 @@ _dbSettings.postgres.json
 database.sqlite-journal
 tmp/
 ai_settings.json
+
+# Резервное копирование: настройки этой машины (каталог, публичный ключ, хэш API-ключа)
+# и сами копии. В репозиторий не попадают ни при каких условиях — дампы содержат
+# персональные данные клиентов.
+backupSettings.json
+backups/
