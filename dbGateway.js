@@ -56,6 +56,19 @@ const _accessCache = new Map(); // userId → { orgIds, hotelIds, expires }
 const ACCESS_TTL_MS = 60 * 1000;
 const ACCESS_DEP_TABLES = new Set(['user_organizations', 'hotels']);
 
+// Подмена базы (восстановление, сидер) делает контекст доступа ложью: организации и
+// отели теперь другие, а фильтры RLS строились бы по прежним. Держать это на TTL в
+// минуту нельзя — минуту система отдавала бы чужие данные либо не отдавала своих.
+// Подписка стоит рядом с кэшем; перечислять кэши в коде восстановления запрещено.
+try {
+    require('./node_modules/my-old-space/drive_root/dbLifecycle').onDatabaseReset('project/dbGateway', () => {
+        _accessCache.clear();
+        _accessConfig = null;
+    });
+} catch (e) {
+    log.warn('[project/dbGateway] Подписка на onDatabaseReset не выполнена:', e.message);
+}
+
 async function getAccessContext(userId) {
     const now = Date.now();
     const cached = _accessCache.get(userId);

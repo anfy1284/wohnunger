@@ -15,3 +15,11 @@ ai_settings.json
 # персональные данные клиентов.
 backupSettings.json
 backups/
+
+# Режим обслуживания: флаг живёт на конкретной машине и переживает перезапуск
+# процесса — в репозиторий он попасть не должен ни при каких обстоятельствах,
+# иначе развёрнутая из репозитория копия поднимется заблокированной.
+maintenance.flag.json
+maintenance.flag.json.tmp-*
+maintenance.log
+backups_wohnungerDb/
