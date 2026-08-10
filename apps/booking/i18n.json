@@ -334,29 +334,41 @@
         "pl": "Przygotowywanie rachunku…"
     },
 
+    "guests_count": {
+        "en": { "one": "{{count}} guest",  "other": "{{count}} guests" },
+        "ru": { "one": "{{count}} гость",  "few": "{{count}} гостя", "many": "{{count}} гостей" },
+        "de": { "one": "{{count}} Gast",   "other": "{{count}} Gäste" },
+        "pl": { "one": "{{count}} gość",   "few": "{{count}} goście", "many": "{{count}} gości" }
+    },
+    "nights_count": {
+        "en": { "one": "{{count}} night",  "other": "{{count}} nights" },
+        "ru": { "one": "{{count}} ночь",   "few": "{{count}} ночи", "many": "{{count}} ночей" },
+        "de": { "one": "{{count}} ÜN",     "other": "{{count}} ÜN" },
+        "pl": { "one": "{{count}} noc",    "few": "{{count}} noce", "many": "{{count}} nocy" }
+    },
     "room_line_label": {
-        "en": "Room {{room}} - {{guests}} guest(s.) × {{nights}} night(s.)",
-        "ru": "Комн. {{room}} - {{guests}} гост. × {{nights}} ноч.",
-        "de": "Zimmer {{room}} - {{guests}} Gäste × {{nights}} ÜN",
-        "pl": "Pokój {{room}} - {{guests}} gości × {{nights}} nocy"
+        "en": "Room {{room}} - {{guests}}",
+        "ru": "Комн. {{room}} - {{guests}}",
+        "de": "Zimmer {{room}} - {{guests}}",
+        "pl": "Pokój {{room}} - {{guests}}"
     },
-    "children_3_5_line_label": {
-        "en": "Room {{room}} - Children 3–5 y.o. ({{count}} pers.) × {{nights}} night(s.)",
-        "ru": "Комн. {{room}} - Дети 3–5 лет ({{count}} чел.) × {{nights}} ноч.",
-        "de": "Zimmer {{room}} - Kinder 3–5 J. ({{count}} Pers.) × {{nights}} ÜN",
-        "pl": "Pokój {{room}} - Dzieci 3–5 lat ({{count}} os.) × {{nights}} nocy"
-    },
-    "children_2_line_label": {
-        "en": "Room {{room}} - Children 2 y.o. ({{count}} pers.) × {{nights}} night(s.)",
-        "ru": "Комн. {{room}} - Дети 2 лет ({{count}} чел.) × {{nights}} ноч.",
-        "de": "Zimmer {{room}} - Kinder 2 J. ({{count}} Pers.) × {{nights}} ÜN",
-        "pl": "Pokój {{room}} - Dzieci 2 lata ({{count}} os.) × {{nights}} nocy"
+    "room_guest_type_line_label": {
+        "en": "Room {{room}} - {{guestType}} ({{guests}} × {{nights}})",
+        "ru": "Комн. {{room}} - {{guestType}} ({{guests}} × {{nights}})",
+        "de": "Zimmer {{room}} - {{guestType}} ({{guests}} × {{nights}})",
+        "pl": "Pokój {{room}} - {{guestType}} ({{guests}} × {{nights}})"
     },
     "service_age_group_label": {
-        "en": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}})",
-        "ru": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}})",
-        "de": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}})",
-        "pl": "{{name}} — {{ageGroup}} ({{count}}×{{perRoom}})"
+        "en": "{{name}} — {{ageGroup}} ({{guests}} × {{units}})",
+        "ru": "{{name}} — {{ageGroup}} ({{guests}} × {{units}})",
+        "de": "{{name}} — {{ageGroup}} ({{guests}} × {{units}})",
+        "pl": "{{name}} — {{ageGroup}} ({{guests}} × {{units}})"
+    },
+    "line_qty_breakdown": {
+        "en": "{{guests}} × {{units}}",
+        "ru": "{{guests}} × {{units}}",
+        "de": "{{guests}} × {{units}}",
+        "pl": "{{guests}} × {{units}}"
     },
     "service_once_label": {
         "en": "{{name}} ({{count}})",
@@ -364,43 +376,6 @@
         "de": "{{name}} ({{count}})",
         "pl": "{{name}} ({{count}})"
     },
-    "age_group_adults_abbr": {
-        "en": "adults",
-        "ru": "взр.",
-        "de": "Erw.",
-        "pl": "dorośli"
-    },
-    "age_group_6_13_abbr": {
-        "en": "children 6–13",
-        "ru": "дети 6–13",
-        "de": "Kinder 6–13",
-        "pl": "dzieci 6–13"
-    },
-    "age_group_14_15_abbr": {
-        "en": "teens 14–15",
-        "ru": "подростки 14–15",
-        "de": "Jugendliche 14–15",
-        "pl": "nastolatki 14–15"
-    },
-    "age_group_3_5_abbr": {
-        "en": "children 3–5",
-        "ru": "дети 3–5",
-        "de": "Kinder 3–5",
-        "pl": "dzieci 3–5"
-    },
-    "age_group_2_abbr": {
-        "en": "children 2 y.o.",
-        "ru": "дети 2 г.",
-        "de": "Kinder 2 J.",
-        "pl": "dzieci 2 l."
-    },
-    "age_group_0_1_abbr": {
-        "en": "children 0–1",
-        "ru": "дети 0–1",
-        "de": "Kinder 0–1",
-        "pl": "dzieci 0–1"
-    },
-
     "booking_ref": {
         "en": "Booking",
         "ru": "Бронь",

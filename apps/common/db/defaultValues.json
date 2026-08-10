@@ -38,6 +38,7 @@
             "name": "Adult",
             "ageFrom": 16,
             "ageTo": null,
+            "roomRateMode": "included",
             "displayOrder": 1
         },
         {
@@ -45,6 +46,7 @@
             "name": "Teen 14–15 years",
             "ageFrom": 14,
             "ageTo": 15,
+            "roomRateMode": "included",
             "displayOrder": 2
         },
         {
@@ -52,6 +54,7 @@
             "name": "Child 6–13 years",
             "ageFrom": 6,
             "ageTo": 13,
+            "roomRateMode": "included",
             "displayOrder": 3
         },
         {
@@ -59,6 +62,7 @@
             "name": "Child 3–5 years",
             "ageFrom": 3,
             "ageTo": 5,
+            "roomRateMode": "separate",
             "displayOrder": 4
         },
         {
@@ -66,6 +70,7 @@
             "name": "Child 2 years",
             "ageFrom": 2,
             "ageTo": 2,
+            "roomRateMode": "separate",
             "displayOrder": 5
         },
         {
@@ -73,6 +78,7 @@
             "name": "Infant (under 2 years)",
             "ageFrom": 0,
             "ageTo": 1,
+            "roomRateMode": "free",
             "displayOrder": 6
         }
     ],

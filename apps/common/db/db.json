@@ -300,6 +300,18 @@
                     "allowNull": true,
                     "caption": { "i18n": "age_to" }
                 },
+                "roomRateMode": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "included",
+                    "caption": { "i18n": "room_rate_mode" },
+                    "inputType": "emunList",
+                    "options": [
+                        { "value": "included", "caption": { "i18n": "room_rate_mode_included" } },
+                        { "value": "separate", "caption": { "i18n": "room_rate_mode_separate" } },
+                        { "value": "free",     "caption": { "i18n": "room_rate_mode_free" } }
+                    ]
+                },
                 "displayOrder": {
                     "type": "INTEGER",
                     "allowNull": true,

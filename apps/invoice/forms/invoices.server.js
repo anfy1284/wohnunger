@@ -110,9 +110,63 @@ module.exports = function (modelsDB, Utilities) {
         const tInv  = (key)       => i18n.t(key, invLang);
         const tfInv = (key, vars) => i18n.tf(key, invLang, vars);
 
+        // Счётные существительные — через формы числа (i18n.tf с `count`).
+        // «1 Gäste»/«1 гостей» в юридическом документе недопустимо, а одиночное
+        // заселение — штатный случай: у каждой квартиры есть цена на 1 человека.
+        // Именно из-за отсутствия форм в подписях стояли сокращения («Pers.»,
+        // «ÜN»), которые склонения не требуют.
+        const nGuests = n => tfInv('guests_count', { count: n });
+        const nNights = n => tfInv('nights_count', { count: n });
+
+        // Разложение количества на сомножители для подписи: «2 Gäste × 3 ÜN».
+        // Знак «×» законен ТОЛЬКО когда оба числа — действительно сомножители
+        // графы «Количество». Прежнее «6 Gäste × 4 ÜN» при количестве 4 врало:
+        // 6 не участвовало в произведении вовсе.
+        const qtyBreakdown = (guests, units) =>
+            tfInv('line_qty_breakdown', { guests: nGuests(guests), units });
+
+        // Единица ВТОРОГО сомножителя у услуги. Назвать её ночами можно только по
+        // ОБЪЯВЛЕННОМУ правилу услуги (quantityFormula = переменная «ночи») и только
+        // если количество действительно посчитано правилом: ручной ввод правило
+        // перебивает, и тогда это уже не ночи. Совпадение количества с числом ночей
+        // основанием НЕ является — три массажа за три ночи не становятся ночёвками.
+        // Токен берётся из реестра переменных, а не строкой в коде.
+        const NIGHTS_TOKEN = (formulaEngine.VARIABLES.find(v => v.id === 'nights') || {}).token;
+        const serviceUnitsLabel = (svc, rs, cnt) => {
+            const f = ((svc && svc.quantityFormula) || '').trim();
+            if (NIGHTS_TOKEN && f === NIGHTS_TOKEN && rs.autoQuantity !== false) return nNights(cnt);
+            return String(cnt);
+        };
+
         const guestTypes = await modelsDB.GuestTypes.findAll({ raw: true });
         const gtMap = {};
         for (const gt of guestTypes) gtMap[gt.UID] = gt;
+
+        // Название вида гостя — из СПРАВОЧНИКА, на языке организации.
+        // Дублировать его строкой в i18n.json нельзя: там оно застынет
+        // («Kinder 6–13»), а границы возраста живут в guest_types и владелец
+        // вправе их менять — счёт печатал бы полосу, которой уже нет.
+        // findAll идёт мимо dbGateway, поэтому перевод берём явно (middleware
+        // здесь не отработает и вернул бы английский base).
+        const tmw = require('../../../node_modules/my-old-space/drive_root/translationMiddleware');
+        const gtLookup = (invLang && invLang !== 'en')
+            ? await tmw.getTranslationLookup('guest_types', invLang, modelsDB) : null;
+        const gtName = gt => (gtLookup && gtLookup.get(gt.UID + '|name')) || gt.name;
+
+        // Режим учёта вида гостя в проживании (реквизит справочника):
+        //   included — входит в сетку тарифа номера;
+        //   separate — своя цена проживания из прайс-листа;
+        //   free     — ОБЪЯВЛЕННОЕ бесплатное проживание (младенцы).
+        // Различать `free` и «цену забыли завести» обязательно: без этого
+        // предупреждение об отсутствии цены срабатывало бы на каждой броне
+        // с младенцем, то есть на штатной настройке, и его перестали бы читать.
+        // Пустое значение (записи старше реквизита) — как `included`,
+        // тот же дефолт, что в модели.
+        const roomRateMode = gt => (gt && gt.roomRateMode) || 'included';
+
+        // Виды гостей в порядке справочника — им же идут строки счёта.
+        const gtOrdered = guestTypes.slice().sort((a, b) =>
+            (a.displayOrder != null ? a.displayOrder : 50) - (b.displayOrder != null ? b.displayOrder : 50));
 
         const roomIds  = rooms.map(r => r.roomId).filter(Boolean);
         const roomRecs = roomIds.length ? await modelsDB.Rooms.findAll({ where: { UID: roomIds }, raw: true }) : [];
@@ -164,12 +218,14 @@ module.exports = function (modelsDB, Utilities) {
         // Детский тариф проживания — сумма из прайс-листа (позиция srv-child).
         const CHILD_SERVICE_ID = 'srv-child';
         const auxPrices = priceResolver.pickServicePrices(priceSlice, { serviceId: CHILD_SERVICE_ID });
-        const auxPriceByAge = (serviceId, age, fallback) => {
+        // Полоса ищется по ВСЕМУ возрастному диапазону вида гостя (как в услугах),
+        // а не по одному числу: раньше цена бралась запросом «сколько стоит гость
+        // 3 лет» с фолбэком 10 € — и возраст, и сумма были вписаны в код.
+        const auxPriceForGuestType = (serviceId, gt) => {
             const p = auxPrices.find(x => x.serviceId === serviceId
-                && priceResolver.ageBandMatches(x, age, age));
-            return p ? p.price : fallback;
+                && priceResolver.ageBandMatches(x, gt.ageFrom, gt.ageTo));
+            return p ? Number(p.price) : 0;
         };
-        const childNightPrice = auxPriceByAge(CHILD_SERVICE_ID, 3, 10);     // Kinder 2–5: 10 €/Nacht
 
         const lines = [];
         let sortOrd = 0;
@@ -254,12 +310,17 @@ module.exports = function (modelsDB, Utilities) {
             }
             const out = [];
             let amtSum = 0;
-            for (const { c, unitPart } of parts) {
+            for (let i = 0; i < parts.length; i++) {
+                const { c, unitPart } = parts[i];
                 const amount = r2(unitPart * qty);
                 out.push(Object.assign({}, base, {
                     UID: Utilities.generateUID('InvoiceLines'),
                     label: (base.label || '') + ' – ' + c.name,
                     taxComponentName: c.name,
+                    // Порядок компонента из справочника (comps уже отсортированы
+                    // по displayOrder) — по нему свёртка держит Speisen перед
+                    // Getränke, а не раскидывает их по величине суммы.
+                    _compOrder: i,
                     unitPrice: unitPart,
                     taxRate: resolveRate(c.taxCategoryId, base.taxRate),
                     taxCategoryId: c.taxCategoryId || base.taxCategoryId || null,
@@ -294,20 +355,25 @@ module.exports = function (modelsDB, Utilities) {
             const rInfo   = roomMap[room.roomId];
             const rLabel  = rInfo ? rInfo.number : '?';
 
-            // Возрастные группы = виды гостей (границы 13/14 и 15/16 — разные полосы).
-            let adults = 0, teen14_15 = 0, kids6_13 = 0, kids3_5 = 0, kids2 = 0, infants = 0;
+            // Гости комнаты — по ВИДАМ из справочника, без корзин с порогами.
+            // Раньше здесь стояла лесенка `gt.ageFrom >= 16 / 14 / 6 / 3 / 2`:
+            // шесть чисел в коде, повторявших границы, которые владелец правит
+            // в guest_types. Заведи он седьмой вид или сдвинь границу — расчёт
+            // молча отнёс бы гостя не в ту корзину.
+            const cntByGt = new Map();
             for (const g of rGuests) {
                 const gt = gtMap[g.guestTypeId];
                 if (!gt) continue;
-                const c = g.count || 1;
-                if      (gt.ageFrom >= 16) adults    += c;
-                else if (gt.ageFrom >= 14) teen14_15 += c;
-                else if (gt.ageFrom >= 6)  kids6_13  += c;
-                else if (gt.ageFrom >= 3)  kids3_5   += c;
-                else if (gt.ageFrom >= 2)  kids2     += c;
-                else                       infants   += c;
+                cntByGt.set(gt.UID, (cntByGt.get(gt.UID) || 0) + (g.count || 1));
             }
-            const billingGuests = adults + teen14_15 + kids6_13;
+
+            // В сетку тарифа номера входят виды с режимом `included`
+            // (у Seiler — от 6 лет и старше). Это правило данных, а не кода:
+            // у другой организации порог другой.
+            let billingGuests = 0;
+            for (const gt of gtOrdered) {
+                if (roomRateMode(gt) === 'included') billingGuests += (cntByGt.get(gt.UID) || 0);
+            }
 
             // 1. Проживание — цена из среза прайс-листов.
             const rp = priceResolver.pickRoomPrice(priceSlice, {
@@ -318,41 +384,58 @@ module.exports = function (modelsDB, Utilities) {
                     UID: Utilities.generateUID('InvoiceLines'),
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
                     sectionLabel: tInv('accommodation_section'),
-                    label:    tfInv('room_line_label', { room: rLabel, guests: billingGuests, nights }),
+                    // Количество этой строки — НОЧИ, поэтому в подписи их нет:
+                    // они и так стоят в графе «Количество». Число гостей, наоборот,
+                    // есть только здесь — от него зависит цена, а сомножителем
+                    // количества оно не является (цена уже за квартиру целиком).
+                    label:    tfInv('room_line_label', { room: rLabel, guests: nGuests(billingGuests) }),
                     quantity: nights, unitPrice: rp.price,
                     taxRate:  rateByCode('accommodation', 0),
                     taxCategoryId: ACCOMMODATION_CAT,
                     amount:   r2(rp.price * nights), sortOrder: ++sortOrd
                 });
+            } else if (billingGuests > 0) {
+                // Проживание молча выпадало из счёта, если в срезе прайс-листов
+                // нет цены на такое число гостей (новый вид гостя сдвинул счёт,
+                // сезон не покрыт, квартиру не внесли в прайс). Это самая
+                // дорогая строка документа — молчать о её отсутствии нельзя.
+                addSkipped(rLabel, 'roomnoprice', { guests: billingGuests });
             }
 
-            // 2. Дети 3–5 лет
-            if (kids3_5 > 0) {
-                const qty = kids3_5 * nights;
+            // 2. Виды гостей ВНЕ тарифа номера, у которых есть собственная цена
+            //    проживания (позиция прайс-листа srv-child). Раньше это были два
+            //    жёстко прописанных блока «дети 3–5» и «дети 2 года» с UID видов
+            //    прямо в коде. Кого накрывает цена — решает возрастная полоса
+            //    позиции: младенцы под неё не попадают и строки не получают,
+            //    а новый вид гостя подхватится сам, без правки кода.
+            for (const gt of gtOrdered) {
+                const mode = roomRateMode(gt);
+                // `included` уже посчитан в тарифе номера, `free` — объявленное
+                // бесплатное проживание (младенцы). Предупреждать надо только
+                // про `separate`: у него ЗАЯВЛЕНА своя цена, а её нет.
+                if (mode !== 'separate') continue;
+                const n = cntByGt.get(gt.UID) || 0;
+                if (n <= 0) continue;
+                const price = auxPriceForGuestType(CHILD_SERVICE_ID, gt);
+                if (!price) {
+                    addSkipped(gtName(gt), 'guestnoprice');
+                    continue;
+                }
+                const qty = n * nights;
                 lines.push({
                     UID: Utilities.generateUID('InvoiceLines'),
                     bookingId, bookingRoomId: room.UID, organizationId: orgId,
-                    guestTypeId: '000000000-guest-type-0003',
+                    guestTypeId: gt.UID,
                     sectionLabel: tInv('accommodation_section'),
-                    label:    tfInv('children_3_5_line_label', { room: rLabel, count: kids3_5, nights }),
-                    quantity: qty, unitPrice: childNightPrice, taxRate: rateByCode('accommodation', 0),
+                    // Здесь количество — человеко-ночи, и оба сомножителя известны
+                    // по построению, поэтому подпись их называет.
+                    label:    tfInv('room_guest_type_line_label', {
+                        room: rLabel, guestType: gtName(gt),
+                        guests: nGuests(n), nights: nNights(nights)
+                    }),
+                    quantity: qty, unitPrice: price, taxRate: rateByCode('accommodation', 0),
                     taxCategoryId: ACCOMMODATION_CAT,
-                    amount:   r2(qty * childNightPrice), sortOrder: ++sortOrd
-                });
-            }
-
-            // 2б. Дети 2 лет
-            if (kids2 > 0) {
-                const qty2 = kids2 * nights;
-                lines.push({
-                    UID: Utilities.generateUID('InvoiceLines'),
-                    bookingId, bookingRoomId: room.UID, organizationId: orgId,
-                    guestTypeId: '000000000-guest-type-0005',
-                    sectionLabel: tInv('accommodation_section'),
-                    label:    tfInv('children_2_line_label', { room: rLabel, count: kids2, nights }),
-                    quantity: qty2, unitPrice: childNightPrice, taxRate: rateByCode('accommodation', 0),
-                    taxCategoryId: ACCOMMODATION_CAT,
-                    amount:   r2(qty2 * childNightPrice), sortOrder: ++sortOrd
+                    amount:   r2(qty * price), sortOrder: ++sortOrd
                 });
             }
 
@@ -383,7 +466,7 @@ module.exports = function (modelsDB, Utilities) {
                 }
 
                 // Детский тариф проживания начисляется блоком №2 ИЗ СОСТАВА ГОСТЕЙ
-                // (kids3_5/kids2 × ночи). Если эта же услуга добавлена ещё и строкой
+                // (виды вне тарифа номера × ночи). Если эта же услуга добавлена строкой
                 // ТЧ брони, начисление удваивается — ровно это дал счёт 00009
                 // (две строки по 75 € за одного ребёнка). Услуга-носитель цены не
                 // является отдельно продаваемой: строку игнорируем и говорим об этом.
@@ -400,28 +483,37 @@ module.exports = function (modelsDB, Utilities) {
                 const agePrices = roomPriceRows.filter(sp => priceResolver.hasAgeBand(sp));
 
                 if (agePrices.length > 0) {
-                    const groups = [
-                        { gtId: '000000000-guest-type-0001', n: adults,    lblKey: 'age_group_adults_abbr' },
-                        { gtId: '000000000-guest-type-0006', n: teen14_15, lblKey: 'age_group_14_15_abbr' },
-                        { gtId: '000000000-guest-type-0002', n: kids6_13,  lblKey: 'age_group_6_13_abbr'  },
-                        { gtId: '000000000-guest-type-0003', n: kids3_5,   lblKey: 'age_group_3_5_abbr'  },
-                        { gtId: '000000000-guest-type-0005', n: kids2,     lblKey: 'age_group_2_abbr'   },
-                        { gtId: '000000000-guest-type-0004', n: infants,   lblKey: 'age_group_0_1_abbr'  },
-                    ];
-                    for (const ag of groups) {
-                        if (ag.n <= 0) continue;
-                        const gt = gtMap[ag.gtId];
-                        if (!gt) continue;
+                    // Перебор — по справочнику видов гостей, а не по списку UID
+                    // в коде: раньше шесть предопределённых видов были выписаны
+                    // здесь поимённо, и седьмой просто не попал бы в счёт.
+                    for (const gt of gtOrdered) {
+                        const n = cntByGt.get(gt.UID) || 0;
+                        if (n <= 0) continue;
                         const sp = agePrices.find(p => priceResolver.ageBandMatches(p, gt.ageFrom, gt.ageTo));
                         if (!sp || sp.price === 0) continue;
-                        const qty = ag.n * cnt;
-                        const ageLabel = tfInv('service_age_group_label', { name: svc.name, ageGroup: tInv(ag.lblKey), count: ag.n, perRoom: cnt });
+                        const qty = n * cnt;
+                        const gLabel = gtName(gt);
+                        const unitsLabel = serviceUnitsLabel(svc, rs, cnt);
+                        const ageLabel = tfInv('service_age_group_label', {
+                            name: svc.name, ageGroup: gLabel, guests: nGuests(n), units: unitsLabel
+                        });
                         emitServiceLine({
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
-                            serviceId: rs.serviceId, guestTypeId: ag.gtId,
+                            serviceId: rs.serviceId, guestTypeId: gt.UID,
                             sectionLabel: svc.name,
                             label:    ageLabel,
+                            // Метка возрастной группы отдельным реквизитом: свёртка
+                            // строит из неё подпись печатной строки, не разбирая
+                            // готовый текст label обратно на части. Порядок — из
+                            // справочника (guest_types.displayOrder), а не из
+                            // порядка перебора: строки счёта идут по видам гостей.
+                            _ageLabel: gLabel,
+                            _ageOrder: gt.displayOrder != null ? gt.displayOrder : 50,
+                            // Сомножители количества — свёртке: печатную подпись
+                            // строит она, и число гостей у неё СУММИРУЕТСЯ по группе
+                            // (одна ценовая полоса накрывает несколько видов гостей).
+                            _persons: n, _unitsLabel: unitsLabel,
                             quantity: qty, unitPrice: sp.price, taxRate: svcRate(svc),
                             taxCategoryId: svc.taxCategoryId || null,
                             amount:   r2(qty * sp.price), sortOrder: ++sortOrd
@@ -478,6 +570,10 @@ module.exports = function (modelsDB, Utilities) {
             } else if (ln.serviceId != null) {
                 const svc = svcMap[ln.serviceId];
                 ln._sortPriority = (svc && svc.displayOrder != null) ? svc.displayOrder : 50;
+                // Те же ключи нужны свёртке: она пересобирает строки заново и
+                // без них теряет порядок справочника услуг.
+                ln._svcOrder = ln._sortPriority;
+                ln._svcName  = (svc && svc.name) || '';
             } else if (ln.guestTypeId != null) {
                 const gt = gtMap[ln.guestTypeId];
                 ln._sortPriority = (gt && gt.displayOrder != null) ? gt.displayOrder : 50;
@@ -494,15 +590,21 @@ module.exports = function (modelsDB, Utilities) {
             delete ln._sortPriority;
             delete ln._isExtra;
         });
-        return { lines, booking, skipped };
+        // invLang уходит наружу: печатную подпись строк услуг собирает свёртка,
+        // и язык организации нужен ей так же, как расчёту.
+        return { lines, booking, skipped, invLang };
     }
 
     // Сообщение «эти услуги брони в счёт не попали» — UI-алерт пользователю,
     // поэтому на языке СЕССИИ (в отличие от строк счёта — они на языке организации).
     const SKIPPED_REASON_KEYS = {
-        auto:    'service_skipped_auto',
-        noprice: 'service_skipped_no_price',
-        manual:  'service_manual_quantity_differs'
+        auto:         'service_skipped_auto',
+        noprice:      'service_skipped_no_price',
+        manual:       'service_manual_quantity_differs',
+        // Не только услуги: сюда же попадают вид гостя с заявленной, но не
+        // заведённой ценой и комната без цены на такое число гостей.
+        guestnoprice: 'guest_type_no_price',
+        roomnoprice:  'room_no_price'
     };
 
     async function _skippedNotice(skipped, sessionID) {
@@ -513,10 +615,15 @@ module.exports = function (modelsDB, Utilities) {
         // однажды начнёт называть поле не так, как оно подписано на экране.
         const dirName   = await tForSession('services', sessionID);
         const fieldName = await tForSession('quantity_formula', sessionID);
+        // Те же имена, но для справочника видов гостей — сообщение обязано
+        // показать, ГДЕ лежит правило, а не просто сослаться на него.
+        const gtDir     = await tForSession('guest_types', sessionID);
+        const gtField   = await tForSession('room_rate_mode', sessionID);
         const parts = [];
         for (const s of skipped) {
             const key = SKIPPED_REASON_KEYS[s.reason] || SKIPPED_REASON_KEYS.noprice;
-            const vars = Object.assign({ service: s.service, dir: dirName, field: fieldName }, s.vars || {});
+            const vars = Object.assign(
+                { service: s.service, dir: dirName, field: fieldName, gtDir, gtField }, s.vars || {});
             parts.push('• ' + await tfForSession(key, sessionID, vars));
         }
         return await tForSession('services_skipped_title', sessionID) + '\n' + parts.join('\n');
@@ -525,29 +632,60 @@ module.exports = function (modelsDB, Utilities) {
     // ── Свёртка детальных строк в «печатный» вид (WYSIWYG) ───────────────
     // ТЧ счёта хранит РОВНО те строки, что печатаются, — корректировать удобно.
     // Классификация как раньше в печати: услуги группируются по
-    // serviceId + налоговый компонент + ставка (label = имя услуги [+ компонент]),
-    // проживание и доп.строки — как есть. Порядок: проживание (по убыванию суммы)
+    // serviceId + налоговый компонент + ставка + ЦЕНА ЗА ЕДИНИЦУ, проживание и
+    // доп.строки — как есть. Порядок: проживание (по убыванию суммы)
     // → услуги (по убыванию суммы) → доп.строки.
-    // Кол-во/цена свёрнутой строки: полосы с одинаковой ценой → qty = Σqty;
-    // разные цены (возрастные полосы) → qty = 1, цена = Σсумм.
+    //
+    // Цена в ключе — обязательна. Без неё возрастные полосы одной услуги
+    // (курсбор 2,10 взр. / 1,00 дети 6–15; завтрак 14,50 / 8,50 / 3,50)
+    // сливались в одну строку, и, поскольку общей цены за единицу у них нет,
+    // строка вырождалась в «Menge 1 × вся сумма»: в счёте 1397 курсбор
+    // печатался как 1 × 72,00 вместо 20 × 2,10 + 20 × 1,00 + 10 × 1,00.
+    // Это прямо нарушало § 14 Abs. 4 Nr. 5 UStG (Menge и Einzelpreis —
+    // самостоятельные реквизиты) и не давало гостю проверить сумму.
+    // С ценой в ключе строк ровно столько, сколько сработало ценовых полос,
+    // и у каждой честные количество и цена; сумма счёта не меняется.
+    //
+    // Подпись строки: имя услуги [+ налоговый компонент] [+ возрастные группы].
+    // Группы перечисляются, потому что одна ценовая полоса может накрывать
+    // несколько видов гостей (дети 6–13 и подростки 14–15 платят курсбор по 1,00).
     // Ставка НДС — ссылкой на справочник tax_rates (taxRateId); % (taxRate)
     // остаётся снапшотом документа рядом.
-    function _collapseInvoiceLines(rawLines, taxRateRows) {
+    function _collapseInvoiceLines(rawLines, taxRateRows, invLang) {
+        // Подпись печатной строки услуги собирается ЗДЕСЬ, поэтому язык
+        // организации нужен и здесь: строки счёта — содержимое документа
+        // организации, а не интерфейс пользователя.
+        const tfL = (key, vars) => i18n.tf(key, invLang || 'en', vars);
         const accommodation = [];
         const extra = [];
-        const svcGroups = new Map(); // ключ: serviceId|taxComponentName|taxRate
+        const svcGroups = new Map(); // ключ: serviceId|компонент|ставка|категория|цена
         for (const ln of rawLines) {
             if (ln.serviceId) {
                 const rate = ln.taxRate || 0;
                 const comp = ln.taxComponentName || '';
+                const unit = Number(ln.unitPrice) || 0;
                 // Категория — часть ключа: одинаковая ставка с РАЗНЫМ основанием
                 // (0% durchlaufender Posten vs 0% § 4 Nr. 12a) не должна сливаться.
-                const key = ln.serviceId + '|' + comp + '|' + rate + '|' + (ln.taxCategoryId || '');
+                const key = ln.serviceId + '|' + comp + '|' + rate + '|' + (ln.taxCategoryId || '') + '|' + unit;
                 let g = svcGroups.get(key);
                 if (!g) {
-                    const base = ln.sectionLabel || ln.label;
-                    g = { proto: ln, label: comp ? base + ' – ' + comp : base, rows: [] };
+                    g = { proto: ln, base: ln.sectionLabel || ln.label, comp,
+                          ages: [], ageOrder: Infinity, rows: [],
+                          persons: 0, unitsLabel: null, unitsMixed: false };
                     svcGroups.set(key, g);
+                }
+                if (ln._persons != null) {
+                    g.persons += Number(ln._persons) || 0;
+                    // Разные вторые сомножители в одной группе (напр. одна услуга с
+                    // разным количеством по номерам) разложить нечем — тогда его
+                    // просто не печатаем, вместо того чтобы взять первый попавшийся.
+                    if (g.unitsLabel == null) g.unitsLabel = ln._unitsLabel;
+                    else if (g.unitsLabel !== ln._unitsLabel) g.unitsMixed = true;
+                }
+                if (ln._ageLabel) {
+                    const ord = ln._ageOrder != null ? ln._ageOrder : 50;
+                    if (!g.ages.some(a => a.label === ln._ageLabel)) g.ages.push({ label: ln._ageLabel, order: ord });
+                    if (ord < g.ageOrder) g.ageOrder = ord;
                 }
                 g.rows.push(ln);
             } else if (ln.bookingRoomId) {
@@ -558,9 +696,28 @@ module.exports = function (modelsDB, Utilities) {
         }
         const services = [];
         for (const g of svcGroups.values()) {
-            const amount  = r2(g.rows.reduce((s, r) => s + (Number(r.amount) || 0), 0));
-            const qtySum  = r2(g.rows.reduce((s, r) => s + (Number(r.quantity) || 0), 0));
-            const uniform = g.rows.every(r => Number(r.unitPrice) === Number(g.rows[0].unitPrice));
+            const amount = r2(g.rows.reduce((s, r) => s + (Number(r.amount) || 0), 0));
+            const qtySum = r2(g.rows.reduce((s, r) => s + (Number(r.quantity) || 0), 0));
+            // Цена входит в ключ группы, поэтому она одна на все строки —
+            // количество всегда суммируется, вырожденного «1 × вся сумма» нет.
+            // Вид гостя — перед налоговым компонентом: строки одного гостя
+            // должны читаться подряд («… — Erwachsener – Speisen», «… —
+            // Erwachsener – Getränke»), а не разбиваться по еде и напиткам.
+            let label = g.base;
+            if (g.ages.length) {
+                label += ' — ' + g.ages.slice()
+                    .sort((a, b) => a.order - b.order).map(a => a.label).join(', ');
+            }
+            if (g.comp) label += ' – ' + g.comp;
+            // Разложение количества — в конце: «Kurbeitrag — Erwachsener (2 Gäste × 3 ÜN)».
+            // Без него графа «Количество» показывала бы 6 без единого объяснения,
+            // откуда шестёрка (2 гостя × 3 ночи).
+            if (g.persons > 0 && g.unitsLabel && !g.unitsMixed) {
+                label += ' (' + tfL('line_qty_breakdown', {
+                    guests: tfL('guests_count', { count: g.persons }),
+                    units:  g.unitsLabel
+                }) + ')';
+            }
             services.push({
                 UID: Utilities.generateUID('InvoiceLines'),
                 bookingId:        g.proto.bookingId,
@@ -569,16 +726,37 @@ module.exports = function (modelsDB, Utilities) {
                 guestTypeId:      g.rows.length === 1 ? (g.proto.guestTypeId || null) : null,
                 taxComponentName: g.proto.taxComponentName || null,
                 sectionLabel:     g.proto.sectionLabel || null,
-                label:            g.label,
-                quantity:         uniform ? qtySum : 1,
-                unitPrice:        uniform ? (Number(g.rows[0].unitPrice) || 0) : amount,
+                label:            label,
+                quantity:         qtySum,
+                unitPrice:        Number(g.proto.unitPrice) || 0,
                 taxRate:          g.proto.taxRate || 0,
                 taxCategoryId:    g.proto.taxCategoryId || null,
-                amount
+                amount,
+                // Ключи порядка — временные, снимаются сразу после сортировки.
+                _svcOrder:  g.proto._svcOrder != null ? g.proto._svcOrder : 50,
+                _svcName:   g.proto._svcName || '',
+                _ageOrder:  g.ageOrder === Infinity ? 0 : g.ageOrder,
+                _compOrder: g.proto._compOrder != null ? g.proto._compOrder : 0
             });
         }
         accommodation.sort((a, b) => b.amount - a.amount);
-        services.sort((a, b) => b.amount - a.amount);
+        // Строки одной услуги обязаны идти подряд. Сортировка по одной лишь
+        // сумме их перемешивала: в счёте 1396 курсбор вставал между «Frühstück
+        // – Speisen» и «Frühstück – Getränke», потому что его 33,60 попадали
+        // между ними по величине. Порядок: услуга (displayOrder справочника,
+        // при равенстве — по названию) → вид гостя (displayOrder справочника)
+        // → налоговый компонент → сумма. Вид гостя ВЫШЕ компонента: гость
+        // сверяет счёт по людям, а не по ставкам НДС.
+        services.sort((a, b) => {
+            if (a._svcOrder !== b._svcOrder)   return a._svcOrder - b._svcOrder;
+            if (a._svcName !== b._svcName)     return a._svcName.localeCompare(b._svcName, 'de');
+            if (a._ageOrder !== b._ageOrder)   return a._ageOrder - b._ageOrder;
+            if (a._compOrder !== b._compOrder) return a._compOrder - b._compOrder;
+            return b.amount - a.amount;
+        });
+        for (const s of services) {
+            delete s._svcOrder; delete s._svcName; delete s._ageOrder; delete s._compOrder;
+        }
         const out = accommodation.concat(services, extra);
         // Ссылка на справочник ставок + display-значения для FK-ячеек формы.
         for (const ln of out) {
@@ -618,7 +796,7 @@ module.exports = function (modelsDB, Utilities) {
             const pricingDate = (mode === 'invoiceDate')
                 ? (invoice.date || new Date())
                 : (booking.date || invoice.date || new Date());
-            const { lines, skipped } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
+            const { lines, skipped, invLang } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
             for (const s of (skipped || [])) {
                 if (!allSkipped.some(x => x.service === s.service && x.reason === s.reason)) allSkipped.push(s);
             }
@@ -630,7 +808,7 @@ module.exports = function (modelsDB, Utilities) {
 
             // ТЧ хранит свёрнутые «печатные» строки (WYSIWYG) — детализация по
             // возрастным группам схлопывается здесь же, как раньше в печати.
-            allLines.push(..._collapseInvoiceLines(lines, taxRateRows));
+            allLines.push(..._collapseInvoiceLines(lines, taxRateRows, invLang));
         }
         const { discount: aggDiscount, warn: discWarn } = _aggregateBookingDiscounts(bookingDiscounts);
         allLines.forEach((ln, i) => {
@@ -648,23 +826,41 @@ module.exports = function (modelsDB, Utilities) {
             for (const k of Object.keys(ln)) { if (!k.startsWith('__')) dbRow[k] = ln[k]; }
             await dbGateway.execute({ operation: 'create', table: 'invoice_lines', data: dbRow, context: dbCtx });
         }
-        // prepayment = Σ броней; скидка = агрегат броней (только если хоть у одной
-        // есть ненулевая — иначе ручную скидку счёта не затираем).
-        const invUpdate = { prepayment: prepaymentSum };
-        if (aggDiscount) {
+        // Предоплата: ненулевое значение В СЧЁТЕ сильнее пересчёта. Это либо
+        // реально полученные деньги, либо принятое решение пользователя, и
+        // перезаполнение строк — не повод его затирать: раньше «Заполнить»
+        // безусловно записывало Σ по броням, и на счёте 1399 так пропали
+        // введённые вручную 100 € (в брони-основании стоял ноль).
+        // Ноль в счёте читаем как «не заполнено» — тогда подтягиваем сумму
+        // предоплат всех броней-оснований.
+        // Скидка — ровно то же правило: ненулевая скидка В СЧЁТЕ сильнее
+        // агрегата по броням. Раньше правило было односторонним (агрегат
+        // применялся, как только у любой брони скидка ненулевая) — и счёт с
+        // согласованной вручную скидкой молча получал другую при нажатии
+        // «Заполнить».
+        const invUpdate = {};
+        const keepPrepayment = (Number(invoice.prepayment) || 0) !== 0;
+        const keepDiscount   = (Number(invoice.discountValue) || 0) !== 0;
+        if (!keepPrepayment) invUpdate.prepayment = prepaymentSum;
+        if (aggDiscount && !keepDiscount) {
             invUpdate.discountMode  = aggDiscount.mode;
             invUpdate.discountValue = aggDiscount.value;
         }
-        await dbGateway.execute({
-            operation: 'update', table: 'invoices',
-            where: { UID: invoiceId }, data: invUpdate,
-            context: dbCtx
-        });
+        if (Object.keys(invUpdate).length) {
+            await dbGateway.execute({
+                operation: 'update', table: 'invoices',
+                where: { UID: invoiceId }, data: invUpdate,
+                context: dbCtx
+            });
+        }
 
         // Предупреждение пользователю (язык сессии — это UI-алерт, не документ):
         // у нескольких броней-оснований разные скидки, объединены в одну.
+        // Только если скидку действительно применили: если она осталась своя,
+        // сообщение про объединение скидок броней относилось бы к тому, чего
+        // не произошло.
         let discountNotice = null;
-        if (discWarn && aggDiscount) {
+        if (discWarn && aggDiscount && !keepDiscount) {
             const disp = aggDiscount.mode === 'percent'
                 ? (aggDiscount.value + ' %') : (aggDiscount.value + ' €');
             discountNotice = await tfForSession('discount_multi_booking_warning', ctx.sessionID, { discount: disp });
@@ -704,9 +900,9 @@ module.exports = function (modelsDB, Utilities) {
                 const pricingDate = (mode === 'invoiceDate')
                     ? new Date()
                     : (booking.date || new Date());
-                const { lines, skipped } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
+                const { lines, skipped, invLang } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
                 const taxRateRows = await modelsDB.TaxRates.findAll({ raw: true });
-                const collapsed = _collapseInvoiceLines(lines, taxRateRows);
+                const collapsed = _collapseInvoiceLines(lines, taxRateRows, invLang);
                 collapsed.forEach((ln, i) => { ln.sortOrder = i + 1; });
 
                 return {

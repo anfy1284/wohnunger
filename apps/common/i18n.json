@@ -299,6 +299,30 @@
         "de": "Alter bis",
         "pl": "Wiek do"
     },
+    "room_rate_mode": {
+        "en": "Accommodation charging",
+        "ru": "Начисление проживания",
+        "de": "Berechnung der Übernachtung",
+        "pl": "Naliczanie noclegu"
+    },
+    "room_rate_mode_included": {
+        "en": "Counts towards room rate",
+        "ru": "Входит в тариф номера",
+        "de": "Zählt zum Zimmerpreis",
+        "pl": "Liczy się do ceny pokoju"
+    },
+    "room_rate_mode_separate": {
+        "en": "Own price from price list",
+        "ru": "Своя цена из прайс-листа",
+        "de": "Eigener Preis aus der Preisliste",
+        "pl": "Własna cena z cennika"
+    },
+    "room_rate_mode_free": {
+        "en": "Free of charge",
+        "ru": "Бесплатно",
+        "de": "Kostenfrei",
+        "pl": "Bezpłatnie"
+    },
     "date_from": {
         "en": "From",
         "ru": "Начало периода",

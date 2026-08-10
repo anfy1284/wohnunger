@@ -120,10 +120,22 @@
         "pl": "Rezerwacja nr {{number}}, {{from}} – {{to}}"
     },
     "services_skipped_title": {
-        "en": "Please check the booking services:",
-        "ru": "Обратите внимание на услуги брони:",
-        "de": "Bitte prüfen Sie die Leistungen der Buchung:",
-        "pl": "Zwróć uwagę na usługi rezerwacji:"
+        "en": "Please check the invoice — some items were not charged:",
+        "ru": "Обратите внимание — часть позиций не начислена:",
+        "de": "Bitte prüfen Sie die Rechnung — einige Positionen wurden nicht berechnet:",
+        "pl": "Zwróć uwagę — część pozycji nie została naliczona:"
+    },
+    "guest_type_no_price": {
+        "en": "{{service}} — this guest type is set to be priced separately («{{gtDir}}» → field «{{gtField}}»), but the price list has no price for it on the calculation date. Nothing was charged for this guest.",
+        "ru": "{{service}} — для этого вида гостя задана отдельная цена проживания («{{gtDir}}» → поле «{{gtField}}»), но в прайс-листе на дату расчёта её нет. Гость не начислен.",
+        "de": "{{service}} — für diese Gästeart ist ein eigener Übernachtungspreis vorgesehen („{{gtDir}}“ → Feld „{{gtField}}“), in der Preisliste zum Berechnungsdatum fehlt er jedoch. Für diesen Gast wurde nichts berechnet.",
+        "pl": "{{service}} — dla tego rodzaju gościa przewidziano osobną cenę noclegu («{{gtDir}}» → pole «{{gtField}}»), ale w cenniku na datę wyliczenia jej nie ma. Nic nie naliczono."
+    },
+    "room_no_price": {
+        "en": "Room {{service}} — the price list has no price for {{guests}} guest(s) on the calculation date. Accommodation was not charged at all.",
+        "ru": "Комната {{service}} — в прайс-листе на дату расчёта нет цены на {{guests}} гост. Проживание вообще не начислено.",
+        "de": "Zimmer {{service}} — in der Preisliste zum Berechnungsdatum gibt es keinen Preis für {{guests}} Gäste. Die Übernachtung wurde gar nicht berechnet.",
+        "pl": "Pokój {{service}} — w cenniku na datę wyliczenia brak ceny dla {{guests}} gości. Nocleg w ogóle nie został naliczony."
     },
     "service_manual_quantity_differs": {
         "en": "{{service}} — the quantity in the booking was typed by hand: {{count}}. The service itself gives {{expected}} for this length of stay («{{dir}}» → «{{service}}» → field «{{field}}»). The invoice uses the hand-typed value — please check that this is what you meant.",
