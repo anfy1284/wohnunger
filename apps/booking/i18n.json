@@ -358,23 +358,11 @@
         "de": "Zimmer {{room}} - {{guestType}} ({{guests}} × {{nights}})",
         "pl": "Pokój {{room}} - {{guestType}} ({{guests}} × {{nights}})"
     },
-    "service_age_group_label": {
-        "en": "{{name}} — {{ageGroup}} ({{guests}} × {{units}})",
-        "ru": "{{name}} — {{ageGroup}} ({{guests}} × {{units}})",
-        "de": "{{name}} — {{ageGroup}} ({{guests}} × {{units}})",
-        "pl": "{{name}} — {{ageGroup}} ({{guests}} × {{units}})"
-    },
     "line_qty_breakdown": {
         "en": "{{guests}} × {{units}}",
         "ru": "{{guests}} × {{units}}",
         "de": "{{guests}} × {{units}}",
         "pl": "{{guests}} × {{units}}"
-    },
-    "service_once_label": {
-        "en": "{{name}} ({{count}})",
-        "ru": "{{name}} ({{count}})",
-        "de": "{{name}} ({{count}})",
-        "pl": "{{name}} ({{count}})"
     },
     "booking_ref": {
         "en": "Booking",

@@ -118,13 +118,11 @@ module.exports = function (modelsDB, Utilities) {
         const nGuests = n => tfInv('guests_count', { count: n });
         const nNights = n => tfInv('nights_count', { count: n });
 
-        // Разложение количества на сомножители для подписи: «2 Gäste × 3 ÜN».
-        // Знак «×» законен ТОЛЬКО когда оба числа — действительно сомножители
-        // графы «Количество». Прежнее «6 Gäste × 4 ÜN» при количестве 4 врало:
-        // 6 не участвовало в произведении вовсе.
-        const qtyBreakdown = (guests, units) =>
-            tfInv('line_qty_breakdown', { guests: nGuests(guests), units });
-
+        // Разложение количества на сомножители («2 Gäste × 3 ÜN») собирает СВЁРТКА:
+        // там число гостей суммируется по группе. Знак «×» законен ТОЛЬКО когда оба
+        // числа — действительно сомножители графы «Количество»; прежнее
+        // «6 Gäste × 4 ÜN» при количестве 4 врало, 6 в произведении не участвовало.
+        //
         // Единица ВТОРОГО сомножителя у услуги. Назвать её ночами можно только по
         // ОБЪЯВЛЕННОМУ правилу услуги (quantityFormula = переменная «ночи») и только
         // если количество действительно посчитано правилом: ручной ввод правило
@@ -494,19 +492,20 @@ module.exports = function (modelsDB, Utilities) {
                         const qty = n * cnt;
                         const gLabel = gtName(gt);
                         const unitsLabel = serviceUnitsLabel(svc, rs, cnt);
-                        const ageLabel = tfInv('service_age_group_label', {
-                            name: svc.name, ageGroup: gLabel, guests: nGuests(n), units: unitsLabel
-                        });
                         emitServiceLine({
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             serviceId: rs.serviceId, guestTypeId: gt.UID,
                             sectionLabel: svc.name,
-                            label:    ageLabel,
-                            // Метка возрастной группы отдельным реквизитом: свёртка
-                            // строит из неё подпись печатной строки, не разбирая
-                            // готовый текст label обратно на части. Порядок — из
-                            // справочника (guest_types.displayOrder), а не из
+                            // Печатную подпись строки услуги собирает СВЁРТКА (из
+                            // sectionLabel + видов гостя + компонента + разложения),
+                            // поэтому здесь label — только запасное значение на случай
+                            // пустого sectionLabel. Собирать тут развёрнутый текст
+                            // бессмысленно: свёртка его отбрасывает.
+                            label:    svc.name,
+                            // Составляющие подписи уходят свёртке ОТДЕЛЬНЫМИ реквизитами,
+                            // чтобы ей не пришлось разбирать готовый текст обратно на части.
+                            // Порядок — из справочника (guest_types.displayOrder), а не из
                             // порядка перебора: строки счёта идут по видам гостей.
                             _ageLabel: gLabel,
                             _ageOrder: gt.displayOrder != null ? gt.displayOrder : 50,
@@ -524,12 +523,12 @@ module.exports = function (modelsDB, Utilities) {
                     const price = sp ? sp.price : 0;
                     if (price > 0) {
                         const qty = cnt;
-                        const svcLabel = tfInv('service_once_label', { name: svc.name, count: cnt });
                         emitServiceLine({
                             UID: Utilities.generateUID('InvoiceLines'),
                             bookingId, bookingRoomId: room.UID, organizationId: orgId,
                             serviceId: rs.serviceId, sectionLabel: svc.name,
-                            label:    svcLabel,
+                            // Как и выше: подпись собирает свёртка, здесь — запасное значение.
+                            label:    svc.name,
                             quantity: qty, unitPrice: price, taxRate: svcRate(svc),
                             taxCategoryId: svc.taxCategoryId || null,
                             amount:   r2(qty * price), sortOrder: ++sortOrd
