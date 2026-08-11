@@ -1,0 +1,22 @@
+{
+  "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApKew9E6ViXp6FtvDkffA\nHR3SwO3o7V4CbTr3OToWbNXfl3V5vbDqSqs3CpDb8wr+Yr/50OyhI75NmZsAmlLM\nMI2QPt6hO1gYNVuDGdVdf+0cpIt6WdPZWGwom1n/MW5pPSQ0XZJP8J8GJ+PabgwK\nuVpA+dt9kfZeI0lHu4aBLSSDfEBM+1QB983pOfjtZngeAW0rr1CTWlHaRdUZC24E\nt/F2cgYK/74RXwAvXlcy5GzJobJsXBIKTp024dda+vk2zq07vrqfNzP3dnuRCMLi\nno/YmRHS40oAov9Q66eBaZfi9SIqGHj8gUKwIlWhs6ce/YV0fVGVhckXmpCj/Fhe\nZhnJDvwlmC1sp4HExj2EsZ1u4WRJfsDMoBU7aJ2NX8ZGvlp3mW/dKxXo068W6gZ3\n12MfyqjNo2qPXzq1I4HtSYQg7Ns6ZfkE47y43YNnKsuw4fug7wiuCoTtwffIg65y\nZsZxBZCOG9J4D6xzbmAnhphf8nqEYHie/L/mXrhgdBlHzqNjYyKnEaPkDoCQt8J5\ni4PJgpiRoI7GLMqozejyrFVrsdyg0NPDJYK0ZFkqowUvG3IBx7KCsL0FT6hPTHby\n0GtfcNBFZP3amftpbnXIJGCY6Qsge1EGLD0+mMU3sNmXumoxKzGWQpeKYba53BCB\nYYg5Whh8+9TWK4a4QofHoe8CAwEAAQ==\n-----END PUBLIC KEY-----",
+  "keyFingerprint": "sha256:a11820ad64cd83d51d00726537db7982d64b32dc99027159102133145da18be1",
+  "storageDir": "backups",
+  "keepManual": 3,
+  "keepScheduled": 7,
+  "apiClients": [
+    {
+      "id": "3f3ec4da060fdd60",
+      "name": "test",
+      "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAwyZ1F+b/r+/xK3O20hIgKCO8UgwiWK4B+yVVpDTlgVs=\n-----END PUBLIC KEY-----",
+      "fingerprint": "sha256:3ca412c91df194291172647750840f3f2d74dab1d26b95a3d91ecf20a25e2826",
+      "algorithm": "ed25519",
+      "createdAt": "2026-08-11T17:33:20.907Z",
+      "disabled": false,
+      "lastSeenAt": "2026-08-11T21:28:23.499Z",
+      "lastSeenIp": "::1"
+    }
+  ],
+  "pruneOnlyAcked": false,
+  "keepUnackedMaxDays": 30
+}
