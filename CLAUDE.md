@@ -26,6 +26,10 @@ npm run dev        # nodemon index.js — auto-restart on change
 
 There is **no test suite, linter, or build step**. Verification is done by running the server and exercising the UI. Ad-hoc debug scripts live in `scripts/` (e.g. `node debugModels.js`, `node scripts/collect_models.js`) — these are throwaway diagnostics, not a harness.
 
+**`node --check` is not verification.** It sees syntax only, and a module that throws *at load* passes it while silently taking down the whole app: `init.js` of each app is wrapped in its own `try/catch`, and `/api/apps/:app/*` falls through to static (→ 404) when `require` fails. Actually load the touched modules (`require(...)`, `require(form)({}, {})`) and query the DB for facts. Live runs are the owner's job — say plainly which of these each claim rests on.
+
+One-off migration/cleanup scripts go in `tmp/` as a `*.lib.js` module plus two thin wrappers (`*.js` for localhost, `*_supabase.js` for prod) — see `tmp/2026-08-12_backup_tabellen_aufraeumen.lib.js`. Anything that deletes must default to **inspection**, with removal behind `--apply`. Prod connects through the Supabase **session pooler** (`aws-1-eu-north-1.pooler.supabase.com:5432`, user `postgres.<ref>`): the direct `db.<ref>.supabase.co` endpoint is IPv6-only and does not resolve from an IPv4 host.
+
 Update the framework from GitHub: run `scripts/update-my-old-space.cmd` (does `npm install git+https://github.com/anfy1284/my-old-space.git --save --force`). **Caution:** this overwrites any local edits made directly inside `node_modules/my-old-space/`.
 
 ## Database
@@ -85,6 +89,15 @@ Two distinct translation layers (don't conflate): **(1) `i18n.json`** translates
 
 ### Scheduled background work
 The framework has a **task scheduler** (`node_modules/my-old-space/drive_root/scheduler/`, UI app `apps/scheduler`, tables `scheduler_tasks`/`scheduler_task_params`/`scheduler_runs`). Never write your own `setInterval` for periodic work: declare a task type in `apps/<app>/scheduler.handlers.js` (a pure factory — the file is loaded by **both** the main process and the worker process) and the user creates the task in the UI. Tasks run in a forked worker under a **service session** — a real `sessions` row (`kind='service'`) owned by the task's owner — so RLS applies through the same code as for a live user; `__SYS_INTERNAL__` inside a handler is forbidden. A service session must never work as a login: HTTP takes the session only through `globalServerContext.getSessionIdFromRequest(req)`, which rejects `kind='service'`. Details: section 33 of `АРХИТЕКТУРА_ПРОЕКТА.md`.
+
+### Backup and restore (reworked 11–12.08.2026)
+The server is a **staging buffer, not an archive**: prod runs in a container with no volumes, so `docker rm -f` on every deploy destroys its filesystem. Consequences, all deliberate:
+- **Settings live in the DB** (`backup_config`, `backup_api_clients`), not in `backupSettings.json` — that file died on every deploy, taking the encryption key and the storage registry with it. Reading stays synchronous via an in-memory cache; async consumers must call `settings.ensureLoaded()` rather than trust the startup warm-up.
+- **Only the copy directory stays outside the DB** (`BACKUP_STORAGE_DIR`), together with the maintenance flag and the recovery-password hash: all three are needed exactly when the DB is unavailable.
+- **There is no `backup_files` table.** The directory is the source of truth (`drive_root/backup/catalog.js`); metadata comes from the dump's plaintext header, `sha256` from a `<name>.meta.json` sidecar. Run history lives in `scheduler_runs`.
+- **Copies are addressed by file name** in both the API and the forms — so the name arrives from outside and becomes a path. It must pass `catalog.safeName()`; never build a path from a client-supplied name directly.
+- **System data** (`entityConfig.systemData` + directory `system_data_types`) decides what a full restore may overwrite: by default users, roles, scheduled tasks and backup settings stay *current*. Users merge (backup first, current on top by UID; anyone missing from the current base returns `disabled = true`). Details: sections 45–49 of `АРХИТЕКТУРА_ПРОЕКТА.md`.
+- External storage protocol is **MOSBAK2** (`ack` → `delete`); the storage app's task lives in `tmp/backup_external_app/`.
 
 ### Events / hooks
 - Project `events_handler.js` (repo root) **must** use CommonJS `module.exports = {...}` — `export default` makes the framework silently ignore it. Framework's root `events_handler.js` runs first, then the project's. Key hooks: `onModelsPostCollect` (UID injection), `onDatabasePostInit` (post-sync seeding).
