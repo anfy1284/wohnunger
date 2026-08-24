@@ -13,6 +13,10 @@
 
 // Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
 const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
+// Деньги считаются в центах и приходят из базы СТРОКОЙ (DECIMAL), поэтому
+// любая арифметика над суммами счёта идёт только через этот модуль:
+// `a + b` над двумя строками дало бы склейку, а не сумму.
+const M = require('../../../node_modules/my-old-space/drive_root/db/money');
 
 const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -123,24 +127,22 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     };
     let subtotalBrutto = 0, discountBase = 0;
     for (const ln of flatLines) {
-        subtotalBrutto += ln.amount;
-        if (isDiscountable(ln)) discountBase += ln.amount;
+        subtotalBrutto = M.add(subtotalBrutto, ln.amount);
+        if (isDiscountable(ln)) discountBase = M.add(discountBase, ln.amount);
     }
-    subtotalBrutto = Math.round(subtotalBrutto * 100) / 100;
-    discountBase   = Math.round(discountBase * 100) / 100;
 
     // Скидка (документальный реквизит invoices.discountMode/Value): процент от
     // скидочной базы либо абсолют, но не больше базы.
     const discMode = invoice.discountMode || 'percent';
-    const discInput = Number(invoice.discountValue) || 0;
+    const discInput = M.num(invoice.discountValue);
     let discount = (discMode === 'percent')
-        ? Math.round(discountBase * discInput / 100 * 100) / 100
-        : Math.round(discInput * 100) / 100;
+        ? M.pct(discountBase, discInput)
+        : M.num(discInput);
     if (discount < 0) discount = 0;
     if (discount > discountBase) discount = discountBase; // недискаунтируемое не трогаем
     const discPctLabel = discInput.toLocaleString(locale, { maximumFractionDigits: 2 });
 
-    const discountedBrutto = Math.round((subtotalBrutto - discount) * 100) / 100;
+    const discountedBrutto = M.sub(subtotalBrutto, discount);
 
     // Раскладка скидки ПО СТРОКАМ пропорционально их брутто (k = остаток/база).
     // Копеечный дрейф гасим в самую крупную скидочную строку.
@@ -149,17 +151,17 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     let allocSum = 0, driftLine = null;
     for (const ln of flatLines) {
         if (isDiscountable(ln)) {
-            const v = Math.round(ln.amount * k * 100) / 100;
+            const v = M.mul(ln.amount, k);
             lineBrutto.set(ln, v);
-            allocSum = Math.round((allocSum + v) * 100) / 100;
-            if (!driftLine || ln.amount > driftLine.amount) driftLine = ln;
+            allocSum = M.add(allocSum, v);
+            if (!driftLine || M.cmp(ln.amount, driftLine.amount) > 0) driftLine = ln;
         } else {
-            lineBrutto.set(ln, Math.round(ln.amount * 100) / 100);
+            lineBrutto.set(ln, M.num(ln.amount));
         }
     }
     if (driftLine) {
-        const drift = Math.round((discountBase - discount - allocSum) * 100) / 100;
-        if (drift !== 0) lineBrutto.set(driftLine, Math.round((lineBrutto.get(driftLine) + drift) * 100) / 100);
+        const drift = M.sub(discountBase, discount, allocSum);
+        if (drift !== 0) lineBrutto.set(driftLine, M.add(lineBrutto.get(driftLine), drift));
     }
 
     // Группировка по ставке — из УЖЕ скидочных сумм строк. Вместе со ставкой
@@ -167,10 +169,13 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     // сносок (данные, не текст шаблона).
     const taxGroups = {};
     for (const ln of flatLines) {
-        const rate = ln.taxRate || 0;
+        // Ставка нормализуется в ЧИСЛО: снапшот `invoice_lines.taxRate` —
+        // DECIMAL и приходит строкой «19.00», а ключ группы попадает прямо в
+        // печать («19 %», не «19.00 %») и в сортировку свода.
+        const rate = M.num(ln.taxRate);
         if (!taxGroups[rate]) taxGroups[rate] = { bruttoDisc: 0, mwst: 0, netto: 0, cats: new Set() };
         const g = taxGroups[rate];
-        g.bruttoDisc = Math.round((g.bruttoDisc + lineBrutto.get(ln)) * 100) / 100;
+        g.bruttoDisc = M.add(g.bruttoDisc, lineBrutto.get(ln));
         if (ln.taxCategoryId) g.cats.add(ln.taxCategoryId);
     }
 
@@ -183,12 +188,11 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     for (const rate of Object.keys(taxGroups)) {
         const g = taxGroups[rate];
         const r = Number(rate);
-        g.mwst   = Math.round(g.bruttoDisc * r / (100 + r) * 100) / 100;
-        g.netto  = Math.round((g.bruttoDisc - g.mwst) * 100) / 100;
-        totalMwSt += g.mwst;
+        g.mwst   = M.mul(g.bruttoDisc, r / (100 + r));
+        g.netto  = M.sub(g.bruttoDisc, g.mwst);
+        totalMwSt = M.add(totalMwSt, g.mwst);
     }
-    totalMwSt = Math.round(totalMwSt * 100) / 100;
-    const totalNetto = Math.round((discountedBrutto - totalMwSt) * 100) / 100;
+    const totalNetto = M.sub(discountedBrutto, totalMwSt);
 
     // Строки таблицы услуг (с заголовками секций при нескольких бронях).
     // Колонки: Pos | Bezeichnung | Menge | Einzelpreis | MwSt-Satz | Gesamtpreis.
@@ -202,7 +206,7 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
         }
         for (const ln of sec.lines) {
             pos++;
-            const rate = ln.taxRate || 0;
+            const rate = M.num(ln.taxRate);
             const qty  = Number(ln.quantity);
             const unit = Number(ln.unitPrice);
             rowsHtml += '<tr>'
@@ -244,7 +248,7 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
         + (prepayment > 0
             ? sumRow('t-line', t('invoice_less_prepayment'), '&minus;' + fmtNum(prepayment) + ' &euro;')
               + sumRow('t-grand', t('invoice_balance_due'),
-                    fmtNum(Math.round((discountedBrutto - prepayment) * 100) / 100) + ' &euro;')
+                    fmtNum(M.sub(discountedBrutto, prepayment)) + ' &euro;')
             : '')
         + '</table>';
 

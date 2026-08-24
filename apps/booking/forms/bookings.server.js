@@ -14,6 +14,8 @@ const { tForSession, tfForSession } = require('../../../node_modules/my-old-spac
 const formulaEngine = require('../../common/lib/formulaEngine');
 // Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
 const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
+// Деньги приходят из базы строкой (DECIMAL) и считаются в центах.
+const M = require('../../../node_modules/my-old-space/drive_root/db/money');
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -111,7 +113,7 @@ module.exports = function (modelsDB, Utilities) {
 
             // Скидка брони (переносится в счёт): пустое/нечисло → 0, отрицательное → 0.
             if ('discountValue' in changes) {
-                const dv = Number(changes.discountValue);
+                const dv = M.num(changes.discountValue);
                 changes.discountValue = Number.isFinite(dv) ? Math.max(0, dv) : 0;
             }
             if ('discountMode' in changes && !changes.discountMode) changes.discountMode = 'percent';

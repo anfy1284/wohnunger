@@ -79,13 +79,13 @@
                     "caption": { "i18n": "Notes" }
                 },
                 "prepayment": {
-                    "type": "FLOAT",
+                    "type": "DECIMAL(12,2)",
                     "allowNull": true,
                     "defaultValue": null,
                     "caption": { "i18n": "prepayment_field" }
                 },
                 "discountValue": {
-                    "type": "FLOAT",
+                    "type": "DECIMAL(12,2)",
                     "allowNull": false,
                     "defaultValue": 0,
                     "caption": { "i18n": "discount_value_field" }
@@ -325,7 +325,7 @@
                     "caption": { "i18n": "extra_line_name" }
                 },
                 "amount": {
-                    "type": "FLOAT",
+                    "type": "DECIMAL(12,2)",
                     "allowNull": false,
                     "caption": { "i18n": "amount_gross" }
                 },

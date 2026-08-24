@@ -98,7 +98,7 @@
                     "caption": { "i18n": "guests_count" }
                 },
                 "price": {
-                    "type": "FLOAT",
+                    "type": "DECIMAL(12,2)",
                     "allowNull": false,
                     "caption": { "i18n": "base_rate_price" }
                 }
@@ -171,7 +171,7 @@
                     "caption": { "i18n": "age_to" }
                 },
                 "price": {
-                    "type": "FLOAT",
+                    "type": "DECIMAL(12,2)",
                     "allowNull": false,
                     "caption": { "i18n": "Price" }
                 }

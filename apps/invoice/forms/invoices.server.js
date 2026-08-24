@@ -15,6 +15,9 @@
 // по дате ОКАЗАНИЯ услуги (дата заезда брони) — периодичность касается только цен.
 
 const i18n = require('../../../node_modules/my-old-space/drive_root/i18n');
+// Деньги: суммы хранятся как DECIMAL и приходят из базы СТРОКОЙ, а считаются
+// в целых центах. Любая арифметика над суммами — только через этот модуль.
+const M = require('../../../node_modules/my-old-space/drive_root/db/money');
 const formulaEngine = require('../../common/lib/formulaEngine');
 const { tForSession, tfForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
 const { resolveOrgReportLang } = require('../../organizationSettings/lib/orgReportLanguage');
@@ -46,7 +49,12 @@ module.exports = function (modelsDB, Utilities) {
     // Цены проживания и услуг — ТОЛЬКО через резолвер прайс-листов.
     const priceResolver = require('../../common/lib/priceResolver')(modelsDB);
 
-    const r2 = v => Math.round(v * 100) / 100;
+    // Округление до цента — из общего модуля денег, а не своё.
+    // Прежняя запись `Math.round(v * 100) / 100` ошибалась на границе половины
+    // цента (1.005 → 1.00, 8.165 → 8.16): множитель 100 сначала загонял число
+    // в двоичную дробь чуть меньше нужной. Здесь разбор идёт по десятичной
+    // записи, поэтому округление совпадает с бухгалтерским.
+    const r2 = M.num;
 
     // SSE-оповещение подписанных списков (журнал счетов, вкладка «Счета» брони).
     // fillInvoice/createFromBooking меняют данные мимо applyChanges — оповещаем сами.
@@ -75,7 +83,7 @@ module.exports = function (modelsDB, Utilities) {
         if (percents.length) {
             discount = { mode: 'percent', value: Math.max(...percents.map(d => d.value)) };
         } else {
-            discount = { mode: 'amount', value: r2(amounts.reduce((s, d) => s + d.value, 0)) };
+            discount = { mode: 'amount', value: M.sum(amounts, 'value') };
         }
         const allSame = list.every(d => d.mode === list[0].mode && d.value === list[0].value);
         return { discount, warn: list.length > 1 && !allSame };
@@ -204,7 +212,12 @@ module.exports = function (modelsDB, Utilities) {
         const catCodeToId = {};
         for (const c of taxCats) catCodeToId[c.code] = c.UID;
         const rateValById = {};
-        for (const v of taxRateVals) rateValById[v.UID] = v.rate;
+        // Ставка нормализуется в ЧИСЛО на границе чтения: колонка `tax_rates.rate`
+        // — DECIMAL и приходит строкой «7.00», а fallback в `resolveRate` числовой.
+        // Смешение форм разошлось бы в ключе свёртки строк
+        // (`serviceId|component|rate|category|unitPrice`): «7.00» и 7 — разные
+        // ключи, и одинаковые строки перестали бы схлопываться в одну позицию.
+        for (const v of taxRateVals) rateValById[v.UID] = M.num(v.rate);
 
         // Полосы цен услуги для конкретной комнаты (покомнатные → иначе общие).
         const pricesForRoom = (serviceId, roomId) => {
@@ -296,21 +309,21 @@ module.exports = function (modelsDB, Utilities) {
                 const c = parts[i].c;
                 if (c.splitMode === 'remainder') { remIdx = i; continue; }
                 const up = c.splitMode === 'amount'
-                    ? r2(Number(c.splitValue) || 0)
-                    : r2(unit * (Number(c.splitValue) || 0) / 100);
+                    ? M.num(c.splitValue)
+                    : M.pct(unit, c.splitValue);
                 parts[i].unitPart = up;
-                assigned = r2(assigned + up);
+                assigned = M.add(assigned, up);
             }
-            if (remIdx >= 0) parts[remIdx].unitPart = r2(unit - assigned);
+            if (remIdx >= 0) parts[remIdx].unitPart = M.sub(unit, assigned);
             else if (parts.length) {
                 const last = parts[parts.length - 1];
-                last.unitPart = r2(last.unitPart + (unit - assigned));
+                last.unitPart = M.add(last.unitPart, M.sub(unit, assigned));
             }
             const out = [];
             let amtSum = 0;
             for (let i = 0; i < parts.length; i++) {
                 const { c, unitPart } = parts[i];
-                const amount = r2(unitPart * qty);
+                const amount = M.mul(unitPart, qty);
                 out.push(Object.assign({}, base, {
                     UID: Utilities.generateUID('InvoiceLines'),
                     label: (base.label || '') + ' – ' + c.name,
@@ -324,13 +337,13 @@ module.exports = function (modelsDB, Utilities) {
                     taxCategoryId: c.taxCategoryId || base.taxCategoryId || null,
                     amount
                 }));
-                amtSum = r2(amtSum + amount);
+                amtSum = M.add(amtSum, amount);
             }
-            const drift = r2(base.amount - amtSum);
+            const drift = M.sub(base.amount, amtSum);
             if (drift !== 0 && out.length) {
                 let mx = 0;
-                for (let i = 1; i < out.length; i++) if (out[i].amount > out[mx].amount) mx = i;
-                out[mx].amount = r2(out[mx].amount + drift);
+                for (let i = 1; i < out.length; i++) if (M.cmp(out[i].amount, out[mx].amount) > 0) mx = i;
+                out[mx].amount = M.add(out[mx].amount, drift);
             }
             return out;
         }
@@ -390,7 +403,7 @@ module.exports = function (modelsDB, Utilities) {
                     quantity: nights, unitPrice: rp.price,
                     taxRate:  rateByCode('accommodation', 0),
                     taxCategoryId: ACCOMMODATION_CAT,
-                    amount:   r2(rp.price * nights), sortOrder: ++sortOrd
+                    amount:   M.mul(rp.price, nights), sortOrder: ++sortOrd
                 });
             } else if (billingGuests > 0) {
                 // Проживание молча выпадало из счёта, если в срезе прайс-листов
@@ -433,7 +446,7 @@ module.exports = function (modelsDB, Utilities) {
                     }),
                     quantity: qty, unitPrice: price, taxRate: rateByCode('accommodation', 0),
                     taxCategoryId: ACCOMMODATION_CAT,
-                    amount:   r2(qty * price), sortOrder: ++sortOrd
+                    amount:   M.mul(price, qty), sortOrder: ++sortOrd
                 });
             }
 
@@ -515,7 +528,7 @@ module.exports = function (modelsDB, Utilities) {
                             _persons: n, _unitsLabel: unitsLabel,
                             quantity: qty, unitPrice: sp.price, taxRate: svcRate(svc),
                             taxCategoryId: svc.taxCategoryId || null,
-                            amount:   r2(qty * sp.price), sortOrder: ++sortOrd
+                            amount:   M.mul(sp.price, qty), sortOrder: ++sortOrd
                         }, rs.serviceId);
                     }
                 } else {
@@ -531,7 +544,7 @@ module.exports = function (modelsDB, Utilities) {
                             label:    svc.name,
                             quantity: qty, unitPrice: price, taxRate: svcRate(svc),
                             taxCategoryId: svc.taxCategoryId || null,
-                            amount:   r2(qty * price), sortOrder: ++sortOrd
+                            amount:   M.mul(price, qty), sortOrder: ++sortOrd
                         }, rs.serviceId);
                     }
                 }
@@ -555,9 +568,9 @@ module.exports = function (modelsDB, Utilities) {
                 bookingId, organizationId: orgId,
                 sectionLabel: tInv('extra_lines_section'),
                 label:    el.name,
-                quantity: 1, unitPrice: r2(amount),
+                quantity: 1, unitPrice: M.num(amount),
                 taxRate:  rate,
-                amount:   r2(amount), sortOrder: ++sortOrd,
+                amount:   M.num(amount), sortOrder: ++sortOrd,
                 _isExtra: true
             });
         }
@@ -695,7 +708,7 @@ module.exports = function (modelsDB, Utilities) {
         }
         const services = [];
         for (const g of svcGroups.values()) {
-            const amount = r2(g.rows.reduce((s, r) => s + (Number(r.amount) || 0), 0));
+            const amount = M.sum(g.rows, 'amount');
             const qtySum = r2(g.rows.reduce((s, r) => s + (Number(r.quantity) || 0), 0));
             // Цена входит в ключ группы, поэтому она одна на все строки —
             // количество всегда суммируется, вырожденного «1 × вся сумма» нет.
@@ -799,7 +812,7 @@ module.exports = function (modelsDB, Utilities) {
             for (const s of (skipped || [])) {
                 if (!allSkipped.some(x => x.service === s.service && x.reason === s.reason)) allSkipped.push(s);
             }
-            prepaymentSum = r2(prepaymentSum + (Number(booking.prepayment) || 0));
+            prepaymentSum = M.add(prepaymentSum, booking.prepayment);
 
             // Скидка брони-основания (переносится в счёт, см. агрегацию ниже).
             const dv = Number(booking.discountValue) || 0;
@@ -1161,7 +1174,7 @@ module.exports = function (modelsDB, Utilities) {
                     const qty  = Number(row.quantity);
                     const unit = Number(row.unitPrice);
                     if (Number.isFinite(qty) && Number.isFinite(unit)) {
-                        row.amount = r2(qty * unit);
+                        row.amount = M.mul(unit, qty);
                     }
                     if (row.quantity  == null) row.quantity  = 0;
                     if (row.unitPrice == null) row.unitPrice = 0;

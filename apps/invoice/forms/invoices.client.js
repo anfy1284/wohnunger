@@ -99,7 +99,9 @@ async function onLineServiceSelected(rowIndex, newVal, displayVal, ctx) {
     if (res.unitPrice != null && !Number(row.unitPrice)) row.unitPrice = res.unitPrice;
     if (!Number(row.quantity)) row.quantity = 1;
     var qty = Number(row.quantity), unit = Number(row.unitPrice);
-    if (isFinite(qty) && isFinite(unit)) row.amount = Math.round(qty * unit * 100) / 100;
+    // Округление — общее с сервером (MySpace.money), иначе форма покажет
+    // одну сумму, а сохранится другая.
+    if (isFinite(qty) && isFinite(unit)) row.amount = MySpace.money.mul(row.unitPrice, qty);
 
     tbl.data_updateValue(tbl.dataKey, rows);
     try { if (typeof tbl._invokeRenderBodyRows === 'function') tbl._invokeRenderBodyRows(); } catch(_) {}
@@ -167,7 +169,7 @@ function onLineQtyOrPriceEdited(rowIndex, newVal, displayVal, ctx) {
     var qty = Number(row.quantity);
     var unit = Number(row.unitPrice);
     if (!isFinite(qty) || !isFinite(unit)) return;
-    var amount = Math.round(qty * unit * 100) / 100;
+    var amount = MySpace.money.mul(row.unitPrice, qty);
     // Запись через штатный API строки: он же обновляет итоговую строку ТЧ.
     try { tbl.data_updateParentArray(tbl.dataKey, rowIndex, { data: 'amount' }, amount); } catch (e) { row.amount = amount; }
     // Точечное обновление ячейки суммы (без перерисовки всей ТЧ — не терять фокус).

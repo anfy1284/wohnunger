@@ -432,7 +432,7 @@
                     "caption": { "i18n": "tax_split_mode" }
                 },
                 "splitValue": {
-                    "type": "FLOAT",
+                    "type": "DECIMAL(12,2)",
                     "allowNull": true,
                     "caption": { "i18n": "tax_split_value" }
                 },
@@ -499,7 +499,7 @@
                     "caption": { "i18n": "tax_rate_name" }
                 },
                 "rate": {
-                    "type": "FLOAT",
+                    "type": "DECIMAL(5,2)",
                     "allowNull": false,
                     "caption": { "i18n": "tax_rate_value" }
                 },

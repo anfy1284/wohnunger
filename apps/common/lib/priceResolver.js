@@ -34,6 +34,7 @@
 const { Op } = require('sequelize');
 // Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
 const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
+const M = require('../../../node_modules/my-old-space/drive_root/db/money');
 
 // ── Пустой возраст: 0 и NULL — одно и то же ──────────────────────────
 // Правило проекта: NULL в базе допустим только у полей-ссылок, у числа
@@ -104,8 +105,14 @@ module.exports = function (modelsDB) {
             modelsDB.PriceListServicePrices.findAll({ where: { priceListId: docIds }, raw: true }),
             modelsDB.SeasonPeriods.findAll({ where: { organizationId }, raw: true })
         ]);
-        for (const r of roomRows) r._docIdx = docIdx[r.priceListId];
-        for (const r of svcRows)  r._docIdx = docIdx[r.priceListId];
+        // Цена нормализуется в ЧИСЛО здесь, в единственной точке доступа к
+        // ценам. Колонка — DECIMAL, а драйвер postgres отдаёт её строкой
+        // («120.00»): без нормализации каждый потребитель складывал бы строки
+        // (склейка вместо суммы) и сравнивал бы их лексикографически
+        // («9.00» > «10.00»). Резолвер — то самое место, где это чинится один
+        // раз для всех.
+        for (const r of roomRows) { r._docIdx = docIdx[r.priceListId]; r.price = M.num(r.price); }
+        for (const r of svcRows)  { r._docIdx = docIdx[r.priceListId]; r.price = M.num(r.price); }
         const seasonPeriods = {};
         for (const p of periodRows) {
             (seasonPeriods[p.seasonId] = seasonPeriods[p.seasonId] || []).push(p);
