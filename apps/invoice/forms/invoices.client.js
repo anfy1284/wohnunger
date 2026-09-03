@@ -184,7 +184,13 @@ function onLineQtyOrPriceEdited(rowIndex, newVal, displayVal, ctx) {
 // Записать значение в поле формы. DataForm.doAction умеет только
 // runScript/ok/save/cancel — команды «обновить» у него нет, и после серверной
 // смены статуса форма иначе продолжает показывать «Entwurf».
+//
+// Идём через setControlValue, а не в controlsMap напрямую: это штатный путь, и
+// на смене поля состояния он запирает форму и пересчитывает доступность кнопок.
+// Прямая запись в контрол оставила бы выставленный счёт редактируемым до
+// повторного открытия окна.
 function _setFormField(form, name, val) {
+    if (typeof form.setControlValue === 'function' && form.setControlValue(name, val)) return;
     var c = form.controlsMap && form.controlsMap[name];
     if (c && typeof c.setValue === 'function') { try { c.setValue(val); } catch (e) {} }
     if (form._dataMap && form._dataMap[name]) form._dataMap[name].value = val;

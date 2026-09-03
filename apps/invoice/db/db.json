@@ -14,7 +14,9 @@
                         "issued": ["paid", "cancelled"],
                         "paid": ["cancelled"]
                     },
-                    "deletable": ["draft"]
+                    "deletable": ["draft"],
+                    "formEditable": ["paidAt"],
+                    "commandStates": ["issued", "cancelled"]
                 },
                 "storno": {
                     "link": "correctsInvoiceId",

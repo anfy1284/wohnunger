@@ -6,7 +6,8 @@
                 "name": "btnFill",
                 "caption": { "i18n": "fill_invoice_btn" },
                 "icon": "/apps/booking_icons/resources/public/16x16/calculate.png",
-                "events": { "onClick": "fillInvoice" }
+                "events": { "onClick": "fillInvoice" },
+                "enabledWhen": { "field": "status", "in": ["draft"] }
             },
             {
                 "name": "btnPrint",
@@ -18,19 +19,22 @@
                 "name": "btnIssue",
                 "caption": { "i18n": "issue_invoice_btn" },
                 "icon": "/apps/booking_icons/resources/public/16x16/invoice_issue.png",
-                "events": { "onClick": "issueInvoice" }
+                "events": { "onClick": "issueInvoice" },
+                "enabledWhen": { "field": "status", "in": ["draft"] }
             },
             {
                 "name": "btnIssueAndPrint",
                 "caption": { "i18n": "issue_and_print_invoice_btn" },
                 "icon": "/apps/booking_icons/resources/public/16x16/invoice_issue_print.png",
-                "events": { "onClick": "issueAndPrintInvoice" }
+                "events": { "onClick": "issueAndPrintInvoice" },
+                "enabledWhen": { "field": "status", "in": ["draft"] }
             },
             {
                 "name": "btnStorno",
                 "caption": { "i18n": "storno_invoice_btn" },
                 "icon": "/apps/booking_icons/resources/public/16x16/invoice_storno.png",
-                "events": { "onClick": "stornoInvoice" }
+                "events": { "onClick": "stornoInvoice" },
+                "enabledWhen": { "field": "status", "in": ["issued", "paid"] }
             }
         ]
     },
@@ -136,6 +140,12 @@
                                         "data": "issuedAt",
                                         "caption": { "i18n": "invoice_issued_at" },
                                         "readOnly": true
+                                    },
+                                    {
+                                        "type": "date",
+                                        "name": "paidAt",
+                                        "data": "paidAt",
+                                        "caption": { "i18n": "invoice_paid_at" }
                                     },
                                     {
                                         "type": "recordSelector",
