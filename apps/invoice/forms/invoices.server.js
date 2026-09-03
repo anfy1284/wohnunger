@@ -23,6 +23,12 @@ const { tForSession, tfForSession } = require('../../../node_modules/my-old-spac
 const { resolveOrgReportLang } = require('../../organizationSettings/lib/orgReportLanguage');
 const { resolveOrgPricingMode } = require('../../organizationSettings/lib/orgPricingMode');
 const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGateway');
+// Сборка печатной формы — общая с приложением reports: архив обязан хранить
+// ровно тот HTML, который увидит пользователь, а не его пересборку.
+const { buildInvoiceDoc } = require('../../reports/invoice/build');
+// Архив выставленных документов и сторно — механизмы ЯДРА, не приложения.
+const documentArchive = require('../../../node_modules/my-old-space/drive_root/db/documentArchive');
+const storno = require('../../../node_modules/my-old-space/drive_root/db/storno');
 // Пустая дата — это 0001-01-01, а не NULL (правило проекта, см.
 // drive_root/db/emptyValues.js). Проверять заполненность даты через
 // `if (r.validTo)` НЕЛЬЗЯ: 0001-01-01 — истинное значение, и такая
@@ -884,6 +890,79 @@ module.exports = function (modelsDB, Utilities) {
         return { invoice: freshInvoice, lines: allLines, discountNotice, skippedNotice };
     }
 
+    // Проведение счёта. Отдельной функцией, а не методом объекта: её зовёт
+    // и RPC «Выставить», и сторнирование — обращаться к соседнему методу
+    // через `this` нельзя, RPC вызывает функции без объекта-владельца.
+    async function _issueInvoice(invoiceId, print, ctx) {
+        if (!invoiceId) return { error: await tForSession('invoice_not_found', ctx.sessionID) };
+        try {
+            const invoice = await modelsDB.Invoices.findByPk(invoiceId, { raw: true });
+            if (!invoice) return { error: await tForSession('invoice_not_found', ctx.sessionID) };
+            if (invoice.status && invoice.status !== 'draft') {
+                return { error: await tForSession('invoice_already_issued', ctx.sessionID) };
+            }
+
+            const built = await buildInvoiceDoc(modelsDB, invoiceId, { draft: false });
+
+            // Полнота реквизитов — условие СТАТУСА, а не печати: отдельной
+            // проверки при печати не нужно, выставить неполный счёт нельзя.
+            if (built.missingKeys && built.missingKeys.length) {
+                const names = [];
+                for (const key of built.missingKeys) names.push(await tForSession(key, ctx.sessionID));
+                return {
+                    error: await tForSession('invoice_issue_missing_data', ctx.sessionID)
+                         + ' ' + names.join('; ')
+                };
+            }
+
+            const issuedAt = new Date();
+            await dbGateway.execute({
+                operation: 'update',
+                table: 'invoices',
+                where: { UID: invoiceId },
+                data: { status: 'issued', issuedAt },
+                context: { sessionID: ctx.sessionID }
+            });
+
+            // Снимок кладём уже с итоговым статусом: архив хранит документ
+            // таким, каким он ушёл, а ушёл он выставленным.
+            built.payload.invoice = Object.assign({}, built.payload.invoice,
+                { status: 'issued', issuedAt });
+
+            let archiveError = null;
+            try {
+                await documentArchive.save({
+                    documentTable:  'invoices',
+                    documentUID:    invoiceId,
+                    documentNumber: invoice.number || null,
+                    organizationId: invoice.organizationId || null,
+                    lang:           built.lang || null,
+                    html:           built.html,
+                    payload:        built.payload,
+                    createdBy:      (ctx.user && ctx.user.UID) || null
+                });
+            } catch (e) {
+                // Счёт уже выставлен — откатывать статус нельзя (он мог уйти
+                // клиенту). Но о том, что копии в архиве нет, надо сказать.
+                console.error('[invoice] archive save failed:', e && e.message || e);
+                archiveError = (e && e.message) || String(e);
+            }
+
+            notifyTables('update', invoiceId);
+            return {
+                ok: true,
+                status: 'issued',
+                // Форме нужна и дата: команды «обновить» у DataForm нет, поля
+                // проставляет клиент по этому ответу.
+                issuedAt,
+                archiveError,
+                html: print ? built.html : undefined
+            };
+        } catch (e) {
+            return { error: (e && e.message) || String(e) };
+        }
+    }
+
     return {
 
         // ── RPC: «Заполнить» — перезаполняет строки счёта из его броней ───
@@ -1182,6 +1261,64 @@ module.exports = function (modelsDB, Utilities) {
                     if (row.taxRate   == null) row.taxRate   = 0;
                     if (row.sortOrder == null) row.sortOrder = 0;
                 }
+            }
+        },
+
+        // ── RPC: «Выставить» — проведение счёта ───────────────────────────
+        //
+        // Момент неизменности — ЭТА команда, а не печать: счёт считается
+        // выставленным, когда покинул сферу выставителя. Печать черновика
+        // ничего не фиксирует (и уходит с пометкой «Entwurf»).
+        //
+        // Порядок шагов важен:
+        //   1) собрать печатную форму — заодно проверяются реквизиты § 14 UStG;
+        //   2) перевести статус (после этого счёт закрыт для правки);
+        //   3) положить снимок в архив.
+        // Сборка первой: если реквизитов не хватает, счёт обязан остаться
+        // черновиком, который ещё можно дозаполнить.
+        async issueInvoice({ invoiceId, print }, ctx) {
+            return await _issueInvoice(invoiceId, print, ctx);
+        },
+
+        // ── RPC: «Сторнировать» ──────────────────────────────────────────
+        //
+        // Выставленный счёт исправлять нельзя (GoBD). Единственный законный
+        // выход — встречный документ с обратными знаками, со своим номером и
+        // ссылкой на исходный. Механизм — в ядре (drive_root/db/storno.js);
+        // здесь только вызов и выставление получившегося сторно, чтобы у него
+        // тоже появился архивный снимок.
+        async stornoInvoice({ invoiceId, print }, ctx) {
+            if (!invoiceId) return { error: await tForSession('invoice_not_found', ctx.sessionID) };
+            try {
+                const context = { sessionID: ctx.sessionID };
+                const { UID: stornoId } = await storno.createStorno({
+                    table: 'invoices', UID: invoiceId, context,
+                    // Отказы ядра показываются пользователю — переводим их на язык
+                    // сессии, а не отдаём русский текст в немецкий интерфейс.
+                    t: (key) => tForSession(key, ctx.sessionID)
+                });
+
+                // Сторно выставляется тем же путём, что и обычный счёт: иначе
+                // он останется черновиком без архивной копии.
+                const issued = await _issueInvoice(stornoId, print, ctx);
+                if (issued && issued.error) {
+                    // Сторно создан, но не выставлен: исходный счёт НЕ отменяем —
+                    // иначе он останется отменённым без действующей замены.
+                    return { error: issued.error, stornoId };
+                }
+
+                await storno.cancelSource('invoices', invoiceId, context);
+
+                const stornoDoc = await modelsDB.Invoices.findByPk(stornoId, { raw: true });
+                notifyTables('create', stornoId);
+                return {
+                    ok: true,
+                    stornoId,
+                    stornoNumber: stornoDoc && stornoDoc.number,
+                    html: issued && issued.html
+                };
+            } catch (e) {
+                return { error: (e && e.userMessage) || (e && e.message) || String(e) };
             }
         }
 

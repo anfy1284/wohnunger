@@ -4,7 +4,26 @@
             "name": "Invoices",
             "tableName": "invoices",
             "entityConfig": {
-                "entityType": "document"
+                "entityType": "document",
+                "immutable": {
+                    "field": "status",
+                    "when": ["issued", "paid", "cancelled"],
+                    "except": ["status", "paidAt", "issuedAt"],
+                    "transitions": {
+                        "draft": ["issued"],
+                        "issued": ["paid", "cancelled"],
+                        "paid": ["cancelled"]
+                    },
+                    "deletable": ["draft"]
+                },
+                "storno": {
+                    "link": "correctsInvoiceId",
+                    "negate": ["prepayment"],
+                    "cancelStatus": "cancelled",
+                    "copyExclude": ["status", "issuedAt", "paidAt", "correctsInvoiceId"],
+                    "hook": "invoice.onStorno"
+                },
+                "auditLog": true
             },
             "fields": {
                 "name": {
@@ -91,6 +110,27 @@
                         { "value": "amount",  "caption": "€" }
                     ]
                 },
+                "issuedAt": {
+                    "type": "DATE",
+                    "allowNull": true,
+                    "caption": { "i18n": "invoice_issued_at" }
+                },
+                "paidAt": {
+                    "type": "DATE",
+                    "allowNull": true,
+                    "caption": { "i18n": "invoice_paid_at" }
+                },
+                "correctsInvoiceId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "invoices",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "invoice_corrects_field" }
+                },
                 "reportVariantId": {
                     "type": "STRING",
                     "allowNull": true,
@@ -157,6 +197,11 @@
         {
             "name": "InvoiceLines",
             "tableName": "invoice_lines",
+            "entityConfig": {
+                "storno": {
+                    "negate": ["quantity", "amount"]
+                }
+            },
             "fields": {
                 "label": {
                     "type": "STRING",

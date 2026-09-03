@@ -181,4 +181,99 @@ function onLineQtyOrPriceEdited(rowIndex, newVal, displayVal, ctx) {
     try { tbl.data_updateValue(cellKey, amount); } catch (e) {}
 }
 
-return { fillInvoice, printInvoice, onLineQtyOrPriceEdited, onLineServiceSelected };
+// Записать значение в поле формы. DataForm.doAction умеет только
+// runScript/ok/save/cancel — команды «обновить» у него нет, и после серверной
+// смены статуса форма иначе продолжает показывать «Entwurf».
+function _setFormField(form, name, val) {
+    var c = form.controlsMap && form.controlsMap[name];
+    if (c && typeof c.setValue === 'function') { try { c.setValue(val); } catch (e) {} }
+    if (form._dataMap && form._dataMap[name]) form._dataMap[name].value = val;
+}
+
+// ── «Выставить» / «Выставить и напечатать» ───────────────────────────────
+//
+// Момент неизменности — эта команда, а не печать: счёт считается выставленным,
+// когда покинул сферу выставителя. После неё счёт правке не подлежит (запрет
+// стоит в ядре, в dbGateway), поэтому спрашиваем подтверждение.
+async function _issue(ctx, withPrint) {
+    var form = ctx.form;
+    var uidEntry = form._dataMap && form._dataMap['UID'];
+    var invoiceId = uidEntry && uidEntry.value;
+    if (!invoiceId) { showAlert(__t('Please save the invoice first')); return; }
+
+    var ok = await showConfirm(__t('issue_invoice_confirm'));
+    if (!ok) return;
+
+    var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Preparing invoice…')) : null;
+    var result;
+    try {
+        if (form.needsSave()) {
+            await form.doAction('save');
+            if (form.needsSave()) return; // сохранение не удалось, ошибка уже показана
+        }
+        result = await callServer('__SERVER_SCRIPT__', 'issueInvoice', {
+            invoiceId: invoiceId, print: !!withPrint
+        });
+    } finally {
+        if (busyToken != null && window.MySpace && window.MySpace.hideBusy) window.MySpace.hideBusy(busyToken);
+    }
+    if (!result || result.error) { showAlert(__t('Error: ') + (result && result.error || '')); return; }
+
+    // Счёт выставлен, но копия в архив не легла — сказать вслух: печать такого
+    // счёта пойдёт живой сборкой, а она со временем разойдётся с выданным.
+    if (result.archiveError) { try { showAlert(__t('invoice_archive_failed') + ' ' + result.archiveError); } catch(_) {} }
+
+    if (withPrint && result.html && window.MySpace && typeof window.MySpace.open === 'function') {
+        await window.MySpace.open('printPreview', { html: result.html, autoPrint: true });
+    }
+
+    // Статус изменился на сервере — показываем это на форме. Данные уже в базе,
+    // поэтому форма после подстановки считается чистой.
+    _setFormField(form, 'status', result.status || 'issued');
+    if (result.issuedAt) _setFormField(form, 'issuedAt', result.issuedAt);
+    try { if (typeof form.setModified === 'function') form.setModified(false); } catch(_) {}
+}
+
+async function issueInvoice(ev, ctx)         { return await _issue(ctx, false); }
+async function issueAndPrintInvoice(ev, ctx) { return await _issue(ctx, true); }
+
+// ── «Сторнировать» ───────────────────────────────────────────────────────
+//
+// Выставленный счёт исправлять нельзя. Сторно — встречный документ со своим
+// номером и обратными знаками; исходный уходит в «отменён». Открываем сторно
+// сразу после создания: пользователю нужен его номер.
+async function stornoInvoice(ev, ctx) {
+    var form = ctx.form;
+    var uidEntry = form._dataMap && form._dataMap['UID'];
+    var invoiceId = uidEntry && uidEntry.value;
+    if (!invoiceId) { showAlert(__t('Please save the invoice first')); return; }
+
+    var ok = await showConfirm(__t('storno_invoice_confirm'));
+    if (!ok) return;
+
+    var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Preparing invoice…')) : null;
+    var result;
+    try {
+        result = await callServer('__SERVER_SCRIPT__', 'stornoInvoice', { invoiceId: invoiceId });
+    } finally {
+        if (busyToken != null && window.MySpace && window.MySpace.hideBusy) window.MySpace.hideBusy(busyToken);
+    }
+    if (!result || result.error) { showAlert(__t('Error: ') + (result && result.error || '')); return; }
+
+    showAlert(__t('storno_created') + ' ' + (result.stornoNumber || ''));
+
+    // Открываем сторно-документ отдельным окном.
+    if (result.stornoId && window.MySpace && typeof window.MySpace.open === 'function') {
+        // Параметры окна записи — tableName/recordID (как в bookings.client.js).
+        // dbTable/UID uniForm не понимает: окно открывается пустым.
+        await window.MySpace.open('uniForm', {
+            mode: 'record', tableName: 'invoices', recordID: result.stornoId
+        });
+    }
+    // Исходный счёт сервер перевёл в «отменён» — показываем это сразу.
+    _setFormField(form, 'status', 'cancelled');
+    try { if (typeof form.setModified === 'function') form.setModified(false); } catch(_) {}
+}
+
+return { fillInvoice, printInvoice, onLineQtyOrPriceEdited, onLineServiceSelected,
+         issueInvoice, issueAndPrintInvoice, stornoInvoice };

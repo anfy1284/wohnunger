@@ -51,6 +51,29 @@ module.exports = async function (modelsDB) {
             return parts.join(' ');
         });
 
+        // ── Сторно: то, что ядру знать неоткуда ───────────────────────────
+        // Ядро (drive_root/db/storno.js) копирует документ и инвертирует поля,
+        // объявленные в `entityConfig.storno.negate`. Скидка так не объявляется:
+        // в режиме «%» инвертировать нечего (процент от уже отрицательной базы
+        // сам даёт отрицательную скидку), а в режиме «€» абсолютную сумму
+        // инвертировать обязательно — иначе она вычтется из минуса и увеличит
+        // долг вместо его отмены.
+        entityHooks.register('invoice.onStorno', async (params) => {
+            const { stornoUID, source, context } = params;
+            if (!source || source.discountMode !== 'amount') return;
+            const value = Number(source.discountValue) || 0;
+            if (!value) return;
+
+            const dbGateway = require('../../node_modules/my-old-space/drive_root/dbGateway');
+            await dbGateway.execute({
+                operation: 'update',
+                table: 'invoices',
+                where: { UID: stornoUID },
+                data: { discountValue: -value },
+                context
+            });
+        });
+
         // ── Форма «Счёт» (таблица invoices) ───────────────────────────────
         const serverScriptName = loadServerScript(
             'invoice.actions',

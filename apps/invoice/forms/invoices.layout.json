@@ -13,6 +13,24 @@
                 "caption": { "i18n": "print_invoice_btn" },
                 "icon": "/apps/booking_icons/resources/public/16x16/invoice_print.png",
                 "events": { "onClick": "printInvoice" }
+            },
+            {
+                "name": "btnIssue",
+                "caption": { "i18n": "issue_invoice_btn" },
+                "icon": "/apps/booking_icons/resources/public/16x16/invoice_issue.png",
+                "events": { "onClick": "issueInvoice" }
+            },
+            {
+                "name": "btnIssueAndPrint",
+                "caption": { "i18n": "issue_and_print_invoice_btn" },
+                "icon": "/apps/booking_icons/resources/public/16x16/invoice_issue_print.png",
+                "events": { "onClick": "issueAndPrintInvoice" }
+            },
+            {
+                "name": "btnStorno",
+                "caption": { "i18n": "storno_invoice_btn" },
+                "icon": "/apps/booking_icons/resources/public/16x16/invoice_storno.png",
+                "events": { "onClick": "stornoInvoice" }
             }
         ]
     },
@@ -111,6 +129,29 @@
                                             { "value": "paid",      "caption": { "i18n": "invoice_status_paid" } },
                                             { "value": "cancelled", "caption": { "i18n": "invoice_status_cancelled" } }
                                         ]
+                                    },
+                                    {
+                                        "type": "date",
+                                        "name": "issuedAt",
+                                        "data": "issuedAt",
+                                        "caption": { "i18n": "invoice_issued_at" },
+                                        "readOnly": true
+                                    },
+                                    {
+                                        "type": "recordSelector",
+                                        "name": "correctsInvoiceId",
+                                        "data": "correctsInvoiceId",
+                                        "caption": { "i18n": "invoice_corrects_field" },
+                                        "readOnly": true,
+                                        "properties": {
+                                            "showOpenButton": true,
+                                            "readOnly": true,
+                                            "selection": {
+                                                "table": "invoices",
+                                                "idField": "UID",
+                                                "displayField": "name"
+                                            }
+                                        }
                                     },
                                     {
                                         "type": "number",

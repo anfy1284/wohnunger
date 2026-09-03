@@ -46,7 +46,7 @@ const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'
  *        скидки и печатается полной суммой.
  * @returns {string} HTML-документ
  */
-function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote, taxCategories }) {
+function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote, taxCategories, draft, correctsInvoice }) {
     if (typeof t !== 'function') t = (k) => k;
     if (typeof tf !== 'function') tf = (k) => k;
     locale = locale || 'de-DE';
@@ -391,7 +391,11 @@ ${dueDate ? `<tr>
 </table>
 </div>
 
-<h2>${t('invoice_no_label')} ${esc(invoiceNum)}</h2>`;
+<h2>${correctsInvoice ? esc(t('invoice_storno_title')) + ' ' : ''}${t('invoice_no_label')} ${esc(invoiceNum)}</h2>
+${correctsInvoice ? `<div class="storno-ref">${esc(tf('invoice_storno_reference', {
+    number: correctsInvoice.number || String(correctsInvoice.UID || '').slice(0, 8),
+    date: fmtDate(correctsInvoice.date)
+}))}</div>` : ''}`;
 
     // Примечание к счёту — свободный текст из выбранного в брони варианта отчёта
     // (report_variants → invoiceNote). Печатается как есть, на языке ввода;
@@ -419,21 +423,21 @@ ${dueDate ? `<tr>
     // вычет). Показываем предупреждение ТОЛЬКО на экране предпросмотра
     // (@media print — скрыто), чтобы оператор увидел проблему до печати.
     // Жёсткий запрет печати — задача формы счёта (apps/invoice), не шаблона.
-    const KLEINBETRAG_LIMIT = 250; // § 33 UStDV: до 250 € брутто адрес получателя не обязателен
-    const missing = [];
-    if (!orgName)      missing.push(t('invoice_missing_org_name'));
-    if (!orgAddress)   missing.push(t('invoice_missing_org_address'));
-    if (!orgTaxNumber) missing.push(t('invoice_missing_tax_number'));
-    if (!clientName)   missing.push(t('invoice_missing_client_name'));
-    if (!clientAddress && discountedBrutto > KLEINBETRAG_LIMIT) missing.push(t('invoice_missing_client_address'));
-    if (!invoice.number) missing.push(t('invoice_missing_number'));
+    // Список реквизитов — общий с командой «Выставить» (requisites.js): то, на что
+    // ругается предпросмотр, должно ровно так же закрывать выставление.
+    const { missingRequisites } = require('./requisites');
+    const missingKeys = missingRequisites({ org, client, invoice, brutto: discountedBrutto });
+    const missing = missingKeys.map(key => t(key));
     const warningHtml = missing.length
         ? '<div class="compliance-warning"><h3>' + t('invoice_missing_data_title') + '</h3><ul>'
           + missing.map(m => '<li>' + m + '</li>').join('')
           + '</ul><div class="cw-hint">' + t('invoice_missing_data_hint') + '</div></div>'
         : '';
 
-    return `<!DOCTYPE html>
+    // Возвращаем не только HTML: сумма и список недостающих реквизитов
+    // посчитаны здесь, и пересчитывать их второй раз в команде «Выставить»
+    // значило бы завести вторую, расходящуюся реализацию.
+    const html = `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
 <meta charset="utf-8"/>
@@ -546,6 +550,23 @@ table.inv-table.table-joined { margin-bottom: 0; }
 .compliance-warning ul { margin: 0 0 1.5mm 5mm; padding: 0; }
 .compliance-warning .cw-hint { font-size: 8pt; color: #555; }
 @media print { .compliance-warning { display: none !important; } }
+
+/* Ссылка сторно на исходный счёт: без неё встречный документ нельзя
+   сопоставить с отменяемым. § 31 Abs. 5 UStDV требует, чтобы исправляющий
+   документ ссылался на исходный счёт «специфично и однозначно». */
+.storno-ref { margin: -2mm 0 3mm 0; font-size: 9pt; }
+
+/* Водяной знак черновика. Печатается ВМЕСТЕ с документом — распечатанный
+   черновик обязан быть отличим от выставленного счёта, иначе он уйдёт
+   клиенту как настоящий. position: fixed — Chrome повторяет такой блок на
+   каждом печатном листе. */
+.draft-watermark { position: fixed; top: 50%; left: 50%;
+                   transform: translate(-50%, -50%) rotate(-35deg);
+                   font-size: 72pt; font-weight: bold; letter-spacing: 6pt;
+                   color: rgba(180, 0, 0, .18); border: 6pt solid rgba(180, 0, 0, .18);
+                   padding: 4mm 10mm; white-space: nowrap;
+                   pointer-events: none; z-index: 1000; }
+@media print { .draft-watermark { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style>
 </head>
 <body>
@@ -566,6 +587,7 @@ ${rowsHtml}    </tbody>
 </div>
 
 ${warningHtml}
+${draft ? '<div class="draft-watermark">' + esc(t('invoice_draft_watermark')) + '</div>' : ''}
 <div id="pages"></div>
 
 <script>
@@ -686,6 +708,8 @@ ${warningHtml}
 
 </body>
 </html>`;
+
+    return { html, missingKeys, brutto: discountedBrutto };
 }
 
 module.exports = { renderInvoiceHTML };

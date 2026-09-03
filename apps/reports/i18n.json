@@ -310,5 +310,23 @@
         "ru": "{{n}} чел.",
         "de": "{{n}} Pers.",
         "pl": "{{n}} os."
+    },
+    "invoice_draft_watermark": {
+        "en": "DRAFT",
+        "ru": "ЧЕРНОВИК",
+        "de": "Entwurf",
+        "pl": "PROJEKT"
+    },
+    "invoice_storno_title": {
+        "en": "Cancellation of",
+        "ru": "Сторно к",
+        "de": "Storno zur",
+        "pl": "Storno do"
+    },
+    "invoice_storno_reference": {
+        "en": "Cancels invoice no. {{number}} of {{date}}.",
+        "ru": "Сторнирует счёт № {{number}} от {{date}}.",
+        "de": "Storniert die Rechnung Nr. {{number}} vom {{date}}.",
+        "pl": "Storno rachunku nr {{number}} z dnia {{date}}."
     }
 }

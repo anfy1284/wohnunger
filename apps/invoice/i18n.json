@@ -172,5 +172,77 @@
         "ru": "Счета",
         "de": "Rechnungen",
         "pl": "Rachunki"
+    },
+    "issue_invoice_btn": {
+        "en": "Issue",
+        "ru": "Выставить",
+        "de": "Ausstellen",
+        "pl": "Wystaw"
+    },
+    "issue_and_print_invoice_btn": {
+        "en": "Issue and print",
+        "ru": "Выставить и напечатать",
+        "de": "Ausstellen und drucken",
+        "pl": "Wystaw i drukuj"
+    },
+    "storno_invoice_btn": {
+        "en": "Cancel (storno)",
+        "ru": "Сторнировать",
+        "de": "Stornieren",
+        "pl": "Storno"
+    },
+    "issue_invoice_confirm": {
+        "en": "Issue the invoice? After that it cannot be changed — an error can only be corrected by a storno document.",
+        "ru": "Выставить счёт? После этого изменить его нельзя — ошибку можно исправить только сторно-документом.",
+        "de": "Rechnung ausstellen? Danach kann sie nicht mehr geändert werden — ein Fehler lässt sich nur durch eine Stornorechnung korrigieren.",
+        "pl": "Wystawić rachunek? Potem nie można go zmienić — błąd poprawia się wyłącznie dokumentem storno."
+    },
+    "storno_invoice_confirm": {
+        "en": "Create a storno document? A counter-document with reversed amounts will be issued and this invoice will be marked as cancelled.",
+        "ru": "Оформить сторно? Будет выставлен встречный документ с обратными суммами, а этот счёт станет отменённым.",
+        "de": "Storno erstellen? Es wird ein Gegenbeleg mit umgekehrten Beträgen ausgestellt und diese Rechnung als storniert gekennzeichnet.",
+        "pl": "Utworzyć storno? Zostanie wystawiony dokument przeciwny z odwrotnymi kwotami, a ten rachunek zostanie anulowany."
+    },
+    "storno_created": {
+        "en": "Storno document created:",
+        "ru": "Сторно-документ создан:",
+        "de": "Stornobeleg erstellt:",
+        "pl": "Utworzono dokument storno:"
+    },
+    "invoice_already_issued": {
+        "en": "The invoice is already issued.",
+        "ru": "Счёт уже выставлен.",
+        "de": "Die Rechnung ist bereits ausgestellt.",
+        "pl": "Rachunek został już wystawiony."
+    },
+    "invoice_issue_missing_data": {
+        "en": "The invoice cannot be issued — mandatory data is missing (§ 14 UStG):",
+        "ru": "Счёт нельзя выставить — не хватает обязательных реквизитов (§ 14 UStG):",
+        "de": "Die Rechnung kann nicht ausgestellt werden — Pflichtangaben fehlen (§ 14 UStG):",
+        "pl": "Nie można wystawić rachunku — brakuje danych obowiązkowych (§ 14 UStG):"
+    },
+    "invoice_archive_failed": {
+        "en": "The invoice is issued, but the archive copy could not be stored:",
+        "ru": "Счёт выставлен, но архивная копия не сохранена:",
+        "de": "Die Rechnung ist ausgestellt, die Archivkopie konnte jedoch nicht gespeichert werden:",
+        "pl": "Rachunek wystawiony, ale nie zapisano kopii archiwalnej:"
+    },
+    "invoice_issued_at": {
+        "en": "Issued at",
+        "ru": "Выставлен",
+        "de": "Ausgestellt am",
+        "pl": "Wystawiono"
+    },
+    "invoice_paid_at": {
+        "en": "Paid at",
+        "ru": "Оплачен",
+        "de": "Bezahlt am",
+        "pl": "Zapłacono"
+    },
+    "invoice_corrects_field": {
+        "en": "Corrects invoice",
+        "ru": "Сторнирует счёт",
+        "de": "Storniert Rechnung",
+        "pl": "Koryguje rachunek"
     }
 }

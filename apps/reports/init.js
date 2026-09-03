@@ -12,7 +12,10 @@ module.exports = async function (modelsDB) {
     try {
         const { loadServerScript } = require('../../node_modules/my-old-space');
         const layoutMemory = require('../../node_modules/my-old-space/drive_root/layoutMemory');
-        const { renderInvoiceHTML } = require('./invoice/template');
+        // Сборка счёта вынесена в invoice/build.js — её зовут и печать, и команда
+        // «Выставить» (снимок в архив); HTML обязан быть один и тот же.
+        const { buildInvoiceDoc } = require('./invoice/build');
+        const documentArchive = require('../../node_modules/my-old-space/drive_root/db/documentArchive');
         const { renderPriceListHTML } = require('./priceList/template');
 
         // ── Справочник «Варианты отчёта» (таблица report_variants) ───────────
@@ -68,89 +71,48 @@ module.exports = async function (modelsDB) {
             // Генерация HTML-счёта (Rechnung) по invoiceId (документ invoices).
             // Строки — invoice_lines счёта; брони — через ТЧ invoice_bookings
             // (шапке нужны даты проживания; клиент — из invoices.clientId).
+            // Печатная форма счёта.
+            //
+            // Выставленный счёт печатается ТОЛЬКО из архива: живая пересборка через
+            // год даст другой документ — услугу переименовали, адрес организации
+            // сменился, шаблон поправили. Копия обязана совпадать с выданной.
+            // Черновик собирается живьём и печатается с пометкой «Entwurf».
             async generateInvoiceHTML({ invoiceId } = {}, ctx) {
                 if (!invoiceId) return { error: await tForSession('invoiceId required', ctx.sessionID) };
 
                 const invoice = await modelsDB.Invoices.findByPk(invoiceId, { raw: true });
                 if (!invoice) return { error: await tForSession('Invoice not found', ctx.sessionID) };
 
-                const client = invoice.clientId
-                    ? await modelsDB.Clients.findByPk(invoice.clientId, { raw: true }) : null;
-                const hotel = invoice.hotelId
-                    ? await modelsDB.Hotels.findByPk(invoice.hotelId, { raw: true }) : null;
-                const org = invoice.organizationId
-                    ? await modelsDB.Organizations.findByPk(invoice.organizationId, { raw: true }) : null;
+                const isDraft = !invoice.status || invoice.status === 'draft';
 
-                const lines = await modelsDB.InvoiceLines.findAll({
-                    where: { invoiceId },
-                    order: [['sortOrder', 'ASC']],
-                    raw: true
-                });
-                if (!lines.length) return { error: await tForSession('No invoice lines. Fill the invoice first.', ctx.sessionID) };
-
-                // Брони счёта (в порядке добавления в ТЧ) — для дат проживания в шапке
-                // и посекционной печати при нескольких бронях.
-                const links = await modelsDB.InvoiceBookings.findAll({
-                    where: { invoiceId }, order: [['createdAt', 'ASC']], raw: true
-                });
-                const bookingIds = [...new Set(links.map(l => l.bookingId).filter(Boolean))];
-                const bookings = [];
-                for (const bId of bookingIds) {
-                    const b = await modelsDB.Bookings.findByPk(bId, { raw: true });
-                    if (b) bookings.push(b);
+                if (!isDraft) {
+                    const snap = await documentArchive.load('invoices', invoiceId);
+                    if (snap) {
+                        const check = documentArchive.verify(snap);
+                        if (!check.ok) {
+                            // Снимок есть, но контрольная сумма не сходится — файл
+                            // правили в обход приложения. Молчать нельзя: пользователь
+                            // должен знать, что копия под сомнением.
+                            console.error('[reports] archive sha256 mismatch for invoice', invoiceId, check);
+                        }
+                        return { html: snap.html, fromArchive: true, sha256: snap.sha256, tampered: !check.ok };
+                    }
+                    // Снимка нет — счёт выставлен до появления архива. Собираем
+                    // живьём, но честно помечаем, что это не архивная копия.
+                    try {
+                        const { html } = await buildInvoiceDoc(modelsDB, invoiceId, { draft: false });
+                        return { html, fromArchive: false, noSnapshot: true };
+                    } catch (e) {
+                        return { error: await tForSession((e && e.message) || String(e), ctx.sessionID) };
+                    }
                 }
 
-                // Язык печати — из настроек организации (organizationSettings → reportLanguage).
-                // Тот же хелпер использует fillInvoice при построении строк — единый язык.
-                const lang = await resolveOrgReportLang(modelsDB, org && org.UID);
-
-                // Основания ставок НДС (§ 14 Abs. 4 Nr. 8 UStG) — ДАННЫЕ справочника
-                // tax_categories.invoiceNote, а не текст в шаблоне: одна ставка 0%
-                // может значить «durchlaufender Posten» (§ 10 Abs. 1 S. 4) или
-                // освобождение (§ 4 Nr. 12a). Строка счёта хранит снапшот категории.
-                // Перевод — на язык ДОКУМЕНТА (не сессии), поэтому lookup берём явно.
-                const taxCategories = {};
                 try {
-                    const catIds = [...new Set(lines.map(l => l.taxCategoryId).filter(Boolean))];
-                    if (catIds.length && modelsDB.TaxCategories) {
-                        const cats = await modelsDB.TaxCategories.findAll({ where: { UID: catIds }, raw: true });
-                        const tmw = require('../../node_modules/my-old-space/drive_root/translationMiddleware');
-                        const lookup = (lang && lang !== 'en')
-                            ? await tmw.getTranslationLookup('tax_categories', lang, modelsDB) : null;
-                        for (const c of cats) {
-                            const tr = lookup && lookup.get(c.UID + '|invoiceNote');
-                            taxCategories[c.UID] = {
-                                name: (lookup && lookup.get(c.UID + '|name')) || c.name,
-                                invoiceNote: tr !== undefined && tr !== null ? tr : c.invoiceNote,
-                                // Признак «на этот оборот скидка распространяется».
-                                // false у durchlaufender Posten: курсбор — деньги общины,
-                                // отель не вправе их уменьшать (см. раскладку скидки в шаблоне).
-                                discountable: c.discountable !== false
-                            };
-                        }
-                    }
-                } catch (e) { console.warn('[reports] taxCategories resolve:', e && e.message); }
-
-                // Примечание в счёте — из варианта отчёта, выбранного в самом счёте
-                // (invoices.reportVariantId → report_variants.invoiceNote).
-                // Печатается как есть, без перевода.
-                let invoiceNote = '';
-                try {
-                    const rvId = invoice && invoice.reportVariantId;
-                    if (rvId && modelsDB.ReportVariants) {
-                        const variant = await modelsDB.ReportVariants.findByPk(rvId, { raw: true });
-                        if (variant && variant.invoiceNote) invoiceNote = String(variant.invoiceNote);
-                    }
-                } catch (e) { console.warn('[reports] invoiceNote resolve:', e && e.message); }
-
-                const i18n = require('../../node_modules/my-old-space/drive_root/i18n');
-                const t = (key) => i18n.t(key, lang);
-                const tf = (key, vars) => i18n.tf(key, lang, vars);
-                const localeMap = { en: 'en-GB', ru: 'ru-RU', pl: 'pl-PL', de: 'de-DE' };
-                const locale = localeMap[lang] || 'de-DE';
-
-                const html = renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote, taxCategories });
-                return { html };
+                    const { html } = await buildInvoiceDoc(modelsDB, invoiceId, { draft: true });
+                    return { html, draft: true };
+                } catch (e) {
+                    return { error: await tForSession((e && e.message) || String(e), ctx.sessionID) };
+                }
             },
 
             // Генерация печатной формы прайс-листа (только тарифная таблица)
