@@ -30,10 +30,19 @@
                 "enabledWhen": { "field": "status", "in": ["draft"] }
             },
             {
+                "name": "btnCorrect",
+                "caption": { "i18n": "correct_invoice_btn" },
+                "icon": "/apps/booking_icons/resources/public/16x16/invoice_correct.png",
+                "command": "correct",
+                "confirm": { "i18n": "correct_invoice_confirm" },
+                "enabledWhen": { "field": "status", "in": ["issued", "paid"] }
+            },
+            {
                 "name": "btnStorno",
                 "caption": { "i18n": "storno_invoice_btn" },
                 "icon": "/apps/booking_icons/resources/public/16x16/invoice_storno.png",
-                "events": { "onClick": "stornoInvoice" },
+                "command": "storno",
+                "confirm": { "i18n": "storno_invoice_confirm" },
                 "enabledWhen": { "field": "status", "in": ["issued", "paid"] }
             }
         ]
@@ -204,6 +213,46 @@
                         "name": "invoiceTablesTabs",
                         "tabs": [
                             {
+                                "caption": { "i18n": "invoice_target_lines_tab" },
+                                "visibleWhen": { "field": "correctionKind", "in": ["correction"] },
+                                "layout": [{
+                                    "type": "table",
+                                    "name": "ts_invoice_target_lines",
+                                    "data": "invoice_target_lines",
+                                    "columns": [
+                                        { "caption": { "i18n": "Description" }, "data": "label", "autoWidth": true, "inputType": "textbox" },
+                                        {
+                                            "caption": { "i18n": "Service" },
+                                            "data": "serviceId",
+                                            "width": 170,
+                                            "inputType": "recordSelector",
+                                            "properties": {
+                                                "showSelectionButton": true,
+                                                "selection": { "table": "services", "idField": "UID", "displayField": "name" }
+                                            }
+                                        },
+                                        { "caption": { "i18n": "Quantity" }, "data": "quantity", "width": 90, "inputType": "number" },
+                                        { "caption": { "i18n": "unit_price" }, "data": "unitPrice", "width": 100, "inputType": "number" },
+                                        {
+                                            "caption": { "i18n": "tax_rate" },
+                                            "data": "taxRateId",
+                                            "width": 110,
+                                            "inputType": "recordSelector",
+                                            "properties": {
+                                                "selection": { "table": "tax_rates", "idField": "UID", "displayField": "name" }
+                                            }
+                                        },
+                                        { "caption": { "i18n": "Amount" }, "data": "amount", "width": 110, "inputType": "number", "total": "sum" }
+                                    ],
+                                    "properties": {
+                                        "editMode": "cell-immediate",
+                                        "visibleRows": 10,
+                                        "tabularFilter": { "invoiceId": "{UID}" },
+                                        "hiddenButtons": ["listSettings", "recordOpen"]
+                                    }
+                                }]
+                            },
+                            {
                                 "caption": { "i18n": "invoice_lines_tab" },
                                 "layout": [{
                                     "type": "table",
@@ -309,6 +358,24 @@
                                         "displayField": "name"
                                     }
                                 }
+                            },
+                            {
+                                "type": "recordSelector",
+                                "name": "correctsInvoiceId",
+                                "data": "correctsInvoiceId",
+                                "caption": { "i18n": "invoice_corrects_field" },
+                                "properties": {
+                                    "showOpenButton": true,
+                                    "readOnly": true,
+                                    "selection": { "table": "invoices", "idField": "UID", "displayField": "name" }
+                                }
+                            },
+                            {
+                                "type": "emunList",
+                                "name": "correctionKind",
+                                "data": "correctionKind",
+                                "caption": { "i18n": "invoice_correction_kind_field" },
+                                "properties": { "width": 200 }
                             }
                         ]
                     },

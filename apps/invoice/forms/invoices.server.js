@@ -26,9 +26,10 @@ const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGatew
 // Сборка печатной формы — общая с приложением reports: архив обязан хранить
 // ровно тот HTML, который увидит пользователь, а не его пересборку.
 const { buildInvoiceDoc } = require('../../reports/invoice/build');
-// Архив выставленных документов и сторно — механизмы ЯДРА, не приложения.
+// Архив выставленных документов — механизм ЯДРА, не приложения. Сторно и
+// коррекция тоже: их делают команды ядра (drive_root/db/documentCommands.js),
+// приложение объявляет их в db.json и даёт хук выставления.
 const documentArchive = require('../../../node_modules/my-old-space/drive_root/db/documentArchive');
-const storno = require('../../../node_modules/my-old-space/drive_root/db/storno');
 // Пустая дата — это 0001-01-01, а не NULL (правило проекта, см.
 // drive_root/db/emptyValues.js). Проверять заполненность даты через
 // `if (r.validTo)` НЕЛЬЗЯ: 0001-01-01 — истинное значение, и такая
@@ -1162,6 +1163,15 @@ module.exports = function (modelsDB, Utilities) {
                 }
             }
 
+            // Природа встречного документа — не реквизит формы. Вид документа и
+            // ссылку на исходный счёт ставит КОМАНДА («Сторнировать» /
+            // «Скорректировать»), и только она: сменить их у сохранённого
+            // документа значит оторвать его от счёта, который он исправляет, —
+            // а с ним и от § 31 Abs. 5 UStDV, который эту связь требует.
+            // Поля показываются на форме как сведение, писать их оттуда нельзя.
+            delete changes.correctionKind;
+            delete changes.correctsInvoiceId;
+
             // Скидка счёта: пустое/нечисло → 0, отрицательное → 0; режим по умолчанию.
             if ('discountValue' in changes) {
                 const dv = Number(changes.discountValue);
@@ -1169,7 +1179,13 @@ module.exports = function (modelsDB, Utilities) {
             }
             if ('discountMode' in changes && !changes.discountMode) changes.discountMode = 'percent';
 
-            const lines = tabularSections.invoice_lines || [];
+            // Нормализуются ОБЕ строковые части одинаково: «как должно быть»
+            // у коррекции — такие же строки счёта (услуга, ставка, цена), и
+            // считать их сумму по другим правилам нельзя — разница поехала бы.
+            const lines = [].concat(
+                tabularSections.invoice_lines || [],
+                tabularSections.invoice_target_lines || []
+            );
             if (lines.length) {
                 // Справочники для авторитетного заполнения строк: ставка НДС ВСЕГДА
                 // из tax_rates (по taxRateId), вручную % нигде не вводится; услуга
@@ -1262,6 +1278,7 @@ module.exports = function (modelsDB, Utilities) {
                     if (row.sortOrder == null) row.sortOrder = 0;
                 }
             }
+
         },
 
         // ── RPC: «Выставить» — проведение счёта ───────────────────────────
@@ -1278,48 +1295,6 @@ module.exports = function (modelsDB, Utilities) {
         // черновиком, который ещё можно дозаполнить.
         async issueInvoice({ invoiceId, print }, ctx) {
             return await _issueInvoice(invoiceId, print, ctx);
-        },
-
-        // ── RPC: «Сторнировать» ──────────────────────────────────────────
-        //
-        // Выставленный счёт исправлять нельзя (GoBD). Единственный законный
-        // выход — встречный документ с обратными знаками, со своим номером и
-        // ссылкой на исходный. Механизм — в ядре (drive_root/db/storno.js);
-        // здесь только вызов и выставление получившегося сторно, чтобы у него
-        // тоже появился архивный снимок.
-        async stornoInvoice({ invoiceId, print }, ctx) {
-            if (!invoiceId) return { error: await tForSession('invoice_not_found', ctx.sessionID) };
-            try {
-                const context = { sessionID: ctx.sessionID };
-                const { UID: stornoId } = await storno.createStorno({
-                    table: 'invoices', UID: invoiceId, context,
-                    // Отказы ядра показываются пользователю — переводим их на язык
-                    // сессии, а не отдаём русский текст в немецкий интерфейс.
-                    t: (key) => tForSession(key, ctx.sessionID)
-                });
-
-                // Сторно выставляется тем же путём, что и обычный счёт: иначе
-                // он останется черновиком без архивной копии.
-                const issued = await _issueInvoice(stornoId, print, ctx);
-                if (issued && issued.error) {
-                    // Сторно создан, но не выставлен: исходный счёт НЕ отменяем —
-                    // иначе он останется отменённым без действующей замены.
-                    return { error: issued.error, stornoId };
-                }
-
-                await storno.cancelSource('invoices', invoiceId, context);
-
-                const stornoDoc = await modelsDB.Invoices.findByPk(stornoId, { raw: true });
-                notifyTables('create', stornoId);
-                return {
-                    ok: true,
-                    stornoId,
-                    stornoNumber: stornoDoc && stornoDoc.number,
-                    html: issued && issued.html
-                };
-            } catch (e) {
-                return { error: (e && e.userMessage) || (e && e.message) || String(e) };
-            }
         }
 
     };

@@ -243,43 +243,8 @@ async function _issue(ctx, withPrint) {
 async function issueInvoice(ev, ctx)         { return await _issue(ctx, false); }
 async function issueAndPrintInvoice(ev, ctx) { return await _issue(ctx, true); }
 
-// ── «Сторнировать» ───────────────────────────────────────────────────────
-//
-// Выставленный счёт исправлять нельзя. Сторно — встречный документ со своим
-// номером и обратными знаками; исходный уходит в «отменён». Открываем сторно
-// сразу после создания: пользователю нужен его номер.
-async function stornoInvoice(ev, ctx) {
-    var form = ctx.form;
-    var uidEntry = form._dataMap && form._dataMap['UID'];
-    var invoiceId = uidEntry && uidEntry.value;
-    if (!invoiceId) { showAlert(__t('Please save the invoice first')); return; }
-
-    var ok = await showConfirm(__t('storno_invoice_confirm'));
-    if (!ok) return;
-
-    var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Preparing invoice…')) : null;
-    var result;
-    try {
-        result = await callServer('__SERVER_SCRIPT__', 'stornoInvoice', { invoiceId: invoiceId });
-    } finally {
-        if (busyToken != null && window.MySpace && window.MySpace.hideBusy) window.MySpace.hideBusy(busyToken);
-    }
-    if (!result || result.error) { showAlert(__t('Error: ') + (result && result.error || '')); return; }
-
-    showAlert(__t('storno_created') + ' ' + (result.stornoNumber || ''));
-
-    // Открываем сторно-документ отдельным окном.
-    if (result.stornoId && window.MySpace && typeof window.MySpace.open === 'function') {
-        // Параметры окна записи — tableName/recordID (как в bookings.client.js).
-        // dbTable/UID uniForm не понимает: окно открывается пустым.
-        await window.MySpace.open('uniForm', {
-            mode: 'record', tableName: 'invoices', recordID: result.stornoId
-        });
-    }
-    // Исходный счёт сервер перевёл в «отменён» — показываем это сразу.
-    _setFormField(form, 'status', 'cancelled');
-    try { if (typeof form.setModified === 'function') form.setModified(false); } catch(_) {}
-}
-
+// «Сторнировать» и «Скорректировать» здесь НЕТ намеренно: это команды ядра,
+// кнопки объявлены в лейауте как `"command": "storno" | "correct"`
+// (drive_root/db/documentCommands.js + DataForm.runDocumentCommand).
 return { fillInvoice, printInvoice, onLineQtyOrPriceEdited, onLineServiceSelected,
-         issueInvoice, issueAndPrintInvoice, stornoInvoice };
+         issueInvoice, issueAndPrintInvoice };

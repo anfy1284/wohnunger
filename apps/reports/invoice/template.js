@@ -46,7 +46,7 @@ const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'
  *        скидки и печатается полной суммой.
  * @returns {string} HTML-документ
  */
-function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote, taxCategories, draft, correctsInvoice }) {
+function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote, taxCategories, draft, correctsInvoice, correctedBase }) {
     if (typeof t !== 'function') t = (k) => k;
     if (typeof tf !== 'function') tf = (k) => k;
     locale = locale || 'de-DE';
@@ -79,6 +79,11 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     }
     const checkIn     = minIn  ? fmtDate(minIn)  : '';
     const checkOut    = maxOut ? fmtDate(maxOut) : '';
+    // Вид встречного документа. Коррекция (§ 31 Abs. 5 UStDV) отличается от
+    // сторно и заголовком, и тем, что после итога печатается НОВАЯ сумма счёта:
+    // документ несёт только разницу, и без этой строки клиент не увидит, сколько
+    // теперь причитается.
+    const isCorrection = invoice.correctionKind === 'correction';
     const prepayment  = Number(invoice.prepayment) || 0;
     // Срок оплаты (invoices.dueDate) — не реквизит § 14 UStG, но если задан, он
     // обязан попасть в печать (иначе введённые данные теряются).
@@ -138,15 +143,25 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     let discount = (discMode === 'percent')
         ? M.pct(discountBase, discInput)
         : M.num(discInput);
-    if (discount < 0) discount = 0;
-    if (discount > discountBase) discount = discountBase; // недискаунтируемое не трогаем
+    // Границы скидки — ПО ЗНАКУ БАЗЫ, а не отрезок [0, база]. У сторно все
+    // суммы отрицательны, и прежнее сравнение `discount > discountBase` было
+    // истинно уже при НУЛЕВОЙ скидке (0 > −737): скидкой становилась вся база,
+    // скидочный оборот схлопывался в ноль, а Gesamtbetrag сторно показывал
+    // только недискаунтируемые строки (курсбор) вместо полной отмены счёта.
+    const discMin = Math.min(0, discountBase);
+    const discMax = Math.max(0, discountBase);
+    if (discount < discMin) discount = discMin;
+    if (discount > discMax) discount = discMax; // недискаунтируемое не трогаем
     const discPctLabel = discInput.toLocaleString(locale, { maximumFractionDigits: 2 });
 
     const discountedBrutto = M.sub(subtotalBrutto, discount);
 
     // Раскладка скидки ПО СТРОКАМ пропорционально их брутто (k = остаток/база).
     // Копеечный дрейф гасим в самую крупную скидочную строку.
-    const k = discountBase > 0 ? (discountBase - discount) / discountBase : 1;
+    // Знаменатель — «база не ноль», а не «база больше нуля»: на отрицательной
+    // базе сторно доля k иначе застывала бы в 1, строки печатались бы полными
+    // суммами и свод НДС разошёлся бы с Gesamtbetrag на величину скидки.
+    const k = discountBase !== 0 ? (discountBase - discount) / discountBase : 1;
     const lineBrutto = new Map();
     let allocSum = 0, driftLine = null;
     for (const ln of flatLines) {
@@ -154,7 +169,9 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
             const v = M.mul(ln.amount, k);
             lineBrutto.set(ln, v);
             allocSum = M.add(allocSum, v);
-            if (!driftLine || M.cmp(ln.amount, driftLine.amount) > 0) driftLine = ln;
+            // «Самая крупная строка» — по МОДУЛЮ: у сторно все суммы
+            // отрицательны, и сравнение по значению выбрало бы самую мелкую.
+            if (!driftLine || M.cmp(Math.abs(M.num(ln.amount)), Math.abs(M.num(driftLine.amount))) > 0) driftLine = ln;
         } else {
             lineBrutto.set(ln, M.num(ln.amount));
         }
@@ -230,25 +247,38 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
         '<tr class="' + cls + '"><td class="lbl">' + label + '</td>'
         + '<td class="val">' + value + '</td></tr>\n';
 
+    // Вычитаемая строка (скидка, предоплата) печатается СО ЗНАКОМ, а не с
+    // прибитым «минусом»: на сторно вычитаемое само отрицательно, и знак у него
+    // обратный — предоплата там не удерживается, а возвращается. Прежний
+    // «&minus;» напечатал бы «−-200,00».
+    const fmtDelta = v => (v > 0 ? '+' : '&minus;') + fmtNum(Math.abs(v));
+
     // Промежуточный итог печатаем только при наличии скидки — без неё он
     // дублировал бы Gesamtbetrag. Если строк над итогом нет, Gesamtbetrag
     // «прирастает» к таблице услуг: чёрной становится нижняя граница самой
     // таблицы, а собственная короткая линия итога убирается (класс t-first
     // + класс `joined` на блоке, который проставляет пагинатор).
-    const hasRowsAboveTotal = discount > 0;
+    // Условие — «скидка есть», а не «скидка больше нуля»: на сторно она
+    // отрицательна, и строки Zwischensumme/Rabatt молча исчезали бы, оставив
+    // Gesamtbetrag без объяснения, из чего он получился.
+    const hasRowsAboveTotal = discount !== 0;
     const totalsHtml = '<table class="totals-table">\n'
         + (hasRowsAboveTotal
             ? sumRow('t-sub', t('invoice_subtotal'), fmtNum(subtotalBrutto) + ' &euro;')
               + sumRow('t-line',
                     t('invoice_discount') + (discMode === 'percent' ? ' (' + discPctLabel + '%)' : ''),
-                    '&minus;' + fmtNum(discount) + ' &euro;')
+                    fmtDelta(-discount) + ' &euro;')
             : '')
         + sumRow('t-grand' + (hasRowsAboveTotal ? '' : ' t-first'),
                  t('invoice_total_amount'), fmtNum(discountedBrutto) + ' &euro;')
-        + (prepayment > 0
-            ? sumRow('t-line', t('invoice_less_prepayment'), '&minus;' + fmtNum(prepayment) + ' &euro;')
+        + (prepayment !== 0
+            ? sumRow('t-line', t('invoice_less_prepayment'), fmtDelta(-prepayment) + ' &euro;')
               + sumRow('t-grand', t('invoice_balance_due'),
                     fmtNum(M.sub(discountedBrutto, prepayment)) + ' &euro;')
+            : '')
+        + (isCorrection && correctedBase != null
+            ? sumRow('t-grand', t('invoice_corrected_total'),
+                    fmtNum(M.add(correctedBase, discountedBrutto)) + ' &euro;')
             : '')
         + '</table>';
 
@@ -391,8 +421,8 @@ ${dueDate ? `<tr>
 </table>
 </div>
 
-<h2>${correctsInvoice ? esc(t('invoice_storno_title')) + ' ' : ''}${t('invoice_no_label')} ${esc(invoiceNum)}</h2>
-${correctsInvoice ? `<div class="storno-ref">${esc(tf('invoice_storno_reference', {
+<h2>${correctsInvoice ? esc(t(isCorrection ? 'invoice_correction_title' : 'invoice_storno_title')) + ' ' : ''}${t('invoice_no_label')} ${esc(invoiceNum)}</h2>
+${correctsInvoice ? `<div class="storno-ref">${esc(tf(isCorrection ? 'invoice_correction_reference' : 'invoice_storno_reference', {
     number: correctsInvoice.number || String(correctsInvoice.UID || '').slice(0, 8),
     date: fmtDate(correctsInvoice.date)
 }))}</div>` : ''}`;

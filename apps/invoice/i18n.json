@@ -240,9 +240,45 @@
         "pl": "Zapłacono"
     },
     "invoice_corrects_field": {
-        "en": "Corrects invoice",
-        "ru": "Сторнирует счёт",
-        "de": "Storniert Rechnung",
-        "pl": "Koryguje rachunek"
+        "en": "Refers to invoice",
+        "ru": "Относится к счёту",
+        "de": "Bezieht sich auf Rechnung",
+        "pl": "Dotyczy rachunku"
+    },
+    "correct_invoice_btn": {
+        "en": "Correct",
+        "ru": "Скорректировать",
+        "de": "Korrigieren",
+        "pl": "Koryguj"
+    },
+    "correct_invoice_confirm": {
+        "en": "Create a correction? The invoice stays valid; the correction document carries only the difference. You enter how it should be, the difference is calculated for you.",
+        "ru": "Оформить коррекцию? Счёт остаётся действующим, корректирующий документ несёт только разницу. Вы вводите, как должно быть, — разницу посчитает программа.",
+        "de": "Korrektur erstellen? Die Rechnung bleibt gültig; der Korrekturbeleg enthält nur die Differenz. Sie erfassen den Soll-Zustand, die Differenz wird berechnet.",
+        "pl": "Utworzyć korektę? Rachunek pozostaje ważny, dokument korygujący zawiera tylko różnicę. Wprowadzasz stan docelowy — różnicę wyliczy program."
+    },
+    "invoice_correction_kind_field": {
+        "en": "Document kind",
+        "ru": "Вид документа",
+        "de": "Belegart",
+        "pl": "Rodzaj dokumentu"
+    },
+    "invoice_kind_storno": {
+        "en": "Storno",
+        "ru": "Сторно",
+        "de": "Storno",
+        "pl": "Storno"
+    },
+    "invoice_kind_correction": {
+        "en": "Correction",
+        "ru": "Коррекция",
+        "de": "Korrektur",
+        "pl": "Korekta"
+    },
+    "invoice_target_lines_tab": {
+        "en": "How it should be",
+        "ru": "Как должно быть",
+        "de": "Wie es sein soll",
+        "pl": "Jak powinno być"
     }
 }

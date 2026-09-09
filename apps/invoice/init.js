@@ -51,7 +51,7 @@ module.exports = async function (modelsDB) {
             return parts.join(' ');
         });
 
-        // ── Сторно: то, что ядру знать неоткуда ───────────────────────────
+        // ── Встречные документы: то, что ядру знать неоткуда ──────────────
         // Ядро (drive_root/db/storno.js) копирует документ и инвертирует поля,
         // объявленные в `entityConfig.storno.negate`. Скидка так не объявляется:
         // в режиме «%» инвертировать нечего (процент от уже отрицательной базы
@@ -75,11 +75,15 @@ module.exports = async function (modelsDB) {
         });
 
         // ── Форма «Счёт» (таблица invoices) ───────────────────────────────
-        const serverScriptName = loadServerScript(
-            'invoice.actions',
-            require('./forms/invoices.server')(modelsDB, Utilities),
-            'user'
-        );
+        const invoiceApi = require('./forms/invoices.server')(modelsDB, Utilities);
+        const serverScriptName = loadServerScript('invoice.actions', invoiceApi, 'user');
+
+        // Выставление — единственное, чего ядровая команда «Сторнировать» сделать
+        // за приложение не может: оно собирает ПЕЧАТНУЮ форму и проверяет её
+        // реквизиты (§ 14 UStG), а печатная форма у каждого документа своя.
+        // Объявлено в db.json как `storno.issueHook`.
+        entityHooks.register('invoice.issue', async ({ UID, print, sessionID }) =>
+            await invoiceApi.issueInvoice({ invoiceId: UID, print }, { sessionID }));
 
         const clientSource = fs
             .readFileSync(path.join(__dirname, 'forms/invoices.client.js'), 'utf8')

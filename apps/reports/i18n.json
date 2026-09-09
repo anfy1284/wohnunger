@@ -328,5 +328,23 @@
         "ru": "Сторнирует счёт № {{number}} от {{date}}.",
         "de": "Storniert die Rechnung Nr. {{number}} vom {{date}}.",
         "pl": "Storno rachunku nr {{number}} z dnia {{date}}."
+    },
+    "invoice_correction_title": {
+        "en": "Correction to",
+        "ru": "Коррекция к",
+        "de": "Berichtigung zur",
+        "pl": "Korekta do"
+    },
+    "invoice_correction_reference": {
+        "en": "Corrects invoice no. {{number}} of {{date}}. Only the difference is shown.",
+        "ru": "Корректирует счёт № {{number}} от {{date}}. Показана только разница.",
+        "de": "Berichtigt die Rechnung Nr. {{number}} vom {{date}}. Ausgewiesen ist nur die Differenz.",
+        "pl": "Koryguje rachunek nr {{number}} z dnia {{date}}. Wykazana jest tylko różnica."
+    },
+    "invoice_corrected_total": {
+        "en": "New invoice amount",
+        "ru": "Новая сумма счёта",
+        "de": "Neuer Rechnungsbetrag",
+        "pl": "Nowa kwota rachunku"
     }
 }

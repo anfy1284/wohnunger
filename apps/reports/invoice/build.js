@@ -112,15 +112,49 @@ async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
                 correctsInvoice = await modelsDB.Invoices.findByPk(invoice.correctsInvoiceId, { raw: true });
             }
 
+            // Коррекция несёт только разницу, поэтому сама по себе она не
+            // говорит клиенту главного: сколько теперь по счёту причитается.
+            // Считаем НОВУЮ сумму счёта = исходный документ + все действующие
+            // коррекции к нему (включая эту). Каждый документ считается своим
+            // же путём — повторять здесь правила скидки и НДС нельзя, они
+            // разошлись бы с печатью.
+            let correctedTotal = null;
+            if (!opts.skipCorrectionTotal && invoice.correctionKind === 'correction' && correctsInvoice) {
+                try {
+                    const base = await buildInvoiceDoc(modelsDB, correctsInvoice.UID, { skipCorrectionTotal: true });
+                    let sum = Number(base.brutto) || 0;
+                    const siblings = await modelsDB.Invoices.findAll({
+                        where: { correctsInvoiceId: correctsInvoice.UID, correctionKind: 'correction' },
+                        raw: true
+                    });
+                    for (const s of siblings) {
+                        // Черновики не в счёт: документ, не покинувший сферу
+                        // выставителя, ничего не меняет. Кроме печатаемого —
+                        // его-то результат мы и показываем.
+                        if (s.UID !== invoiceId && s.status === 'draft') continue;
+                        const part = (s.UID === invoiceId)
+                            ? null
+                            : await buildInvoiceDoc(modelsDB, s.UID, { skipCorrectionTotal: true });
+                        sum += part ? (Number(part.brutto) || 0) : 0;
+                    }
+                    // Сумма ВСЕГО, кроме печатаемого документа: его собственный
+                    // итог известен только после сборки, шаблон и досчитает.
+                    correctedTotal = sum;
+                } catch (e) {
+                    console.warn('[reports] correctedTotal:', e && e.message);
+                }
+            }
+
             const { html, missingKeys, brutto } = renderInvoiceHTML({
                 invoice, bookings, client, hotel, org, lines, t, tf,
-                locale, lang, invoiceNote, taxCategories, draft, correctsInvoice
+                locale, lang, invoiceNote, taxCategories, draft, correctsInvoice,
+                correctedBase: correctedTotal
             });
 
             // Слепок данных, из которых собран HTML, — это и есть «что было в
             // счёте» на момент выставления: имена услуг, адрес организации,
             // ставки. Всё это потом может измениться в справочниках.
-            const payload = { invoice, bookings, client, hotel, org, lines, lang, invoiceNote, taxCategories, correctsInvoice };
+            const payload = { invoice, bookings, client, hotel, org, lines, lang, invoiceNote, taxCategories, correctsInvoice, correctedBase: correctedTotal };
 
             return { html, payload, invoice, org, client, lines, lang, draft, missingKeys, brutto };
 }

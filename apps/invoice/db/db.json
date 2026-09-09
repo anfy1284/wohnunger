@@ -20,10 +20,29 @@
                 },
                 "storno": {
                     "link": "correctsInvoiceId",
+                    "kindField": "correctionKind",
+                    "kindValue": "storno",
                     "negate": ["prepayment"],
                     "cancelStatus": "cancelled",
-                    "copyExclude": ["status", "issuedAt", "paidAt", "correctsInvoiceId"],
-                    "hook": "invoice.onStorno"
+                    "copyExclude": ["status", "issuedAt", "paidAt", "correctsInvoiceId", "correctionKind"],
+                    "hook": "invoice.onStorno",
+                    "issueHook": "invoice.issue"
+                },
+                "correction": {
+                    "link": "correctsInvoiceId",
+                    "kindField": "correctionKind",
+                    "kindValue": "correction",
+                    "copyExclude": ["status", "issuedAt", "paidAt", "correctsInvoiceId", "correctionKind"],
+                    "difference": {
+                        "section": "invoice_lines",
+                        "targetTable": "invoice_target_lines",
+                        "targetCaption": { "i18n": "invoice_target_lines_tab" },
+                        "matchBy": ["serviceId", "bookingRoomId", "taxComponentName", "taxRate", "taxCategoryId", "unitPrice"],
+                        "quantity": "quantity",
+                        "price": "unitPrice",
+                        "amount": "amount",
+                        "order": "sortOrder"
+                    }
                 },
                 "auditLog": true
             },
@@ -132,6 +151,16 @@
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
                     "caption": { "i18n": "invoice_corrects_field" }
+                },
+                "correctionKind": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": { "i18n": "invoice_correction_kind_field" },
+                    "inputType": "emunList",
+                    "options": [
+                        { "value": "storno", "caption": { "i18n": "invoice_kind_storno" } },
+                        { "value": "correction", "caption": { "i18n": "invoice_kind_correction" } }
+                    ]
                 },
                 "reportVariantId": {
                     "type": "STRING",

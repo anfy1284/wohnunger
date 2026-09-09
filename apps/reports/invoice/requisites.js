@@ -29,7 +29,10 @@ function missingRequisites({ org, client, invoice, brutto }) {
     if (!(org && org.address))          missing.push('invoice_missing_org_address');
     if (!(org && org.taxNumber))        missing.push('invoice_missing_tax_number');
     if (!(client && client.name))       missing.push('invoice_missing_client_name');
-    if (!(client && client.address) && amount > KLEINBETRAG_LIMIT) {
+    // Порог Kleinbetragsrechnung (§ 33 UStDV) — по МОДУЛЮ суммы: сторно счёта
+    // на 760 € сам отрицателен, и сравнение по значению объявляло бы его
+    // мелким счётом, разрешая печать без адреса получателя.
+    if (!(client && client.address) && Math.abs(amount) > KLEINBETRAG_LIMIT) {
         missing.push('invoice_missing_client_address');
     }
     if (!(invoice && invoice.number))   missing.push('invoice_missing_number');
