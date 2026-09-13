@@ -118,6 +118,15 @@ language). Full spec: `tmp/ТЗ_НАСТРОЙКИ_ПРИЛОЖЕНИЙ.md`.
   (`dbGateway.execute` with the user's session), never by a private copy of the rules.
 - Captions are `{ "i18n": key }` and live in the owning app's `i18n.json`; the file never contains
   texts.
+- **Interface state is the same table, `kind='state'`** — what the UI remembers between sessions
+  (window geometry, last tab, last filter, chosen calendar axis). Keys are free-form and declared
+  nowhere; server API `drive_root/settings/state.js`, client `MySpace.state.get/set` (sync read
+  from a snapshot fetched by its own RPC — **never put personal data into the `/app/loadApps`
+  bundle**, it is cached by `role|language`). Nothing that affects rights, money or calculations
+  goes there: the value comes from the client. Admin sees it as one table with «Clear all».
+- **Register a layout for everyone as `roles: '*'`, not `'user'`** — `'user'` is a role, and layout
+  lookup is exact-match-then-`'*'`. The core now falls back to any registered layout for `admin`,
+  but the declaration should still say what it means. Section 66 of `АРХИТЕКТУРА_ПРОЕКТА.md`.
 
 ### Scheduled background work
 The framework has a **task scheduler** (`node_modules/my-old-space/drive_root/scheduler/`, UI app `apps/scheduler`, tables `scheduler_tasks`/`scheduler_task_params`/`scheduler_runs`). Never write your own `setInterval` for periodic work: declare a task type in `apps/<app>/scheduler.handlers.js` (a pure factory — the file is loaded by **both** the main process and the worker process) and the user creates the task in the UI. Tasks run in a forked worker under a **service session** — a real `sessions` row (`kind='service'`) owned by the task's owner — so RLS applies through the same code as for a live user; `__SYS_INTERNAL__` inside a handler is forbidden. A service session must never work as a login: HTTP takes the session only through `globalServerContext.getSessionIdFromRequest(req)`, which rejects `kind='service'`. Details: section 33 of `АРХИТЕКТУРА_ПРОЕКТА.md`.

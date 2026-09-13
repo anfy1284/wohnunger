@@ -16,6 +16,7 @@ const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGatew
 // Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
 const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
 const settings = require('../../../node_modules/my-old-space/drive_root/settings');
+const state = require('../../../node_modules/my-old-space/drive_root/settings/state');
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -42,9 +43,14 @@ module.exports = function (modelsDB, Utilities) {
         try {
             const user = sessionID ? await globalRootCtx.getUserBySessionID(sessionID) : null;
             if (user) {
-                // Ориентация шахматки — настройка `booking.calendarOrientation`
-                // (общий механизм настроек, drive_root/settings).
-                const ori = await settings.getUserSetting(user.UID, 'booking', 'calendarOrientation');
+                // Ориентация шахматки: сначала то, что пользователь выбрал кнопкой в
+                // прошлый раз (служебная настройка), иначе настройка из формы настроек.
+                // Порядок именно такой: кнопка — последнее явное действие пользователя,
+                // а настройка это то, с чего начинает тот, кто её ни разу не нажимал.
+                const remembered = await state.get(user.UID, 'booking', 'calendarOrientation');
+                const ori = (remembered === 'horizontal' || remembered === 'vertical')
+                    ? remembered
+                    : await settings.getUserSetting(user.UID, 'booking', 'calendarOrientation');
                 if (ori === 'horizontal' || ori === 'vertical') result.orientation = ori;
             }
 

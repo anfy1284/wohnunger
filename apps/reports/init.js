@@ -27,7 +27,7 @@ module.exports = async function (modelsDB) {
             appName:       'uniForm',
             mode:          'record',
             tableName:     'report_variants',
-            roles:         'user',
+            roles:         '*',
             layout:        require('./forms/report_variants.layout.json'),
             appCaption:    { i18n: 'report_variants' },
             recordCaption: { i18n: 'report_variant_record_caption' },

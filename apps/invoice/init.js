@@ -94,7 +94,7 @@ module.exports = async function (modelsDB) {
             appName:      'uniForm',
             mode:         'record',
             tableName:    'invoices',
-            roles:        'user',
+            roles:        '*',
             layout:       require('./forms/invoices.layout.json'),
             clientScript: clientUID,
             appCaption:   { i18n: 'invoice_app_caption' },
