@@ -107,6 +107,37 @@ function invalidateAccessCache() {
 }
 
 /**
+ * Области доступа пользователя для ядра (`drive_root/accessScopes`).
+ *
+ * Граница «свой — чужой» в этом решении — ОРГАНИЗАЦИЯ, и объявляется она здесь, рядом
+ * с самим слоем доступа, а не внутри приложений фреймворка: мессенджер не должен знать
+ * ни слова «организация», ни таблицы `user_organizations`.
+ *
+ * Отели в набор НЕ входят намеренно: два сотрудника одной организации, приписанные к
+ * разным гостиницам, — коллеги, и разводить их по разным «лодкам» было бы сюрпризом.
+ * Организация — та самая граница, по которой идут и права, и выгрузка (backup/scope.js).
+ *
+ * Принадлежность берётся из `user_organizations`, а не из `users.organizationId`:
+ * второй у сотрудников часто пуст, фактические связи живут в таблице связей. Расчёт
+ * общий с RLS (`getAccessContext`), поэтому и кэш общий — своей копии правила нет.
+ *
+ * @param {string} userId
+ * @returns {Promise<string[]>} UID организаций пользователя
+ */
+async function resolveUserAccessScopes(userId) {
+    if (!userId) return [];
+    const ctx = await getAccessContext(userId);
+    return ctx.orgIds || [];
+}
+
+try {
+    require('./node_modules/my-old-space/drive_root/accessScopes')
+        .registerResolver('project', resolveUserAccessScopes);
+} catch (e) {
+    log.warn('[project/dbGateway] Резолвер областей доступа не зарегистрирован:', e.message);
+}
+
+/**
  * Сужение запроса по организации служебной сессии (`sessions.scopeOrganizationId`).
  *
  * Служебная сессия регламентного задания принадлежит владельцу задачи, но задача
