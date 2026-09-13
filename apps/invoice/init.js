@@ -58,32 +58,19 @@ module.exports = async function (modelsDB) {
         // сам даёт отрицательную скидку), а в режиме «€» абсолютную сумму
         // инвертировать обязательно — иначе она вычтется из минуса и увеличит
         // долг вместо его отмены.
+        // Сторно собирается В ПАМЯТИ для несохранённой формы — хук правит шапку по
+        // ссылке, в базе документа ещё нет.
         entityHooks.register('invoice.onStorno', async (params) => {
-            const { stornoUID, source, context } = params;
-            if (!source || source.discountMode !== 'amount') return;
+            const { head, source } = params;
+            if (!head || !source || source.discountMode !== 'amount') return;
             const value = Number(source.discountValue) || 0;
             if (!value) return;
-
-            const dbGateway = require('../../node_modules/my-old-space/drive_root/dbGateway');
-            await dbGateway.execute({
-                operation: 'update',
-                table: 'invoices',
-                where: { UID: stornoUID },
-                data: { discountValue: -value },
-                context
-            });
+            head.discountValue = -value;
         });
 
         // ── Форма «Счёт» (таблица invoices) ───────────────────────────────
         const invoiceApi = require('./forms/invoices.server')(modelsDB, Utilities);
         const serverScriptName = loadServerScript('invoice.actions', invoiceApi, 'user');
-
-        // Выставление — единственное, чего ядровая команда «Сторнировать» сделать
-        // за приложение не может: оно собирает ПЕЧАТНУЮ форму и проверяет её
-        // реквизиты (§ 14 UStG), а печатная форма у каждого документа своя.
-        // Объявлено в db.json как `storno.issueHook`.
-        entityHooks.register('invoice.issue', async ({ UID, print, sessionID }) =>
-            await invoiceApi.issueInvoice({ invoiceId: UID, print }, { sessionID }));
 
         const clientSource = fs
             .readFileSync(path.join(__dirname, 'forms/invoices.client.js'), 'utf8')

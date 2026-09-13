@@ -86,6 +86,12 @@ module.exports = async function (modelsDB) {
                 const isDraft = !invoice.status || invoice.status === 'draft';
 
                 if (!isDraft) {
+                    // Недействительный счёт печатается тем же документом, но
+                    // перечёркнутым: крест накладывает ядро поверх архивной копии,
+                    // сама копия не меняется (drive_root/db/invalidate.js).
+                    const invalidate = require('../../node_modules/my-old-space/drive_root/db/invalidate');
+                    const mark = (html) => invalidate.isInvalid('invoices', invoice) ? invalidate.crossOut(html) : html;
+
                     const snap = await documentArchive.load('invoices', invoiceId);
                     if (snap) {
                         const check = documentArchive.verify(snap);
@@ -95,13 +101,13 @@ module.exports = async function (modelsDB) {
                             // должен знать, что копия под сомнением.
                             console.error('[reports] archive sha256 mismatch for invoice', invoiceId, check);
                         }
-                        return { html: snap.html, fromArchive: true, sha256: snap.sha256, tampered: !check.ok };
+                        return { html: mark(snap.html), fromArchive: true, sha256: snap.sha256, tampered: !check.ok };
                     }
                     // Снимка нет — счёт выставлен до появления архива. Собираем
                     // живьём, но честно помечаем, что это не архивная копия.
                     try {
                         const { html } = await buildInvoiceDoc(modelsDB, invoiceId, { draft: false });
-                        return { html, fromArchive: false, noSnapshot: true };
+                        return { html: mark(html), fromArchive: false, noSnapshot: true };
                     } catch (e) {
                         return { error: await tForSession((e && e.message) || String(e), ctx.sessionID) };
                     }

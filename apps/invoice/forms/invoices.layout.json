@@ -44,6 +44,14 @@
                 "command": "storno",
                 "confirm": { "i18n": "storno_invoice_confirm" },
                 "enabledWhen": { "field": "status", "in": ["issued", "paid"] }
+            },
+            {
+                "name": "btnInvalidate",
+                "caption": { "i18n": "void_invoice_btn" },
+                "icon": "/apps/booking_icons/resources/public/16x16/invoice_void.png",
+                "command": "invalidate",
+                "confirm": { "i18n": "void_invoice_confirm" },
+                "enabledWhen": { "field": "status", "in": ["issued"] }
             }
         ]
     },
@@ -140,7 +148,8 @@
                                             { "value": "draft",     "caption": { "i18n": "invoice_status_draft" } },
                                             { "value": "issued",    "caption": { "i18n": "invoice_status_issued" } },
                                             { "value": "paid",      "caption": { "i18n": "invoice_status_paid" } },
-                                            { "value": "cancelled", "caption": { "i18n": "invoice_status_cancelled" } }
+                                            { "value": "cancelled", "caption": { "i18n": "invoice_status_cancelled" } },
+                                            { "value": "void",      "caption": { "i18n": "invoice_status_void" } }
                                         ]
                                     },
                                     {

@@ -113,6 +113,24 @@
         "de": "Storniert",
         "pl": "Anulowany"
     },
+    "invoice_status_void": {
+        "en": "Void",
+        "ru": "Недействителен",
+        "de": "Ungültig",
+        "pl": "Nieważny"
+    },
+    "void_invoice_btn": {
+        "en": "Void",
+        "ru": "Недействителен",
+        "de": "Ungültig",
+        "pl": "Unieważnij"
+    },
+    "void_invoice_confirm": {
+        "en": "Mark this invoice as void? It stays in the journal under its number and is printed crossed out in red. Use this only for an invoice that has not been sent to the client — a sent invoice is cancelled with a storno.",
+        "ru": "Признать счёт недействительным? Он останется в журнале под своим номером и будет печататься перечёркнутым красным крестом. Только для счёта, который не ушёл клиенту — отправленный отменяется сторно.",
+        "de": "Rechnung als ungültig kennzeichnen? Sie bleibt unter ihrer Nummer im Journal und wird rot durchgekreuzt gedruckt. Nur für eine Rechnung, die dem Kunden nicht zugegangen ist — eine versendete Rechnung wird storniert.",
+        "pl": "Oznaczyć rachunek jako nieważny? Pozostanie w dzienniku pod swoim numerem i będzie drukowany przekreślony na czerwono. Tylko dla rachunku, który nie trafił do klienta — wysłany anuluje się przez storno."
+    },
     "invoice_booking_section": {
         "en": "Booking No. {{number}}, {{from}} – {{to}}",
         "ru": "Бронь № {{number}}, {{from}} – {{to}}",
@@ -198,16 +216,10 @@
         "pl": "Wystawić rachunek? Potem nie można go zmienić — błąd poprawia się wyłącznie dokumentem storno."
     },
     "storno_invoice_confirm": {
-        "en": "Create a storno document? A counter-document with reversed amounts will be issued and this invoice will be marked as cancelled.",
-        "ru": "Оформить сторно? Будет выставлен встречный документ с обратными суммами, а этот счёт станет отменённым.",
-        "de": "Storno erstellen? Es wird ein Gegenbeleg mit umgekehrten Beträgen ausgestellt und diese Rechnung als storniert gekennzeichnet.",
-        "pl": "Utworzyć storno? Zostanie wystawiony dokument przeciwny z odwrotnymi kwotami, a ten rachunek zostanie anulowany."
-    },
-    "storno_created": {
-        "en": "Storno document created:",
-        "ru": "Сторно-документ создан:",
-        "de": "Stornobeleg erstellt:",
-        "pl": "Utworzono dokument storno:"
+        "en": "Prepare a storno? A counter-document with reversed amounts opens unsaved. This invoice is marked as cancelled only when the storno is issued.",
+        "ru": "Подготовить сторно? Откроется несохранённый встречный документ с обратными суммами. Этот счёт станет отменённым только когда сторно будет выставлен.",
+        "de": "Storno vorbereiten? Ein ungespeicherter Gegenbeleg mit umgekehrten Beträgen wird geöffnet. Diese Rechnung gilt erst als storniert, wenn das Storno ausgestellt ist.",
+        "pl": "Przygotować storno? Otworzy się niezapisany dokument przeciwny z odwrotnymi kwotami. Ten rachunek zostanie anulowany dopiero po wystawieniu storna."
     },
     "invoice_already_issued": {
         "en": "The invoice is already issued.",

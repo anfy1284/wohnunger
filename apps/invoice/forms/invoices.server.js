@@ -1133,7 +1133,7 @@ module.exports = function (modelsDB, Utilities) {
         // 1. organizationId в запись и строки ТЧ (паттерн booking).
         // 2. Санитизация числовых полей строк ("" → null).
         // 3. Авторитетный пересчёт amount = quantity * unitPrice построчно.
-        async onBeforeSave({ record, changes, tabularSections, parentUID }, ctx) {
+        async onBeforeSave({ record, changes, tabularSections, parentUID, isNew, counterOf }, ctx) {
             if (!changes.organizationId) {
                 try {
                     const globalCtx = require('../../../node_modules/my-old-space/drive_root/globalServerContext');
@@ -1173,9 +1173,21 @@ module.exports = function (modelsDB, Utilities) {
             delete changes.correctsInvoiceId;
 
             // Скидка счёта: пустое/нечисло → 0, отрицательное → 0; режим по умолчанию.
+            // КРОМЕ сторно: его абсолютная скидка отрицательна по смыслу (хук
+            // invoice.onStorno), и обнуление вернуло бы клиенту больше, чем он
+            // заплатил. Вид документа — от ядра (`counterOf` новой записи) или из
+            // базы у сохранённой; присланному формой `correctionKind` не верим.
             if ('discountValue' in changes) {
+                let kind = counterOf ? counterOf.kind : null;
+                if (!kind && !isNew && parentUID) {
+                    try {
+                        const saved = await modelsDB.Invoices.findByPk(parentUID, { raw: true });
+                        kind = saved ? saved.correctionKind : null;
+                    } catch (_) {}
+                }
                 const dv = Number(changes.discountValue);
-                changes.discountValue = Number.isFinite(dv) ? Math.max(0, dv) : 0;
+                changes.discountValue = !Number.isFinite(dv) ? 0
+                    : (kind === 'storno' ? dv : Math.max(0, dv));
             }
             if ('discountMode' in changes && !changes.discountMode) changes.discountMode = 'percent';
 

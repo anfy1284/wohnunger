@@ -7,17 +7,29 @@
                 "entityType": "document",
                 "immutable": {
                     "field": "status",
-                    "when": ["issued", "paid", "cancelled"],
+                    "when": ["issued", "paid", "cancelled", "void"],
                     "except": ["status", "paidAt", "issuedAt"],
                     "transitions": {
                         "draft": ["issued"],
-                        "issued": ["paid", "cancelled"],
+                        "issued": ["paid", "cancelled", "void"],
                         "paid": ["cancelled"]
                     },
                     "deletable": ["draft"],
                     "formEditable": ["paidAt"],
-                    "commandStates": ["issued", "cancelled"]
+                    "commandStates": ["issued", "cancelled", "void"]
                 },
+                "invalidate": {
+                    "status": "void",
+                    "from": ["issued"]
+                },
+                "rowTones": [
+                    { "when": { "field": "status", "in": ["void"] }, "tone": "gray" },
+                    { "when": { "field": "status", "in": ["cancelled"] }, "tone": "red" },
+                    { "when": { "field": "correctionKind", "in": ["storno"] }, "tone": "violet" },
+                    { "when": { "field": "correctionKind", "in": ["correction"] }, "tone": "blue" },
+                    { "when": { "field": "status", "in": ["paid"] }, "tone": "green" },
+                    { "when": { "field": "status", "in": ["draft"] }, "tone": "yellow" }
+                ],
                 "storno": {
                     "link": "correctsInvoiceId",
                     "kindField": "correctionKind",
@@ -25,8 +37,7 @@
                     "negate": ["prepayment"],
                     "cancelStatus": "cancelled",
                     "copyExclude": ["status", "issuedAt", "paidAt", "correctsInvoiceId", "correctionKind"],
-                    "hook": "invoice.onStorno",
-                    "issueHook": "invoice.issue"
+                    "hook": "invoice.onStorno"
                 },
                 "correction": {
                     "link": "correctsInvoiceId",
@@ -100,7 +111,8 @@
                         { "value": "draft",     "caption": { "i18n": "invoice_status_draft" } },
                         { "value": "issued",    "caption": { "i18n": "invoice_status_issued" } },
                         { "value": "paid",      "caption": { "i18n": "invoice_status_paid" } },
-                        { "value": "cancelled", "caption": { "i18n": "invoice_status_cancelled" } }
+                        { "value": "cancelled", "caption": { "i18n": "invoice_status_cancelled" } },
+                        { "value": "void",      "caption": { "i18n": "invoice_status_void" } }
                     ]
                 },
                 "prepayment": {
