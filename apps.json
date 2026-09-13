@@ -17,10 +17,6 @@
             "path": "/invoice"
         },
         {
-            "name": "organizationSettings",
-            "path": "/organizationSettings"
-        },
-        {
             "name": "ai_chat",
             "path": "/ai_chat"
         },

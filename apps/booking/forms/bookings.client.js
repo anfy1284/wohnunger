@@ -80,7 +80,7 @@ async function onRoomSelected(rowIndex, newVal, displayVal, ctx) {
 
 // Вызывается при активации строки в таблице доп.услуг.
 // Если в строке ещё не выбрана налоговая ставка — подставляет ставку по умолчанию
-// из настроек организации (organizationSettings → defaultTaxRate).
+// из настроек организации (настройка common.defaultTaxRate).
 async function onExtraLineActivated(rowIndex, ctx) {
     var form = ctx.form;
     var tbl = form.controlsMap && form.controlsMap['ts_booking_extra_lines'];

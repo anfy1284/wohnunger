@@ -61,7 +61,8 @@
                 "i18n": "pricing_date_mode"
             },
             "default": "bookingDate",
-            "order": 20
+            "order": 20,
+            "control": "radio"
         }
     }
 }

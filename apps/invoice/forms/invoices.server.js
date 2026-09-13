@@ -20,8 +20,8 @@ const i18n = require('../../../node_modules/my-old-space/drive_root/i18n');
 const M = require('../../../node_modules/my-old-space/drive_root/db/money');
 const formulaEngine = require('../../common/lib/formulaEngine');
 const { tForSession, tfForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
-const { resolveOrgReportLang } = require('../../organizationSettings/lib/orgReportLanguage');
-const { resolveOrgPricingMode } = require('../../organizationSettings/lib/orgPricingMode');
+const { resolveOrgReportLang } = require('../../common/lib/orgReportLanguage');
+const { resolveOrgPricingMode } = require('../../common/lib/orgPricingMode');
 const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGateway');
 // Сборка печатной формы — общая с приложением reports: архив обязан хранить
 // ровно тот HTML, который увидит пользователь, а не его пересборку.

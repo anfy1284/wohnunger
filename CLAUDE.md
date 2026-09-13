@@ -53,9 +53,9 @@ Key DB conventions (violating these breaks things silently):
 `index.js` → `my-old-space`'s `start({ rootPath })` → sets `PROJECT_ROOT`, auto-loads the project-level `dbGateway.js`, starts `memory_store`, then runs the framework's `main_server.js`. Apps are discovered, models merged, DB synced, and each app's `init.js` registers its forms and menu items.
 
 ### App structure (`apps/`)
-Apps are registered in `apps.json` (project) — the framework also keeps its own registry in `node_modules/my-old-space/drive_forms/apps.json`. Project apps: `common` (shared reference data — organizations, hotels, rooms, services, guest types, clients + `lib/priceResolver.js`), `booking` (the main document form), `priceList` (price-list documents), `invoice` (invoice documents + line calculation), `organizationSettings`, `reports`, `ai_chat`, `formula_editor`, `booking_icons` (applied icon assets). `booking_old` is dead/legacy (unregistered, references dropped tables).
+Apps are registered in `apps.json` (project) — the framework also keeps its own registry in `node_modules/my-old-space/drive_forms/apps.json`. Project apps: `common` (shared reference data — organizations, hotels, rooms, services, guest types, clients + `lib/priceResolver.js`), `booking` (the main document form), `priceList` (price-list documents), `invoice` (invoice documents + line calculation), `reports`, `ai_chat`, `formula_editor`, `booking_icons` (applied icon assets). `booking_old` is dead/legacy (unregistered, references dropped tables).
 
-Framework apps worth knowing about (all in `node_modules/my-old-space/apps/`): `tray` (icons in the right of the taskbar — window-independent, unlike taskbar buttons), `notifications` (push-notification stack + the `notifications` table), `systemSettings` (**third settings level** next to user and organization settings — installation-wide, admin-only, EAV without a scope column), `messenger` (rewritten 06.09.2026 to the current patterns). **`fileSystem` is legacy — do not use it and do not build on it** (owner's decision 06.09.2026; it expects `multer`, which isn't a dependency, and stores files on the container filesystem, which no deploy survives). User files go in the DB — see `messenger_attachments`. Details: sections 54–62 of `АРХИТЕКТУРА_ПРОЕКТА.md`.
+Framework apps worth knowing about (all in `node_modules/my-old-space/apps/`): `tray` (icons in the right of the taskbar — window-independent, unlike taskbar buttons), `notifications` (push-notification stack + the `notifications` table), `settings` (**the single settings form** — all levels in one window, see «Application settings» below), `messenger` (rewritten 06.09.2026 to the current patterns). **`fileSystem` is legacy — do not use it and do not build on it** (owner's decision 06.09.2026; it expects `multer`, which isn't a dependency, and stores files on the container filesystem, which no deploy survives). User files go in the DB — see `messenger_attachments`. Details: sections 54–62 of `АРХИТЕКТУРА_ПРОЕКТА.md`.
 
 Window behaviour is declared in the app's `config.json` and shipped to the client as `window.MySpaceAppConfig`: `tray` (icon + tooltip), `hideFromTaskbar`, `preventClose` (the X minimizes instead of closing — so a live form is **not** the same as a form the user can see). A notification's click handler is stored as `appName` + **function name** + params, never as a script UID: `loadScript` issues a fresh UID on every process start.
 
@@ -89,9 +89,35 @@ User-visible strings must be translated. Server code: `tForSession`/`tfForSessio
 
 Two distinct translation layers (don't conflate): **(1) `i18n.json`** translates UI strings by key (above). **(2) the `translations` table** (+ `translationMiddleware.js`) translates reference *data* — the `name` value of records in tables with a `translatable: true` field (e.g. `guest_types`, `booking_statuses`); add per-language rows in `apps/common/db/defaultValues.json`. Reference data the *user* enters (services, room names, clients) is single-language by design.
 
-**Documents are in the organization's language, not the user's.** Invoices/reports build their content (incl. line texts) from the org's `reportLanguage` (`organizationSettings`), resolved via `resolveOrgReportLang(modelsDB, orgId)` in `apps/organizationSettings/lib/orgReportLanguage.js` — used by both `reports/init.js` and `booking`'s `_buildInvoiceLines`. Never use `tForSession` (session language) for document content.
+**Documents are in the organization's language, not the user's.** Invoices/reports build their content (incl. line texts) from the org-level setting `project.reportLanguage`, resolved via `resolveOrgReportLang(modelsDB, orgId)` in `apps/common/lib/orgReportLanguage.js` — used by both `reports/init.js` and `booking`'s `_buildInvoiceLines`. Never use `tForSession` (session language) for document content.
 
-**Adding a UI language** is not one row: add it to `languages` (`drive_root/db/defaultValues.json`), add the code to *all* `i18n.json`, add `translations` rows for reference data, add a locale-format mapping (`pl → 'pl-PL'`), then restart (i18n loads into the registry at startup; `languages`/`translations` are re-seeded each startup by `createDB.js`). User language change is only visible after a page reload — `UserSettings.saveSettings` returns `languageChanged` and the client calls `location.reload()`. Any server cache of *translated* values must key by language (see the `getLookupList` `_lookupCache` fix). Full mechanism: section 20 of `АРХИТЕКТУРА_ПРОЕКТА.md`.
+**Adding a UI language** is not one row: add it to `languages` (`drive_root/db/defaultValues.json`), add the code to *all* `i18n.json`, add `translations` rows for reference data, add a locale-format mapping (`pl → 'pl-PL'`), then restart (i18n loads into the registry at startup; `languages`/`translations` are re-seeded each startup by `createDB.js`). User language change is only visible after a page reload — the settings form's `onSave` returns `languageChanged` and the client calls `location.reload()`. Any server cache of *translated* values must key by language (see the `getLookupList` `_lookupCache` fix). Full mechanism: section 20 of `АРХИТЕКТУРА_ПРОЕКТА.md`.
+
+### Application settings
+
+**Settings are one core mechanism, not per-app code.** An app declares its settings in
+`settings.json` at its root (next to `config.json`); the core collects those files at startup the
+same way it collects `db.json`. Three sources, one format: `drive_root/settings/core.settings.json`
+(framework, app `core`), `apps/<app>/settings.json`, and `<PROJECT_ROOT>/settings.json` (app
+`project` — only for settings the whole solution owns and no single app does, e.g. document
+language). Full spec: `tmp/ТЗ_НАСТРОЙКИ_ПРИЛОЖЕНИЙ.md`.
+
+- **A level is a table + record UID**, not a separate mechanism: `user` → `users`, `organization`
+  → `organizations`, `hotel` → `hotels`, plus two ownerless ones (`system`, `default`). Levels
+  beyond the built-in three are declared by the app that owns the table (`apps/common`). Adding a
+  level creates **no tables**.
+- **No inheritance between levels.** A setting lives at exactly one level; the only fallback is
+  «value → defaults row (admin-editable) → `default` from the file». The defaults row is seeded
+  once per key and never overwritten — seeding a value would undo the admin's edit on every restart.
+- Values live in one table `settings_values` (JSON column `data`); `userId`/`organizationId` are
+  service columns filled by the core for RLS. Read/write only through
+  `drive_root/settings`: `getUserSetting` / `getRecordSetting` / `getSystemSetting` /
+  `getAppSettings` / `getDefault` and the matching `set*`. **No cache** — deliberately.
+- The UI is a single form (framework app `apps/settings`): level + record in the header, tabs per
+  app. Rights are checked in its RPC — a record-level scope is verified through the same RLS
+  (`dbGateway.execute` with the user's session), never by a private copy of the rules.
+- Captions are `{ "i18n": key }` and live in the owning app's `i18n.json`; the file never contains
+  texts.
 
 ### Scheduled background work
 The framework has a **task scheduler** (`node_modules/my-old-space/drive_root/scheduler/`, UI app `apps/scheduler`, tables `scheduler_tasks`/`scheduler_task_params`/`scheduler_runs`). Never write your own `setInterval` for periodic work: declare a task type in `apps/<app>/scheduler.handlers.js` (a pure factory — the file is loaded by **both** the main process and the worker process) and the user creates the task in the UI. Tasks run in a forked worker under a **service session** — a real `sessions` row (`kind='service'`) owned by the task's owner — so RLS applies through the same code as for a live user; `__SYS_INTERNAL__` inside a handler is forbidden. A service session must never work as a login: HTTP takes the session only through `globalServerContext.getSessionIdFromRequest(req)`, which rejects `kind='service'`. Details: section 33 of `АРХИТЕКТУРА_ПРОЕКТА.md`.

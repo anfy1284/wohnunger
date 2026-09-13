@@ -6,7 +6,7 @@
 // Каждый отчёт хранится в своей подпапке: reports/invoice/, reports/...
 // ─────────────────────────────────────────────────────────────────────
 const { tForSession } = require('../../node_modules/my-old-space/drive_forms/globalServerContext');
-const { resolveOrgReportLang } = require('../organizationSettings/lib/orgReportLanguage');
+const { resolveOrgReportLang } = require('../common/lib/orgReportLanguage');
 
 module.exports = async function (modelsDB) {
     try {
@@ -148,7 +148,7 @@ module.exports = async function (modelsDB) {
                 const roomsById = {};
                 for (const r of rooms) roomsById[r.UID] = r;
 
-                // Язык печати — из настроек организации (organizationSettings → reportLanguage).
+                // Язык печати — из настроек организации (настройка project.reportLanguage).
                 const lang = await resolveOrgReportLang(modelsDB, priceList.organizationId);
                 const i18n = require('../../node_modules/my-old-space/drive_root/i18n');
                 const t = (key) => i18n.t(key, lang);

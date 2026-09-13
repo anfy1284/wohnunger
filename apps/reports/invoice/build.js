@@ -12,7 +12,7 @@
 // обязан быть отличим от счёта.
 
 const { renderInvoiceHTML } = require('./template');
-const { resolveOrgReportLang } = require('../../organizationSettings/lib/orgReportLanguage');
+const { resolveOrgReportLang } = require('../../common/lib/orgReportLanguage');
 
 /**
  * @param {Object} modelsDB
@@ -55,7 +55,7 @@ async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
                 if (b) bookings.push(b);
             }
 
-            // Язык печати — из настроек организации (organizationSettings → reportLanguage).
+            // Язык печати — из настроек организации (настройка project.reportLanguage).
             // Тот же хелпер использует fillInvoice при построении строк — единый язык.
             const lang = await resolveOrgReportLang(modelsDB, org && org.UID);
 

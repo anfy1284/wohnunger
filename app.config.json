@@ -1,24 +1,20 @@
 {
-  "required_access_fields": [
-    "organizationId",
-    "userId",
-    "hotelId"
-  ],
-  "excluded_tables": [
-    "default_values",
-    "user_settings_types",
-    "user_settings_fields",
-    "systems",
-    "access_roles",
-    "accommodation_types",
-    "organizations",
-    "guest_types",
-    "translations",
-    "tax_categories",
-    "tax_rates",
-    "tax_category_rates",
-    "booking_statuses",
-    "organization_settings_types",
-    "organization_settings_fields"
-  ]
+    "required_access_fields": [
+        "organizationId",
+        "userId",
+        "hotelId"
+    ],
+    "excluded_tables": [
+        "default_values",
+        "systems",
+        "access_roles",
+        "accommodation_types",
+        "organizations",
+        "guest_types",
+        "translations",
+        "tax_categories",
+        "tax_rates",
+        "tax_category_rates",
+        "booking_statuses"
+    ]
 }
