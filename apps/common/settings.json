@@ -1,0 +1,67 @@
+{
+    "scopes": {
+        "organization": {
+            "table": "organizations",
+            "displayField": "name",
+            "caption": {
+                "i18n": "settings_scope_organization"
+            },
+            "icon": "/apps/general_icons/resources/public/16x16/organization.png",
+            "order": 20
+        },
+        "hotel": {
+            "table": "hotels",
+            "displayField": "name",
+            "caption": {
+                "i18n": "settings_scope_hotel"
+            },
+            "icon": "/apps/general_icons/resources/public/16x16/catalog.png",
+            "order": 30
+        }
+    },
+    "app": {
+        "caption": {
+            "i18n": "settings_app_common"
+        },
+        "icon": "/apps/general_icons/resources/public/16x16/catalog.png",
+        "order": 20
+    },
+    "settings": {
+        "defaultTaxRate": {
+            "scope": "organization",
+            "type": "reference",
+            "reference": {
+                "table": "tax_rates",
+                "displayField": "name"
+            },
+            "caption": {
+                "i18n": "default_tax_rate"
+            },
+            "default": null,
+            "order": 10
+        },
+        "pricingDateMode": {
+            "scope": "organization",
+            "type": "enum",
+            "options": [
+                {
+                    "value": "bookingDate",
+                    "caption": {
+                        "i18n": "pricing_mode_booking_date"
+                    }
+                },
+                {
+                    "value": "invoiceDate",
+                    "caption": {
+                        "i18n": "pricing_mode_invoice_date"
+                    }
+                }
+            ],
+            "caption": {
+                "i18n": "pricing_date_mode"
+            },
+            "default": "bookingDate",
+            "order": 20
+        }
+    }
+}

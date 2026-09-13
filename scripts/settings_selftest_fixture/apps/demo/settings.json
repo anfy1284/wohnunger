@@ -1,0 +1,98 @@
+{
+    "app": {
+        "caption": {
+            "i18n": "settings_app_demo"
+        },
+        "icon": "/x.png",
+        "order": 20
+    },
+    "scopes": {
+        "hotel": {
+            "table": "hotels",
+            "displayField": "name",
+            "caption": {
+                "i18n": "settings_scope_hotel"
+            },
+            "icon": "/y.png",
+            "order": 30
+        }
+    },
+    "settings": {
+        "checkInTime": {
+            "scope": "hotel",
+            "type": "string",
+            "default": "15:00",
+            "caption": {
+                "i18n": "k1"
+            },
+            "order": 10
+        },
+        "maxRows": {
+            "scope": "system",
+            "type": "number",
+            "default": 5000,
+            "visibility": "admin",
+            "caption": {
+                "i18n": "k2"
+            }
+        },
+        "badType": {
+            "scope": "user",
+            "type": "colour",
+            "default": "red",
+            "caption": {
+                "i18n": "k3"
+            }
+        },
+        "badScope": {
+            "scope": "planet",
+            "type": "string",
+            "default": "",
+            "caption": {
+                "i18n": "k4"
+            }
+        },
+        "badEnum": {
+            "scope": "user",
+            "type": "enum",
+            "default": "z",
+            "options": [
+                {
+                    "value": "a"
+                }
+            ],
+            "caption": {
+                "i18n": "k5"
+            }
+        },
+        "badDefault": {
+            "scope": "user",
+            "type": "number",
+            "default": "не число",
+            "caption": {
+                "i18n": "k6"
+            }
+        },
+        "ghostRef": {
+            "scope": "user",
+            "type": "reference",
+            "reference": {
+                "table": "no_such_table"
+            },
+            "default": null,
+            "caption": {
+                "i18n": "k7"
+            }
+        },
+        "hiddenLimit": {
+            "scope": "user",
+            "type": "number",
+            "default": 10,
+            "visibility": "admin",
+            "caption": {
+                "i18n": "k8"
+            },
+            "order": 5
+        }
+    }
+}

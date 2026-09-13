@@ -1,0 +1,19 @@
+{
+    "app": {
+        "caption": { "i18n": "settings_app_project" },
+        "icon": "/apps/general_icons/resources/public/16x16/settings.png",
+        "order": 15
+    },
+
+    "settings": {
+        "reportLanguage": {
+            "scope": "organization",
+            "type": "reference",
+            "reference": { "table": "languages", "displayField": "name" },
+            "caption": { "i18n": "settings_project_report_language" },
+            "hint": { "i18n": "settings_project_report_language_hint" },
+            "default": null,
+            "order": 10
+        }
+    }
+}

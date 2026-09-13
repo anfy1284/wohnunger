@@ -125,7 +125,6 @@
         "de": "Steuersatz",
         "pl": "Stawka podatku"
     },
-
     "Booking": {
         "en": "Booking",
         "ru": "Бронирование",
@@ -294,21 +293,18 @@
         "de": "OK",
         "pl": "OK"
     },
-
     "print_invoice_btn": {
         "en": "Print invoice",
         "ru": "Печать счёта",
         "de": "Rechnung drucken",
         "pl": "Drukuj rachunek"
     },
-
     "Error: ": {
         "en": "Error: ",
         "ru": "Ошибка: ",
         "de": "Fehler: ",
         "pl": "Błąd: "
     },
-
     "Please save the booking first": {
         "en": "Please save the booking first",
         "ru": "Сначала сохраните бронирование",
@@ -333,18 +329,45 @@
         "de": "Rechnung wird erstellt…",
         "pl": "Przygotowywanie rachunku…"
     },
-
     "guests_count": {
-        "en": { "one": "{{count}} guest",  "other": "{{count}} guests" },
-        "ru": { "one": "{{count}} гость",  "few": "{{count}} гостя", "many": "{{count}} гостей" },
-        "de": { "one": "{{count}} Gast",   "other": "{{count}} Gäste" },
-        "pl": { "one": "{{count}} gość",   "few": "{{count}} goście", "many": "{{count}} gości" }
+        "en": {
+            "one": "{{count}} guest",
+            "other": "{{count}} guests"
+        },
+        "ru": {
+            "one": "{{count}} гость",
+            "few": "{{count}} гостя",
+            "many": "{{count}} гостей"
+        },
+        "de": {
+            "one": "{{count}} Gast",
+            "other": "{{count}} Gäste"
+        },
+        "pl": {
+            "one": "{{count}} gość",
+            "few": "{{count}} goście",
+            "many": "{{count}} gości"
+        }
     },
     "nights_count": {
-        "en": { "one": "{{count}} night",  "other": "{{count}} nights" },
-        "ru": { "one": "{{count}} ночь",   "few": "{{count}} ночи", "many": "{{count}} ночей" },
-        "de": { "one": "{{count}} ÜN",     "other": "{{count}} ÜN" },
-        "pl": { "one": "{{count}} noc",    "few": "{{count}} noce", "many": "{{count}} nocy" }
+        "en": {
+            "one": "{{count}} night",
+            "other": "{{count}} nights"
+        },
+        "ru": {
+            "one": "{{count}} ночь",
+            "few": "{{count}} ночи",
+            "many": "{{count}} ночей"
+        },
+        "de": {
+            "one": "{{count}} ÜN",
+            "other": "{{count}} ÜN"
+        },
+        "pl": {
+            "one": "{{count}} noc",
+            "few": "{{count}} noce",
+            "many": "{{count}} nocy"
+        }
     },
     "room_line_label": {
         "en": "Room {{room}} - {{guests}}",
@@ -435,5 +458,29 @@
         "ru": "Дополнительное",
         "de": "Zusatz",
         "pl": "Dodatkowe"
+    },
+    "calendar_orientation_setting": {
+        "en": "Booking calendar orientation",
+        "ru": "Ориентация календаря броней",
+        "de": "Ausrichtung des Buchungskalenders",
+        "pl": "Orientacja kalendarza rezerwacji"
+    },
+    "settings_app_booking": {
+        "en": "Bookings",
+        "ru": "Брони",
+        "de": "Buchungen",
+        "pl": "Rezerwacje"
+    },
+    "calendar_orientation_horizontal": {
+        "en": "Horizontal",
+        "ru": "Горизонтальная",
+        "de": "Waagerecht",
+        "pl": "Pozioma"
+    },
+    "calendar_orientation_vertical": {
+        "en": "Vertical",
+        "ru": "Вертикальная",
+        "de": "Senkrecht",
+        "pl": "Pionowa"
     }
 }

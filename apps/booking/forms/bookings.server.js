@@ -260,7 +260,7 @@ module.exports = function (modelsDB, Utilities) {
         },
 
         // ── Налоговая ставка по умолчанию из настроек организации ──────────
-        // Читает настройку defaultTaxRate (organizationSettings) для организации
+        // Читает настройку `common.defaultTaxRate` (уровень организации) для организации
         // брони и возвращает UID ставки + отображаемое имя для новой строки доп.услуг.
         async getOrgDefaultTaxRate({ organizationId }, ctx) {
             try {
@@ -275,15 +275,10 @@ module.exports = function (modelsDB, Utilities) {
                         if (orgs && orgs.length) orgId = orgs[0].organizationId;
                     }
                 }
-                if (!orgId || !modelsDB.OrganizationSettingsFields) return { taxRateId: null, taxRateName: '' };
+                if (!orgId) return { taxRateId: null, taxRateName: '' };
 
-                const field = await modelsDB.OrganizationSettingsFields.findOne({ where: { name: 'defaultTaxRate' }, raw: true });
-                if (!field) return { taxRateId: null, taxRateName: '' };
-
-                const rec = await modelsDB.OrganizationSettingsStringValues.findOne({
-                    where: { organizationId: orgId, settingsFieldId: field.UID }, raw: true
-                });
-                const taxRateId = rec ? rec.value : null;
+                const settings = require('../../../node_modules/my-old-space/drive_root/settings');
+                const taxRateId = await settings.getRecordSetting('organization', orgId, 'common', 'defaultTaxRate');
                 if (!taxRateId) return { taxRateId: null, taxRateName: '' };
 
                 const rate = await modelsDB.TaxRates.findByPk(taxRateId, { raw: true });

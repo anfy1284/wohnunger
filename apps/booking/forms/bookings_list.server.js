@@ -15,30 +15,10 @@ const globalRootCtx = require('../../../node_modules/my-old-space/drive_root/glo
 const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGateway');
 // Пустая дата в проекте — 0001-01-01, а не NULL (drive_root/db/emptyValues.js).
 const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
+const settings = require('../../../node_modules/my-old-space/drive_root/settings');
 
 module.exports = function (modelsDB, Utilities) {
 
-    // Чтение значения настройки пользователя по имени поля (EAV). Дефолт — null.
-    async function getUserSettingValue(userUID, fieldName) {
-        try {
-            const Fields = modelsDB.UserSettingsFields;
-            if (!Fields || !userUID) return null;
-            const field = await Fields.findOne({
-                where: { name: fieldName },
-                include: [{ model: modelsDB.UserSettingsTypes, as: 'type', attributes: ['valueTableName'] }]
-            });
-            if (!field) return null;
-            const vt = field.type && field.type.valueTableName;
-            if (!vt) return null;
-            const modelName = vt.split('_').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
-            const M = modelsDB[modelName];
-            if (!M) return null;
-            const rec = await M.findOne({ where: { userId: userUID, settingsFieldId: field.UID } });
-            return rec ? rec.value : null;
-        } catch (e) {
-            return null;
-        }
-    }
 
     // Натуральная сортировка номеров комнат (учёт цифр внутри строк).
     function byNumber(a, b) {
@@ -62,7 +42,9 @@ module.exports = function (modelsDB, Utilities) {
         try {
             const user = sessionID ? await globalRootCtx.getUserBySessionID(sessionID) : null;
             if (user) {
-                const ori = await getUserSettingValue(user.UID, 'BookingCalendarOrientation');
+                // Ориентация шахматки — настройка `booking.calendarOrientation`
+                // (общий механизм настроек, drive_root/settings).
+                const ori = await settings.getUserSetting(user.UID, 'booking', 'calendarOrientation');
                 if (ori === 'horizontal' || ori === 'vertical') result.orientation = ori;
             }
 

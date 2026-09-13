@@ -11,23 +11,21 @@
 //
 // Контроль заполняемости брони всегда использует дату брони (на момент
 // проверки счёта ещё нет) — он этот хелпер не вызывает.
-// По образцу orgReportLanguage.js.
+//
+// Значение читается из общего механизма настроек: настройка `common.pricingDateMode`
+// (уровень «организация») — объявлена в `apps/common`, где живёт `priceResolver`.
 // ─────────────────────────────────────────────────────────────────────
+
+const settings = require('../../../node_modules/my-old-space/drive_root/settings');
 
 const MODES = ['bookingDate', 'invoiceDate'];
 
 async function resolveOrgPricingMode(modelsDB, orgId) {
     let mode = 'bookingDate';
     try {
-        if (orgId && modelsDB && modelsDB.OrganizationSettingsFields && modelsDB.OrganizationSettingsStringValues) {
-            const field = await modelsDB.OrganizationSettingsFields.findOne({ where: { name: 'pricingDateMode' }, raw: true });
-            if (field) {
-                const rec = await modelsDB.OrganizationSettingsStringValues.findOne({
-                    where: { organizationId: orgId, settingsFieldId: field.UID }, raw: true
-                });
-                if (rec && rec.value && MODES.includes(rec.value)) mode = rec.value;
-            }
-        }
+        if (!orgId) return mode;
+        const value = await settings.getRecordSetting('organization', orgId, 'common', 'pricingDateMode');
+        if (value && MODES.includes(value)) mode = value;
     } catch (e) {
         console.warn('[orgPricingMode] resolve failed:', e && e.message);
     }

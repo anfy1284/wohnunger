@@ -1,0 +1,34 @@
+{
+    "app": {
+        "caption": {
+            "i18n": "settings_app_booking"
+        },
+        "icon": "/apps/booking_icons/resources/public/16x16/booking.png",
+        "order": 30
+    },
+    "settings": {
+        "calendarOrientation": {
+            "scope": "user",
+            "type": "enum",
+            "options": [
+                {
+                    "value": "horizontal",
+                    "caption": {
+                        "i18n": "calendar_orientation_horizontal"
+                    }
+                },
+                {
+                    "value": "vertical",
+                    "caption": {
+                        "i18n": "calendar_orientation_vertical"
+                    }
+                }
+            ],
+            "caption": {
+                "i18n": "calendar_orientation_setting"
+            },
+            "default": "horizontal",
+            "order": 10
+        }
+    }
+}

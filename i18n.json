@@ -334,5 +334,23 @@
         "ru": "Модели базы данных недоступны",
         "de": "Datenbankmodelle nicht verfügbar",
         "pl": "Modele bazy danych niedostępne"
+    },
+    "settings_app_project": {
+        "en": "General",
+        "ru": "Общие",
+        "de": "Allgemein",
+        "pl": "Ogólne"
+    },
+    "settings_project_report_language": {
+        "en": "Document language",
+        "ru": "Язык документов",
+        "de": "Sprache der Dokumente",
+        "pl": "Język dokumentów"
+    },
+    "settings_project_report_language_hint": {
+        "en": "Invoices and reports are printed in this language, regardless of the user's interface language.",
+        "ru": "Счета и отчёты печатаются на этом языке независимо от языка интерфейса пользователя.",
+        "de": "Rechnungen und Berichte werden in dieser Sprache gedruckt, unabhängig von der Oberflächensprache des Benutzers.",
+        "pl": "Faktury i raporty są drukowane w tym języku, niezależnie od języka interfejsu użytkownika."
     }
 }
