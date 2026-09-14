@@ -20,13 +20,15 @@
                 },
                 "invalidate": {
                     "status": "void",
-                    "from": ["issued"]
+                    "from": ["issued"],
+                    "notice": { "i18n": "invoice_void_notice" },
+                    "titleSelector": "h2"
                 },
                 "rowTones": [
-                    { "when": { "field": "status", "in": ["void"] }, "tone": "gray" },
+                    { "when": { "field": "status", "in": ["void"] }, "tone": "rose" },
                     { "when": { "field": "status", "in": ["cancelled"] }, "tone": "red" },
-                    { "when": { "field": "correctionKind", "in": ["storno"] }, "tone": "violet" },
-                    { "when": { "field": "correctionKind", "in": ["correction"] }, "tone": "blue" },
+                    { "when": { "field": "correctionKind", "in": ["storno"] }, "tone": "redDark" },
+                    { "when": { "field": "correctionKind", "in": ["correction"] }, "tone": "pink" },
                     { "when": { "field": "status", "in": ["paid"] }, "tone": "green" },
                     { "when": { "field": "status", "in": ["draft"] }, "tone": "yellow" }
                 ],

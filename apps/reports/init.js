@@ -90,7 +90,16 @@ module.exports = async function (modelsDB) {
                     // перечёркнутым: крест накладывает ядро поверх архивной копии,
                     // сама копия не меняется (drive_root/db/invalidate.js).
                     const invalidate = require('../../node_modules/my-old-space/drive_root/db/invalidate');
-                    const mark = (html) => invalidate.isInvalid('invoices', invoice) ? invalidate.crossOut(html) : html;
+                    // Штамп и строка «недействителен» — на языке документа (у архивной
+                    // копии свой `lang`); дата — из журнала изменений.
+                    const isInvalid = invalidate.isInvalid('invoices', invoice);
+                    let invalidAt = null;
+                    if (isInvalid) {
+                        try { invalidAt = await invalidate.invalidatedAt('invoices', invoiceId); }
+                        catch (e) { console.warn('[reports] invalidatedAt:', e && e.message); }
+                    }
+                    const mark = (html, lang) => isInvalid
+                        ? invalidate.markInvalid(html, { lang, table: 'invoices', invalidatedAt: invalidAt }) : html;
 
                     const snap = await documentArchive.load('invoices', invoiceId);
                     if (snap) {
@@ -101,13 +110,13 @@ module.exports = async function (modelsDB) {
                             // должен знать, что копия под сомнением.
                             console.error('[reports] archive sha256 mismatch for invoice', invoiceId, check);
                         }
-                        return { html: mark(snap.html), fromArchive: true, sha256: snap.sha256, tampered: !check.ok };
+                        return { html: mark(snap.html, snap.lang), fromArchive: true, sha256: snap.sha256, tampered: !check.ok };
                     }
                     // Снимка нет — счёт выставлен до появления архива. Собираем
                     // живьём, но честно помечаем, что это не архивная копия.
                     try {
-                        const { html } = await buildInvoiceDoc(modelsDB, invoiceId, { draft: false });
-                        return { html: mark(html), fromArchive: false, noSnapshot: true };
+                        const { html, lang } = await buildInvoiceDoc(modelsDB, invoiceId, { draft: false });
+                        return { html: mark(html, lang), fromArchive: false, noSnapshot: true };
                     } catch (e) {
                         return { error: await tForSession((e && e.message) || String(e), ctx.sessionID) };
                     }

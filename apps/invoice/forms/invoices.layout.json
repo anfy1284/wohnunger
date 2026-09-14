@@ -94,6 +94,51 @@
                                                 "data": "date",
                                                 "caption": { "i18n": "document_date_field" },
                                                 "properties": { "width": 110 }
+                                            },
+                                            {
+                                                "type": "relatedLinks",
+                                                "name": "correctionOf",
+                                                "caption": { "i18n": "invoice_correction_of_field" },
+                                                "visibleWhen": { "field": "correctionKind", "in": ["correction"] },
+                                                "properties": {
+                                                    "tableName": "invoices",
+                                                    "link": { "from": "correctsInvoiceId" },
+                                                    "labelField": "number",
+                                                    "detailFields": ["status"],
+                                                    "tone": "pink"
+                                                }
+                                            },
+                                            {
+                                                "type": "relatedLinks",
+                                                "name": "stornoOf",
+                                                "caption": { "i18n": "invoice_storno_of_field" },
+                                                "visibleWhen": { "field": "correctionKind", "in": ["storno"] },
+                                                "properties": {
+                                                    "tableName": "invoices",
+                                                    "link": { "from": "correctsInvoiceId" },
+                                                    "labelField": "number",
+                                                    "detailFields": ["status"],
+                                                    "tone": "pink"
+                                                }
+                                            },
+                                            {
+                                                "type": "infoLine",
+                                                "name": "voidMark",
+                                                "caption": { "i18n": "invoice_void_mark" },
+                                                "visibleWhen": { "field": "status", "in": ["void"] },
+                                                "properties": { "tone": "pink" }
+                                            },
+                                            {
+                                                "type": "relatedLinks",
+                                                "name": "counterDocs",
+                                                "caption": { "i18n": "invoice_counter_docs_field" },
+                                                "properties": {
+                                                    "tableName": "invoices",
+                                                    "link": { "field": "correctsInvoiceId" },
+                                                    "labelField": "number",
+                                                    "detailFields": ["correctionKind", "status"],
+                                                    "tone": "pink"
+                                                }
                                             }
                                         ]
                                     },
@@ -164,22 +209,6 @@
                                         "name": "paidAt",
                                         "data": "paidAt",
                                         "caption": { "i18n": "invoice_paid_at" }
-                                    },
-                                    {
-                                        "type": "recordSelector",
-                                        "name": "correctsInvoiceId",
-                                        "data": "correctsInvoiceId",
-                                        "caption": { "i18n": "invoice_corrects_field" },
-                                        "readOnly": true,
-                                        "properties": {
-                                            "showOpenButton": true,
-                                            "readOnly": true,
-                                            "selection": {
-                                                "table": "invoices",
-                                                "idField": "UID",
-                                                "displayField": "name"
-                                            }
-                                        }
                                     },
                                     {
                                         "type": "number",
@@ -326,6 +355,22 @@
                                         "hiddenButtons": ["listSettings", "recordOpen"]
                                     }
                                 }]
+                            },
+                            {
+                                "caption": { "i18n": "invoice_counter_docs_tab" },
+                                "visibleWhen": { "field": "correctionKind", "in": [""] },
+                                "layout": [{
+                                    "type": "relatedList",
+                                    "name": "relCounterDocs",
+                                    "data": "related_counter_docs",
+                                    "caption": "",
+                                    "properties": {
+                                        "tableName": "invoices",
+                                        "fields": ["number", "date", "correctionKind", "status", "name"],
+                                        "link": { "field": "correctsInvoiceId" },
+                                        "visibleRows": 8
+                                    }
+                                }]
                             }
                         ]
                     }
@@ -366,17 +411,6 @@
                                         "idField": "UID",
                                         "displayField": "name"
                                     }
-                                }
-                            },
-                            {
-                                "type": "recordSelector",
-                                "name": "correctsInvoiceId",
-                                "data": "correctsInvoiceId",
-                                "caption": { "i18n": "invoice_corrects_field" },
-                                "properties": {
-                                    "showOpenButton": true,
-                                    "readOnly": true,
-                                    "selection": { "table": "invoices", "idField": "UID", "displayField": "name" }
                                 }
                             },
                             {

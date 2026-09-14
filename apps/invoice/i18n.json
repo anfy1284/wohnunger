@@ -257,6 +257,48 @@
         "de": "Bezieht sich auf Rechnung",
         "pl": "Dotyczy rachunku"
     },
+    "invoice_void_notice": {
+        "en": "This invoice was declared void on {{date}}.",
+        "ru": "Этот счёт признан недействительным {{date}}.",
+        "de": "Diese Rechnung wurde am {{date}} für ungültig erklärt.",
+        "pl": "Ten rachunek unieważniono dnia {{date}}."
+    },
+    "invoice_void_notice_nodate": {
+        "en": "This invoice was declared void.",
+        "ru": "Этот счёт признан недействительным.",
+        "de": "Diese Rechnung wurde für ungültig erklärt.",
+        "pl": "Ten rachunek unieważniono."
+    },
+    "invoice_void_mark": {
+        "en": "Invoice void",
+        "ru": "Счёт недействителен",
+        "de": "Rechnung ungültig",
+        "pl": "Rachunek nieważny"
+    },
+    "invoice_correction_of_field": {
+        "en": "Correction of invoice",
+        "ru": "Корректировка к счёту",
+        "de": "Korrektur zu Rechnung",
+        "pl": "Korekta do rachunku"
+    },
+    "invoice_storno_of_field": {
+        "en": "Storno of invoice",
+        "ru": "Сторно к счёту",
+        "de": "Storno zu Rechnung",
+        "pl": "Storno do rachunku"
+    },
+    "invoice_counter_docs_field": {
+        "en": "Corrections / storno",
+        "ru": "Корректировки / сторно",
+        "de": "Korrekturen / Storno",
+        "pl": "Korekty / storno"
+    },
+    "invoice_counter_docs_tab": {
+        "en": "Corrections / storno",
+        "ru": "Корректировки / сторно",
+        "de": "Korrekturen / Storno",
+        "pl": "Korekty / storno"
+    },
     "correct_invoice_btn": {
         "en": "Correct",
         "ru": "Скорректировать",
