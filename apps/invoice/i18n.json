@@ -221,23 +221,11 @@
         "de": "Storno vorbereiten? Ein ungespeicherter Gegenbeleg mit umgekehrten Beträgen wird geöffnet. Diese Rechnung gilt erst als storniert, wenn das Storno ausgestellt ist.",
         "pl": "Przygotować storno? Otworzy się niezapisany dokument przeciwny z odwrotnymi kwotami. Ten rachunek zostanie anulowany dopiero po wystawieniu storna."
     },
-    "invoice_already_issued": {
-        "en": "The invoice is already issued.",
-        "ru": "Счёт уже выставлен.",
-        "de": "Die Rechnung ist bereits ausgestellt.",
-        "pl": "Rachunek został już wystawiony."
-    },
     "invoice_issue_missing_data": {
         "en": "The invoice cannot be issued — mandatory data is missing (§ 14 UStG):",
         "ru": "Счёт нельзя выставить — не хватает обязательных реквизитов (§ 14 UStG):",
         "de": "Die Rechnung kann nicht ausgestellt werden — Pflichtangaben fehlen (§ 14 UStG):",
         "pl": "Nie można wystawić rachunku — brakuje danych obowiązkowych (§ 14 UStG):"
-    },
-    "invoice_archive_failed": {
-        "en": "The invoice is issued, but the archive copy could not be stored:",
-        "ru": "Счёт выставлен, но архивная копия не сохранена:",
-        "de": "Die Rechnung ist ausgestellt, die Archivkopie konnte jedoch nicht gespeichert werden:",
-        "pl": "Rachunek wystawiony, ale nie zapisano kopii archiwalnej:"
     },
     "invoice_issued_at": {
         "en": "Issued at",

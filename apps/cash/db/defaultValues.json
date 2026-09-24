@@ -7,7 +7,6 @@
             "name": "Rechnungszahlung",
             "displayOrder": 10,
             "isTransfer": false,
-            "translatable": true,
             "settlementKind": "debt"
         },
         {
@@ -17,7 +16,6 @@
             "name": "Anzahlung",
             "displayOrder": 20,
             "isTransfer": false,
-            "translatable": true,
             "settlementKind": "prepayment"
         },
         {
@@ -27,7 +25,6 @@
             "name": "Kaution",
             "displayOrder": 30,
             "isTransfer": false,
-            "translatable": true,
             "settlementKind": "deposit"
         },
         {
@@ -37,7 +34,6 @@
             "name": "Stornogebühr",
             "displayOrder": 40,
             "isTransfer": false,
-            "translatable": true,
             "settlementKind": "debt"
         },
         {
@@ -47,7 +43,6 @@
             "name": "Anzahlungserstattung",
             "displayOrder": 50,
             "isTransfer": false,
-            "translatable": true,
             "settlementKind": "prepayment"
         },
         {
@@ -57,7 +52,6 @@
             "name": "Umbuchung zwischen Zahlungsorten",
             "displayOrder": 60,
             "isTransfer": true,
-            "translatable": true,
             "settlementKind": "none"
         },
         {
@@ -67,7 +61,6 @@
             "name": "Terminalgebühr",
             "displayOrder": 70,
             "isTransfer": true,
-            "translatable": true,
             "settlementKind": "none"
         }
     ],

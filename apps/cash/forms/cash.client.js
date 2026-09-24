@@ -13,32 +13,17 @@
  * вызов, разбор ответа и замок формы живут в одном месте на всю систему
  * (drive_forms/resources/public/UI_classes.js#runDocumentCommand).
  *
- * Остаётся то, что относится только к деньгам: остаток места хранения и печать
- * кассовой книги.
+ * Остаётся то, что относится только к деньгам: печать кассовой книги.
+ *
+ * Подсказки остатка здесь НЕТ: она была написана, но ни к одному событию
+ * лейаута не привязана — то есть не работала ни разу. Удалена вместе со своей
+ * серверной парой (24.09.2026). Экспортировать функцию не значит подключить её;
+ * проверка — грепнуть имя по *.layout.json.
  *
  * Имена серверных скриптов подставляются при регистрации (`__SERVER_SCRIPT__`,
  * `__REPORT_SCRIPT__`) — хардкодить их нельзя: `loadScript` выдаёт новый UID на
  * каждом старте процесса.
  */
-
-/**
- * Остаток места хранения — подсказкой в строке состояния формы.
- * Считает РЕГИСТР (серверная функция), а не клиент: второй способ посчитать
- * остаток однажды показал бы другое число, чем отчёт.
- */
-async function showCashboxBalance(ev, ctx) {
-    var form = (ctx && ctx.form) || ev;
-    try {
-        var cashboxId = form.getControlValue && form.getControlValue('cashboxId');
-        var organizationId = form.getControlValue && form.getControlValue('organizationId');
-        if (!cashboxId) return;
-        var res = await window.callServer('__SERVER_SCRIPT__', 'cashboxBalance',
-            { cashboxId: cashboxId, organizationId: organizationId });
-        if (res && res.ok && form.setStatusText) form.setStatusText(res.balance);
-    } catch (e) {
-        console.error('[cash] остаток не получен:', e && e.message);
-    }
-}
 
 /**
  * Печать кассовой книги ТЕКУЩЕГО места хранения за текущий месяц.
@@ -60,9 +45,14 @@ async function printKassenbuch(ev, ctx) {
         if (!cashboxId) { showAlert(__t('Please save the record first')); return; }
         var organizationId = form.getControlValue && form.getControlValue('organizationId');
 
+        // Период — МЕСЯЦ ЦЕЛИКОМ, границами суток. Раньше здесь стояло
+        // `new Date(год, месяц + 1, 0)`, а это ПОЛНОЧЬ последнего дня: весь
+        // 30-й (31-й) день месяца не попадал в книгу вместе с конечным
+        // остатком. Границы считает ядро (MySpace.startOfMonth/endOfMonth),
+        // чтобы правило было одно на всю программу.
         var now = new Date();
-        var from = new Date(now.getFullYear(), now.getMonth(), 1);
-        var to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        var from = window.MySpace.startOfMonth(now);
+        var to = window.MySpace.endOfMonth(now);
 
         var res = await window.callServer('__REPORT_SCRIPT__', 'build', {
             cashboxId: cashboxId,
@@ -82,4 +72,4 @@ async function printKassenbuch(ev, ctx) {
     }
 }
 
-return { showCashboxBalance, printKassenbuch };
+return { printKassenbuch };

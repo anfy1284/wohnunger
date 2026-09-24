@@ -30,6 +30,7 @@ const FW = path.join(__dirname, '..', '..', '..', 'node_modules', 'my-old-space'
 const dbGateway = require(path.join(FW, 'drive_root', 'dbGateway'));
 const money = require(path.join(FW, 'drive_root', 'db', 'money'));
 const registers = require(path.join(FW, 'drive_root', 'db', 'registers'));
+const { startOfDay, endOfDay, addDays } = require(path.join(FW, 'drive_root', 'db', 'dates'));
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -78,8 +79,18 @@ module.exports = function (modelsDB, Utilities) {
         if (!cashboxId) {
             return { error: await tr(ctx, 'cash_kb_err_no_cashbox', 'Не выбрано место хранения денег') };
         }
-        const from = params.from ? new Date(params.from) : new Date(Date.now() - 30 * 86400000);
-        const to = params.to ? new Date(params.to) : new Date();
+        // ГРАНИЦЫ ПЕРИОДА — суткам целиком, а не меткам времени.
+        //
+        // Дата приезжает с формы ПОЛНОЧЬЮ: «по 30 сентября» в лоб означало бы
+        // «по 30 сентября 00:00», и весь последний день месяца не попадал в
+        // книгу — вместе с Endbestand. § 146 Abs. 1 Satz 2 AO требует записи
+        // поступлений КАЖДОГО дня, так что это не косметика.
+        //
+        // Растягиваем ЗДЕСЬ, а не на клиенте: функция принимает from/to и от
+        // следующего вызывающего (форма параметров отчёта, API) получит ту же
+        // полночь. Граница периода — забота того, кто period фильтрует.
+        const from = startOfDay(params.from) || startOfDay(addDays(new Date(), -30));
+        const to = endOfDay(params.to) || endOfDay(new Date());
 
         // ОСТАТОК НА НАЧАЛО — тем же механизмом, что и всё остальное: сумма
         // движений строго до начала периода. Своего SQL у отчёта нет.

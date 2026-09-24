@@ -562,5 +562,11 @@
         "ru": "Не расчёты с клиентом",
         "de": "Keine Kundenverrechnung",
         "pl": "Nie dotyczy rozrachunków"
+    },
+    "cash_err_negative_fee": {
+        "en": "The fee cannot be negative.",
+        "ru": "Комиссия не может быть отрицательной.",
+        "de": "Die Gebühr darf nicht negativ sein.",
+        "pl": "Prowizja nie może być ujemna."
     }
 }

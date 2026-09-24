@@ -110,6 +110,14 @@
                         "i18n": "Organization"
                     }
                 },
+                "name": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "translatable": true,
+                    "caption": {
+                        "i18n": "Name"
+                    }
+                },
                 "code": {
                     "type": "STRING",
                     "allowNull": true,
@@ -200,15 +208,7 @@
                     "type": "INTEGER",
                     "allowNull": true,
                     "caption": {
-                        "i18n": "Order"
-                    }
-                },
-                "translatable": {
-                    "type": "BOOLEAN",
-                    "allowNull": false,
-                    "defaultValue": true,
-                    "caption": {
-                        "i18n": "Translatable"
+                        "i18n": "display_order"
                     }
                 }
             },

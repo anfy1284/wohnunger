@@ -10,10 +10,16 @@
 
 const path = require('path');
 const FW = path.join(__dirname, '..', '..', '..', 'node_modules', 'my-old-space');
-const dbGateway = require(path.join(FW, 'drive_root', 'dbGateway'));
 const money = require(path.join(FW, 'drive_root', 'db', 'money'));
 const emptyValues = require(path.join(FW, 'drive_root', 'db', 'emptyValues'));
-const registers = require(path.join(FW, 'drive_root', 'db', 'registers'));
+
+/**
+ * Денежные реквизиты денежных документов — те, у которых минус бессмыслен.
+ * Список один на все три вида документа: у прихода и расхода есть только
+ * `amount`, у переноса рядом стоит `feeAmount`, и лишнее имя в списке ничего не
+ * стоит, а забытое — стоит дорого (см. `onBeforeSave`).
+ */
+const MONEY_FIELDS = ['amount', 'feeAmount'];
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -38,11 +44,23 @@ module.exports = function (modelsDB, Utilities) {
         if (data.amount !== undefined) data.amount = money.round(money.num(data.amount));
         if (data.feeAmount !== undefined) data.feeAmount = money.round(money.num(data.feeAmount));
 
-        // Отрицательная сумма запрещена: направление задаёт ВИД ДОКУМЕНТА
-        // (приход или расход), а не знак числа. Иначе «приход на минус сто»
-        // означал бы расход, которого никто не искал бы в журнале расходов.
-        if (money.cmp(money.num(data.amount || 0), 0) < 0) {
-            return { error: await t(ctx, 'cash_err_negative_amount', 'Сумма не может быть отрицательной') };
+        // Отрицательные значения запрещены у КАЖДОГО денежного реквизита, а не
+        // только у главного. Направление задаёт ВИД ДОКУМЕНТА (приход или
+        // расход), а не знак числа: «приход на минус сто» означал бы расход,
+        // которого никто не стал бы искать в журнале расходов.
+        //
+        // Почему список, а не одна проверка `amount`. Ровно так и было — и
+        // комиссия переноса осталась без присмотра. А она ВЫЧИТАЕТСЯ:
+        // `получено = сумма − комиссия`, и комиссия −50 даёт 100 − (−50) = 150,
+        // то есть движения −100 и +150 и полсотни евро из воздуха в остатке
+        // кассы. Проверка в обработчике проведения это не ловила: она смотрит
+        // `получено < 0`, а 150 больше нуля. Новый денежный реквизит документа
+        // обязан попасть в этот список.
+        for (const field of MONEY_FIELDS) {
+            if (data[field] === undefined) continue;
+            if (money.cmp(money.num(data[field] || 0), 0) < 0) {
+                return { error: await t(ctx, 'cash_err_negative_amount', 'Сумма не может быть отрицательной') };
+            }
         }
         return { ok: true, data };
     }
@@ -56,37 +74,5 @@ module.exports = function (modelsDB, Utilities) {
         return fallback;
     }
 
-    /**
-     * ОСТАТОК по месту хранения на текущий момент — для подсказки на форме.
-     * Считает регистр, а не свой SQL: второй способ посчитать остаток означал бы,
-     * что однажды два экрана покажут разные числа.
-     */
-    async function cashboxBalance(params, ctx) {
-        const { cashboxId, organizationId } = params || {};
-        if (!cashboxId) return { ok: true, balance: '0.00' };
-        const rows = await registers.balance({
-            register: 'reg_cash',
-            dimensions: { cashboxId, organizationId },
-            context: { sessionID: ctx && ctx.sessionID }
-        });
-        const row = (rows && rows[0]) || null;
-        return { ok: true, balance: row ? money.db(money.num(row.amount)) : '0.00' };
-    }
-
-    /**
-     * ДВИЖЕНИЯ документа — «что этот документ сделал с учётом».
-     * Нужны и пользователю (посмотреть, что получилось), и приёмке (убедиться,
-     * что распроведение сняло всё).
-     */
-    async function documentMovements(params, ctx) {
-        const { table, uid } = params || {};
-        if (!table || !uid) return { ok: true, rows: [] };
-        const rows = await registers.movementsOf({
-            register: 'reg_cash', recorderTable: table, recorderUID: uid,
-            context: { sessionID: ctx && ctx.sessionID }
-        });
-        return { ok: true, rows: rows || [] };
-    }
-
-    return { onBeforeSave, cashboxBalance, documentMovements };
+    return { onBeforeSave };
 };

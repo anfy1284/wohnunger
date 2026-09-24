@@ -466,11 +466,5 @@
         "ru": "Справочные данные",
         "de": "Stammdaten",
         "pl": "Dane podstawowe"
-    },
-    "hotel_default_services": {
-        "en": "Default hotel services",
-        "ru": "Услуги отеля по умолчанию",
-        "de": "Standardleistungen des Hotels",
-        "pl": "Domyślne usługi hotelu"
     }
 }
