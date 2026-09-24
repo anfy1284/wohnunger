@@ -181,70 +181,54 @@ function onLineQtyOrPriceEdited(rowIndex, newVal, displayVal, ctx) {
     try { tbl.data_updateValue(cellKey, amount); } catch (e) {}
 }
 
-// Записать значение в поле формы. DataForm.doAction умеет только
-// runScript/ok/save/cancel — команды «обновить» у него нет, и после серверной
-// смены статуса форма иначе продолжает показывать «Entwurf».
-//
-// Идём через setControlValue, а не в controlsMap напрямую: это штатный путь, и
-// на смене поля состояния он запирает форму и пересчитывает доступность кнопок.
-// Прямая запись в контрол оставила бы выставленный счёт редактируемым до
-// повторного открытия окна.
-function _setFormField(form, name, val) {
-    if (typeof form.setControlValue === 'function' && form.setControlValue(name, val)) return;
-    var c = form.controlsMap && form.controlsMap[name];
-    if (c && typeof c.setValue === 'function') { try { c.setValue(val); } catch (e) {} }
-    if (form._dataMap && form._dataMap[name]) form._dataMap[name].value = val;
-}
+// `_setFormField` удалён вместе с собственным выставлением счёта: состояние формы
+// после проведения выставляет ЯДРО (`watchPosting` → `setControlValue`), и второй
+// путь подстановки значений разошёлся бы с первым.
+
 
 // ── «Выставить» / «Выставить и напечатать» ───────────────────────────────
 //
-// Момент неизменности — эта команда, а не печать: счёт считается выставленным,
-// когда покинул сферу выставителя. После неё счёт правке не подлежит (запрет
-// стоит в ядре, в dbGateway), поэтому спрашиваем подтверждение.
-async function _issue(ctx, withPrint) {
-    var form = ctx.form;
-    var uidEntry = form._dataMap && form._dataMap['UID'];
-    var invoiceId = uidEntry && uidEntry.value;
-    if (!invoiceId) { showAlert(__t('Please save the invoice first')); return; }
+// «Выставить» здесь БОЛЬШЕ НЕТ: для счёта «выставлен» = «проведён», и кнопка стала
+// ядровой командой `post` (объявлена в лейауте, обработчик — `invoice.postIssue`).
+// Вместе с ней ядро взяло на себя подтверждение, сохранение несохранённого, замок
+// формы на время проведения и приписку «в очереди» / «проводится» в заголовке.
+// Переписывать это в приложении незачем и вредно: разойдётся.
+//
+// Приложению остаётся ПЕЧАТЬ — она его дело, а не ядра. Отсюда вся конструкция
+// ниже: кнопка зовёт ту же ядровую команду и запоминает, что просили напечатать;
+// печатает — событие `onPostingFinished`, когда архивная копия уже снята. Иначе
+// пришлось бы печатать живой сборкой, а она со временем разойдётся с тем
+// документом, который клиент получил на руки.
+var _printAfterIssue = false;
 
-    var ok = await showConfirm(__t('issue_invoice_confirm'));
-    if (!ok) return;
-
-    var busyToken = (window.MySpace && window.MySpace.showBusy) ? window.MySpace.showBusy(__t('Preparing invoice…')) : null;
-    var result;
+async function issueAndPrintInvoice(ev, ctx) {
+    _printAfterIssue = true;
     try {
-        if (form.needsSave()) {
-            await form.doAction('save');
-            if (form.needsSave()) return; // сохранение не удалось, ошибка уже показана
-        }
-        result = await callServer('__SERVER_SCRIPT__', 'issueInvoice', {
-            invoiceId: invoiceId, print: !!withPrint
-        });
-    } finally {
-        if (busyToken != null && window.MySpace && window.MySpace.hideBusy) window.MySpace.hideBusy(busyToken);
+        await ctx.form.runDocumentCommand('post', __t('issue_invoice_confirm'));
+    } catch (e) {
+        _printAfterIssue = false;
+        throw e;
     }
-    if (!result || result.error) { showAlert(__t('Error: ') + (result && result.error || '')); return; }
-
-    // Счёт выставлен, но копия в архив не легла — сказать вслух: печать такого
-    // счёта пойдёт живой сборкой, а она со временем разойдётся с выданным.
-    if (result.archiveError) { try { showAlert(__t('invoice_archive_failed') + ' ' + result.archiveError); } catch(_) {} }
-
-    if (withPrint && result.html && window.MySpace && typeof window.MySpace.open === 'function') {
-        await window.MySpace.open('printPreview', { html: result.html, autoPrint: true });
-    }
-
-    // Статус изменился на сервере — показываем это на форме. Данные уже в базе,
-    // поэтому форма после подстановки считается чистой.
-    _setFormField(form, 'status', result.status || 'issued');
-    if (result.issuedAt) _setFormField(form, 'issuedAt', result.issuedAt);
-    try { if (typeof form.setModified === 'function') form.setModified(false); } catch(_) {}
 }
 
-async function issueInvoice(ev, ctx)         { return await _issue(ctx, false); }
-async function issueAndPrintInvoice(ev, ctx) { return await _issue(ctx, true); }
+/**
+ * Проведение закончилось (событие формы `onPostingFinished`).
+ * Печатаем только если просили и только успешное выставление: у неудачи печатать
+ * нечего, а молча напечатать черновик вместо счёта — хуже, чем не напечатать.
+ */
+async function onPostingFinished(info, ctx) {
+    if (!_printAfterIssue) return;
+    _printAfterIssue = false;
+    if (!info || info.status !== 'issued') return;
+    try {
+        await printInvoice(null, ctx);
+    } catch (e) {
+        console.error('[invoice] печать после выставления:', e && e.message);
+    }
+}
 
 // «Сторнировать» и «Скорректировать» здесь НЕТ намеренно: это команды ядра,
 // кнопки объявлены в лейауте как `"command": "storno" | "correct"`
 // (drive_root/db/documentCommands.js + DataForm.runDocumentCommand).
 return { fillInvoice, printInvoice, onLineQtyOrPriceEdited, onLineServiceSelected,
-         issueInvoice, issueAndPrintInvoice };
+         issueAndPrintInvoice, onPostingFinished };

@@ -7,16 +7,23 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "accommodation_type_name" }
+                    "caption": {
+                        "i18n": "accommodation_type_name"
+                    }
                 },
                 "description": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Description" }
+                    "caption": {
+                        "i18n": "Description"
+                    }
                 }
             },
             "options": {
                 "timestamps": false
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         },
         {
@@ -26,68 +33,94 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "Name" }
+                    "caption": {
+                        "i18n": "Name"
+                    }
                 },
                 "address": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Address" }
+                    "caption": {
+                        "i18n": "Address"
+                    }
                 },
                 "phone": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Phone" }
+                    "caption": {
+                        "i18n": "Phone"
+                    }
                 },
                 "fax": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Fax" }
+                    "caption": {
+                        "i18n": "Fax"
+                    }
                 },
                 "email": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Email" }
+                    "caption": {
+                        "i18n": "Email"
+                    }
                 },
                 "website": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Website" }
+                    "caption": {
+                        "i18n": "Website"
+                    }
                 },
                 "taxNumber": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "TaxNumber" }
+                    "caption": {
+                        "i18n": "TaxNumber"
+                    }
                 },
                 "bankName": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "BankName" }
+                    "caption": {
+                        "i18n": "BankName"
+                    }
                 },
                 "iban": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "IBAN" }
+                    "caption": {
+                        "i18n": "IBAN"
+                    }
                 },
                 "bic": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "BIC" }
+                    "caption": {
+                        "i18n": "BIC"
+                    }
                 },
                 "accountHolder": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "AccountHolder" }
+                    "caption": {
+                        "i18n": "AccountHolder"
+                    }
                 },
                 "description": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Description" }
+                    "caption": {
+                        "i18n": "Description"
+                    }
                 },
                 "isActive": {
                     "type": "BOOLEAN",
                     "allowNull": false,
                     "defaultValue": true,
-                    "caption": { "i18n": "is_active" }
+                    "caption": {
+                        "i18n": "is_active"
+                    }
                 },
                 "accommodationTypeId": {
                     "type": "STRING",
@@ -99,11 +132,16 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": { "i18n": "accommodation_type_name" }
+                    "caption": {
+                        "i18n": "accommodation_type_name"
+                    }
                 }
             },
             "options": {
                 "timestamps": true
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         },
         {
@@ -120,7 +158,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 }
             }
         },
@@ -137,7 +177,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "User" }
+                    "caption": {
+                        "i18n": "User"
+                    }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -148,7 +190,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 }
             },
             "options": {
@@ -162,12 +206,16 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "Name" }
+                    "caption": {
+                        "i18n": "Name"
+                    }
                 },
                 "address": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Address" }
+                    "caption": {
+                        "i18n": "Address"
+                    }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -178,11 +226,16 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 }
             },
             "options": {
                 "timestamps": true
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         },
         {
@@ -192,7 +245,9 @@
                 "number": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "room_number" }
+                    "caption": {
+                        "i18n": "room_number"
+                    }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -203,11 +258,17 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Hotel" }
+                    "caption": {
+                        "i18n": "Hotel"
+                    }
                 }
             },
             "options": {
                 "timestamps": true
+            },
+            "entityConfig": {
+                "entityType": "directory",
+                "uniqueNumber": false
             }
         },
         {
@@ -223,7 +284,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -232,41 +295,59 @@
                         "model": "hotels",
                         "key": "UID"
                     },
-                    "caption": { "i18n": "Hotel" }
+                    "caption": {
+                        "i18n": "Hotel"
+                    }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "Name" }
+                    "caption": {
+                        "i18n": "Name"
+                    }
                 },
                 "taxCategoryId": {
                     "type": "STRING",
                     "allowNull": false,
-                    "references": { "model": "tax_categories", "key": "UID" },
+                    "references": {
+                        "model": "tax_categories",
+                        "key": "UID"
+                    },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": { "i18n": "tax_category" }
+                    "caption": {
+                        "i18n": "tax_category"
+                    }
                 },
                 "displayOrder": {
                     "type": "INTEGER",
                     "allowNull": true,
                     "defaultValue": 50,
-                    "caption": { "i18n": "display_order" }
+                    "caption": {
+                        "i18n": "display_order"
+                    }
                 },
                 "includeByDefault": {
                     "type": "BOOLEAN",
                     "allowNull": false,
                     "defaultValue": true,
-                    "caption": { "i18n": "include_by_default" }
+                    "caption": {
+                        "i18n": "include_by_default"
+                    }
                 },
                 "quantityFormula": {
                     "type": "TEXT",
                     "allowNull": true,
-                    "caption": { "i18n": "quantity_formula" }
+                    "caption": {
+                        "i18n": "quantity_formula"
+                    }
                 }
             },
             "options": {
                 "timestamps": true
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         },
         {
@@ -282,44 +363,74 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
                     "translatable": true,
-                    "caption": { "i18n": "guest_type_field" }
+                    "caption": {
+                        "i18n": "guest_type_field"
+                    }
                 },
                 "ageFrom": {
                     "type": "INTEGER",
                     "allowNull": true,
-                    "caption": { "i18n": "age_from" }
+                    "caption": {
+                        "i18n": "age_from"
+                    }
                 },
                 "ageTo": {
                     "type": "INTEGER",
                     "allowNull": true,
-                    "caption": { "i18n": "age_to" }
+                    "caption": {
+                        "i18n": "age_to"
+                    }
                 },
                 "roomRateMode": {
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "included",
-                    "caption": { "i18n": "room_rate_mode" },
+                    "caption": {
+                        "i18n": "room_rate_mode"
+                    },
                     "inputType": "emunList",
                     "options": [
-                        { "value": "included", "caption": { "i18n": "room_rate_mode_included" } },
-                        { "value": "separate", "caption": { "i18n": "room_rate_mode_separate" } },
-                        { "value": "free",     "caption": { "i18n": "room_rate_mode_free" } }
+                        {
+                            "value": "included",
+                            "caption": {
+                                "i18n": "room_rate_mode_included"
+                            }
+                        },
+                        {
+                            "value": "separate",
+                            "caption": {
+                                "i18n": "room_rate_mode_separate"
+                            }
+                        },
+                        {
+                            "value": "free",
+                            "caption": {
+                                "i18n": "room_rate_mode_free"
+                            }
+                        }
                     ]
                 },
                 "displayOrder": {
                     "type": "INTEGER",
                     "allowNull": true,
-                    "caption": { "i18n": "display_order" }
+                    "caption": {
+                        "i18n": "display_order"
+                    }
                 }
             },
             "options": {
                 "timestamps": false
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         },
         {
@@ -335,32 +446,45 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "Name" }
+                    "caption": {
+                        "i18n": "Name"
+                    }
                 },
                 "address": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Address" },
+                    "caption": {
+                        "i18n": "Address"
+                    },
                     "isAddress": true
                 },
                 "email": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Email" }
+                    "caption": {
+                        "i18n": "Email"
+                    }
                 },
                 "phone": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "Phone" }
+                    "caption": {
+                        "i18n": "Phone"
+                    }
                 }
             },
             "options": {
                 "timestamps": true
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         },
         {
@@ -370,17 +494,26 @@
                 "organizationId": {
                     "type": "STRING",
                     "allowNull": false,
-                    "references": { "model": "organizations", "key": "UID" }
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    }
                 },
                 "hotelId": {
                     "type": "STRING",
                     "allowNull": false,
-                    "references": { "model": "hotels", "key": "UID" }
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    }
                 },
                 "serviceId": {
                     "type": "STRING",
                     "allowNull": false,
-                    "references": { "model": "services", "key": "UID" }
+                    "references": {
+                        "model": "services",
+                        "key": "UID"
+                    }
                 },
                 "displayOrder": {
                     "type": "INTEGER",
@@ -399,58 +532,85 @@
                 "organizationId": {
                     "type": "STRING",
                     "allowNull": false,
-                    "references": { "model": "organizations", "key": "UID" },
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "serviceId": {
                     "type": "STRING",
                     "allowNull": false,
-                    "references": { "model": "services", "key": "UID" },
+                    "references": {
+                        "model": "services",
+                        "key": "UID"
+                    },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Service" }
+                    "caption": {
+                        "i18n": "Service"
+                    }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "tax_component_name" }
+                    "caption": {
+                        "i18n": "tax_component_name"
+                    }
                 },
                 "taxCategoryId": {
                     "type": "STRING",
                     "allowNull": false,
-                    "references": { "model": "tax_categories", "key": "UID" },
+                    "references": {
+                        "model": "tax_categories",
+                        "key": "UID"
+                    },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": { "i18n": "tax_category" }
+                    "caption": {
+                        "i18n": "tax_category"
+                    }
                 },
                 "splitMode": {
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "percent",
-                    "caption": { "i18n": "tax_split_mode" }
+                    "caption": {
+                        "i18n": "tax_split_mode"
+                    }
                 },
                 "splitValue": {
                     "type": "DECIMAL(12,2)",
                     "allowNull": true,
-                    "caption": { "i18n": "tax_split_value" }
+                    "caption": {
+                        "i18n": "tax_split_value"
+                    }
                 },
                 "validFrom": {
                     "type": "DATEONLY",
                     "allowNull": true,
-                    "caption": { "i18n": "date_from" }
+                    "caption": {
+                        "i18n": "date_from"
+                    }
                 },
                 "validTo": {
                     "type": "DATEONLY",
                     "allowNull": true,
-                    "caption": { "i18n": "date_to" }
+                    "caption": {
+                        "i18n": "date_to"
+                    }
                 },
                 "displayOrder": {
                     "type": "INTEGER",
                     "allowNull": true,
                     "defaultValue": 50,
-                    "caption": { "i18n": "display_order" }
+                    "caption": {
+                        "i18n": "display_order"
+                    }
                 }
             },
             "options": {
@@ -464,29 +624,40 @@
                 "code": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "tax_category_code" }
+                    "caption": {
+                        "i18n": "tax_category_code"
+                    }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
                     "translatable": true,
-                    "caption": { "i18n": "tax_category_name" }
+                    "caption": {
+                        "i18n": "tax_category_name"
+                    }
                 },
                 "invoiceNote": {
                     "type": "TEXT",
                     "allowNull": true,
                     "translatable": true,
-                    "caption": { "i18n": "tax_category_invoice_note" }
+                    "caption": {
+                        "i18n": "tax_category_invoice_note"
+                    }
                 },
                 "discountable": {
                     "type": "BOOLEAN",
                     "allowNull": false,
                     "defaultValue": true,
-                    "caption": { "i18n": "tax_category_discountable" }
+                    "caption": {
+                        "i18n": "tax_category_discountable"
+                    }
                 }
             },
             "options": {
                 "timestamps": false
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         },
         {
@@ -496,22 +667,31 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "tax_rate_name" }
+                    "caption": {
+                        "i18n": "tax_rate_name"
+                    }
                 },
                 "rate": {
                     "type": "DECIMAL(5,2)",
                     "allowNull": false,
-                    "caption": { "i18n": "tax_rate_value" }
+                    "caption": {
+                        "i18n": "tax_rate_value"
+                    }
                 },
                 "displayOrder": {
                     "type": "INTEGER",
                     "allowNull": true,
                     "defaultValue": 50,
-                    "caption": { "i18n": "display_order" }
+                    "caption": {
+                        "i18n": "display_order"
+                    }
                 }
             },
             "options": {
                 "timestamps": false
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         },
         {
@@ -521,28 +701,42 @@
                 "taxCategoryId": {
                     "type": "STRING",
                     "allowNull": false,
-                    "references": { "model": "tax_categories", "key": "UID" },
+                    "references": {
+                        "model": "tax_categories",
+                        "key": "UID"
+                    },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "tax_category" }
+                    "caption": {
+                        "i18n": "tax_category"
+                    }
                 },
                 "rateId": {
                     "type": "STRING",
                     "allowNull": false,
-                    "references": { "model": "tax_rates", "key": "UID" },
+                    "references": {
+                        "model": "tax_rates",
+                        "key": "UID"
+                    },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": { "i18n": "tax_rate" }
+                    "caption": {
+                        "i18n": "tax_rate"
+                    }
                 },
                 "validFrom": {
                     "type": "DATEONLY",
                     "allowNull": true,
-                    "caption": { "i18n": "date_from" }
+                    "caption": {
+                        "i18n": "date_from"
+                    }
                 },
                 "validTo": {
                     "type": "DATEONLY",
                     "allowNull": true,
-                    "caption": { "i18n": "date_to" }
+                    "caption": {
+                        "i18n": "date_to"
+                    }
                 }
             },
             "options": {
@@ -559,7 +753,9 @@
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "season_name" }
+                    "caption": {
+                        "i18n": "season_name"
+                    }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -570,7 +766,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -581,7 +779,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": { "i18n": "Hotel" }
+                    "caption": {
+                        "i18n": "Hotel"
+                    }
                 }
             },
             "options": {
@@ -601,7 +801,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "seasonId": {
                     "type": "STRING",
@@ -612,23 +814,31 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Season" }
+                    "caption": {
+                        "i18n": "Season"
+                    }
                 },
                 "dateFrom": {
                     "type": "DATEONLY",
                     "allowNull": false,
-                    "caption": { "i18n": "date_from" }
+                    "caption": {
+                        "i18n": "date_from"
+                    }
                 },
                 "dateTo": {
                     "type": "DATEONLY",
                     "allowNull": false,
-                    "caption": { "i18n": "date_to" }
+                    "caption": {
+                        "i18n": "date_to"
+                    }
                 }
             },
             "tabularSection": {
                 "parentTable": "seasons",
                 "parentField": "seasonId",
-                "caption": { "i18n": "season_periods_tab" }
+                "caption": {
+                    "i18n": "season_periods_tab"
+                }
             },
             "options": {
                 "timestamps": true
@@ -641,29 +851,40 @@
                 "code": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "booking_status_code" }
+                    "caption": {
+                        "i18n": "booking_status_code"
+                    }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
                     "translatable": true,
-                    "caption": { "i18n": "booking_status_name" }
+                    "caption": {
+                        "i18n": "booking_status_name"
+                    }
                 },
                 "color": {
                     "type": "STRING",
                     "allowNull": true,
                     "inputType": "color",
-                    "caption": { "i18n": "status_color" }
+                    "caption": {
+                        "i18n": "status_color"
+                    }
                 },
                 "displayOrder": {
                     "type": "INTEGER",
                     "allowNull": true,
                     "defaultValue": 50,
-                    "caption": { "i18n": "display_order" }
+                    "caption": {
+                        "i18n": "display_order"
+                    }
                 }
             },
             "options": {
                 "timestamps": false
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         }
     ],

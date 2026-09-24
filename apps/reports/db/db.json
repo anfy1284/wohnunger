@@ -13,21 +13,30 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "report_variant_name" }
+                    "caption": {
+                        "i18n": "report_variant_name"
+                    }
                 },
                 "invoiceNote": {
                     "type": "TEXT",
                     "allowNull": true,
-                    "caption": { "i18n": "invoice_note" }
+                    "caption": {
+                        "i18n": "invoice_note"
+                    }
                 }
             },
             "options": {
                 "timestamps": true
+            },
+            "entityConfig": {
+                "entityType": "directory"
             }
         }
     ],

@@ -891,80 +891,122 @@ module.exports = function (modelsDB, Utilities) {
         return { invoice: freshInvoice, lines: allLines, discountNotice, skippedNotice };
     }
 
-    // Проведение счёта. Отдельной функцией, а не методом объекта: её зовёт
-    // и RPC «Выставить», и сторнирование — обращаться к соседнему методу
-    // через `this` нельзя, RPC вызывает функции без объекта-владельца.
-    async function _issueInvoice(invoiceId, print, ctx) {
-        if (!invoiceId) return { error: await tForSession('invoice_not_found', ctx.sessionID) };
-        try {
-            const invoice = await modelsDB.Invoices.findByPk(invoiceId, { raw: true });
-            if (!invoice) return { error: await tForSession('invoice_not_found', ctx.sessionID) };
-            if (invoice.status && invoice.status !== 'draft') {
-                return { error: await tForSession('invoice_already_issued', ctx.sessionID) };
-            }
+    /**
+     * ОБРАБОТЧИК ПРОВЕДЕНИЯ СЧЁТА (`entityConfig.posting.handler = "invoice.postIssue"`).
+     *
+     * Для счёта «выставлен» = «проведён» (решение ТЗ §5.3), поэтому выставление
+     * стало обработчиком проведения, а кнопка «Выставить» — ядровой командой
+     * `post`. Что изменилось и что нет:
+     *
+     *   - состояние `issued` ставит ЯДРО (`posting.statusOnPost`), а не этот код:
+     *     иначе смена состояния и снятие архивной копии были бы двумя разными
+     *     решениями и однажды разошлись бы;
+     *   - проверка полноты реквизитов § 14 UStG БРОСАЕТ исключение — и это нужно:
+     *     документ уходит в состояние «ошибка проведения» с текстом причины, а
+     *     неполный счёт выставленным не становится;
+     *   - архивная копия ложится В ТОЙ ЖЕ ТРАНЗАКЦИИ. Прежде статус писался
+     *     отдельно, и сорвавшаяся запись копии оставляла выставленный счёт без
+     *     архива: печатать пришлось бы живой сборкой, а она со временем разойдётся
+     *     с документом, который клиент получил на руки (§ 14b UStG, 8 лет);
+     *   - распроведения нет (`posting.unpost: []`): выставленный счёт исправляется
+     *     только встречным документом (GoBD);
+     *   - повторное проведение второй копии в архив НЕ кладёт: копия — снимок
+     *     МОМЕНТА выставления, а не текущего состояния.
+     *
+     * Сигнатура — `(doc, ctx)`, как у любого обработчика проведения. Писать
+     * обязательно через `ctx.dbGateway`: он несёт транзакцию проведения.
+     */
+    /**
+     * ДОЛГ КЛИЕНТА — движение счёта по регистру взаиморасчётов.
+     *
+     * Счёт не двигает деньги, но создаёт требование: с этого момента клиент нам
+     * должен. Раньше регистр знал только о платежах, поэтому оплата без счёта
+     * уводила остаток в минус — половина картины.
+     *
+     * Сумма — БРУТТО собранного документа, то есть ровно то, что напечатано.
+     * Считать её здесь заново значило бы завести второй счёт-калькулятор, который
+     * однажды разойдётся с печатной формой.
+     *
+     * ЗНАК ОТ СУММЫ, а не от вида документа: сторно и коррекция — это тоже счета,
+     * и суммы у них отрицательные. Правило «положительное = долг растёт»
+     * выдержало бы обычный счёт и молча соврало бы на сторно.
+     */
+    async function writeInvoiceDebt(doc, ctx, brutto) {
+        if (!doc.clientId) return;
+        const total = M.round(M.num(brutto));
+        if (M.isZero(total)) return;
 
-            const built = await buildInvoiceDoc(modelsDB, invoiceId, { draft: false });
-
-            // Полнота реквизитов — условие СТАТУСА, а не печати: отдельной
-            // проверки при печати не нужно, выставить неполный счёт нельзя.
-            if (built.missingKeys && built.missingKeys.length) {
-                const names = [];
-                for (const key of built.missingKeys) names.push(await tForSession(key, ctx.sessionID));
-                return {
-                    error: await tForSession('invoice_issue_missing_data', ctx.sessionID)
-                         + ' ' + names.join('; ')
-                };
-            }
-
-            const issuedAt = new Date();
-            await dbGateway.execute({
-                operation: 'update',
-                table: 'invoices',
-                where: { UID: invoiceId },
-                data: { status: 'issued', issuedAt },
-                context: { sessionID: ctx.sessionID }
-            });
-
-            // Снимок кладём уже с итоговым статусом: архив хранит документ
-            // таким, каким он ушёл, а ушёл он выставленным.
-            built.payload.invoice = Object.assign({}, built.payload.invoice,
-                { status: 'issued', issuedAt });
-
-            let archiveError = null;
-            try {
-                await documentArchive.save({
-                    documentTable:  'invoices',
-                    documentUID:    invoiceId,
-                    documentNumber: invoice.number || null,
-                    organizationId: invoice.organizationId || null,
-                    lang:           built.lang || null,
-                    html:           built.html,
-                    payload:        built.payload,
-                    createdBy:      (ctx.user && ctx.user.UID) || null
-                });
-            } catch (e) {
-                // Счёт уже выставлен — откатывать статус нельзя (он мог уйти
-                // клиенту). Но о том, что копии в архиве нет, надо сказать.
-                console.error('[invoice] archive save failed:', e && e.message || e);
-                archiveError = (e && e.message) || String(e);
-            }
-
-            notifyTables('update', invoiceId);
-            return {
-                ok: true,
-                status: 'issued',
-                // Форме нужна и дата: команды «обновить» у DataForm нет, поля
-                // проставляет клиент по этому ответу.
-                issuedAt,
-                archiveError,
-                html: print ? built.html : undefined
-            };
-        } catch (e) {
-            return { error: (e && e.message) || String(e) };
-        }
+        await ctx.movements.write('reg_settlements', [{
+            sign: total < 0 ? -1 : +1,
+            organizationId: doc.organizationId,
+            clientId: doc.clientId,
+            settlementKind: 'debt',
+            amount: Math.abs(total),
+            comment: doc.name || null
+        }]);
     }
 
+    async function postIssue(doc, ctx) {
+        const invoiceId = doc && doc.UID;
+        if (!invoiceId) throw new Error(await tForSession('invoice_not_found', ctx.sessionID));
+
+        // Документ собирается ВСЕГДА, даже у уже выставленного счёта: ядро сняло
+        // прежние движения перед вызовом обработчика, и не записать их заново
+        // значило бы потерять долг при любом перепроведении — молча и насовсем.
+        const built = await buildInvoiceDoc(modelsDB, invoiceId, { draft: false });
+
+        // Уже выставлен — архивная копия снята тогда же и переснятию не подлежит
+        // (так приходит каскад и повторное нажатие). Но движение пишем.
+        if (doc.status && doc.status !== 'draft') {
+            await writeInvoiceDebt(doc, ctx, built.brutto);
+            return;
+        }
+
+        // Полнота реквизитов — условие СОСТОЯНИЯ, а не печати.
+        if (built.missingKeys && built.missingKeys.length) {
+            const names = [];
+            for (const key of built.missingKeys) names.push(await tForSession(key, ctx.sessionID));
+            throw new Error(await tForSession('invoice_issue_missing_data', ctx.sessionID)
+                + ' ' + names.join('; '));
+        }
+
+        const issuedAt = new Date();
+        await ctx.dbGateway.execute({
+            operation: 'update',
+            table: 'invoices',
+            where: { UID: invoiceId },
+            data: { issuedAt },
+            context: { sessionID: ctx.sessionID }
+        });
+
+        // Снимок кладём уже с итоговым состоянием: архив хранит документ таким,
+        // каким он ушёл, а ушёл он выставленным. Состояние в базе к этому моменту
+        // ещё `draft` — его поставит ядро после обработчика, — поэтому в payload
+        // оно подставляется явно.
+        built.payload.invoice = Object.assign({}, built.payload.invoice,
+            { status: 'issued', issuedAt });
+
+        await documentArchive.save({
+            documentTable:  'invoices',
+            documentUID:    invoiceId,
+            documentNumber: doc.number || null,
+            organizationId: doc.organizationId || null,
+            lang:           built.lang || null,
+            html:           built.html,
+            payload:        built.payload,
+            createdBy:      ctx.requestedBy || null,
+            transaction:    ctx.transaction
+        });
+
+        await writeInvoiceDebt(doc, ctx, built.brutto);
+    }
+
+
     return {
+        // Обработчик ПРОВЕДЕНИЯ. Зовётся ядром через `entityHooks`, а не как RPC:
+        // у него другая сигнатура `(doc, ctx)`. `init.js` снимает его отсюда и
+        // регистрирует по имени `invoice.postIssue`.
+        postIssue,
 
         // ── RPC: «Заполнить» — перезаполняет строки счёта из его броней ───
         async fillInvoice({ invoiceId }, ctx) {
@@ -1305,9 +1347,10 @@ module.exports = function (modelsDB, Utilities) {
         //   3) положить снимок в архив.
         // Сборка первой: если реквизитов не хватает, счёт обязан остаться
         // черновиком, который ещё можно дозаполнить.
-        async issueInvoice({ invoiceId, print }, ctx) {
-            return await _issueInvoice(invoiceId, print, ctx);
-        }
+        // RPC `issueInvoice` больше нет: кнопка «Выставить» — ядровая команда
+        // `post`, ставящая счёт в очередь проведения (обработчик — `postIssue`).
+        // Клиентский код, зовущий выставление напрямую, обошёл бы и очередь, и
+        // замок формы, и проверку § 14 в момент проведения.
 
     };
 };

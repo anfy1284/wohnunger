@@ -15,6 +15,7 @@
         "tax_categories",
         "tax_rates",
         "tax_category_rates",
-        "booking_statuses"
+        "booking_statuses",
+        "cash_operation_types"
     ]
 }

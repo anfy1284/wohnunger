@@ -1,0 +1,1287 @@
+{
+    "models": [
+        {
+            "name": "Cashboxes",
+            "tableName": "cashboxes",
+            "entityConfig": {
+                "entityType": "directory"
+            },
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": {
+                        "i18n": "Organization"
+                    }
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "Hotel"
+                    }
+                },
+                "kind": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "cash",
+                    "inputType": "emunList",
+                    "options": [
+                        {
+                            "value": "cash",
+                            "caption": {
+                                "i18n": "cash_box_kind_cash"
+                            }
+                        },
+                        {
+                            "value": "bank",
+                            "caption": {
+                                "i18n": "cash_box_kind_bank"
+                            }
+                        },
+                        {
+                            "value": "transit",
+                            "caption": {
+                                "i18n": "cash_box_kind_transit"
+                            }
+                        }
+                    ],
+                    "caption": {
+                        "i18n": "cash_box_kind_field"
+                    }
+                },
+                "currency": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "EUR",
+                    "caption": {
+                        "i18n": "cash_currency_field"
+                    }
+                },
+                "isDefault": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": false,
+                    "caption": {
+                        "i18n": "cash_box_default_field"
+                    }
+                },
+                "comment": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "Notes"
+                    }
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "CashOperationTypes",
+            "tableName": "cash_operation_types",
+            "entityConfig": {
+                "entityType": "directory"
+            },
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": {
+                        "i18n": "Organization"
+                    }
+                },
+                "code": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "cash_op_code_field"
+                    }
+                },
+                "direction": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "in",
+                    "inputType": "emunList",
+                    "options": [
+                        {
+                            "value": "in",
+                            "caption": {
+                                "i18n": "cash_dir_in"
+                            }
+                        },
+                        {
+                            "value": "out",
+                            "caption": {
+                                "i18n": "cash_dir_out"
+                            }
+                        }
+                    ],
+                    "caption": {
+                        "i18n": "cash_direction_field"
+                    }
+                },
+                "taxCategoryId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "tax_categories",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "cash_tax_category_field"
+                    }
+                },
+                "settlementKind": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "debt",
+                    "inputType": "emunList",
+                    "options": [
+                        {
+                            "value": "debt",
+                            "caption": {
+                                "i18n": "stl_kind_debt"
+                            }
+                        },
+                        {
+                            "value": "prepayment",
+                            "caption": {
+                                "i18n": "stl_kind_prepayment"
+                            }
+                        },
+                        {
+                            "value": "deposit",
+                            "caption": {
+                                "i18n": "stl_kind_deposit"
+                            }
+                        },
+                        {
+                            "value": "none",
+                            "caption": {
+                                "i18n": "stl_kind_none"
+                            }
+                        }
+                    ],
+                    "caption": {
+                        "i18n": "stl_kind_field"
+                    }
+                },
+                "isTransfer": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": false,
+                    "caption": {
+                        "i18n": "cash_is_transfer_field"
+                    }
+                },
+                "displayOrder": {
+                    "type": "INTEGER",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "Order"
+                    }
+                },
+                "translatable": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": true,
+                    "caption": {
+                        "i18n": "Translatable"
+                    }
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "name": "CashReceipts",
+            "tableName": "cash_receipts",
+            "entityConfig": {
+                "entityType": "document",
+                "immutable": {
+                    "field": "postingState",
+                    "when": [
+                        "posted"
+                    ],
+                    "except": [
+                        "comment"
+                    ],
+                    "transitions": {
+                        "notPosted": [
+                            "queued"
+                        ],
+                        "queued": [
+                            "posted",
+                            "error",
+                            "notPosted"
+                        ],
+                        "posted": [
+                            "notPosted",
+                            "queued"
+                        ],
+                        "error": [
+                            "queued",
+                            "notPosted"
+                        ]
+                    },
+                    "deletable": [
+                        "notPosted",
+                        "error"
+                    ],
+                    "commandStates": [
+                        "notPosted",
+                        "queued",
+                        "posted",
+                        "error"
+                    ]
+                },
+                "auditLog": true,
+                "rowTones": [
+                    {
+                        "when": {
+                            "field": "postingState",
+                            "in": [
+                                "error"
+                            ]
+                        },
+                        "tone": "danger"
+                    },
+                    {
+                        "when": {
+                            "field": "postingState",
+                            "in": [
+                                "queued"
+                            ]
+                        },
+                        "tone": "yellow"
+                    },
+                    {
+                        "when": {
+                            "field": "postingState",
+                            "in": [
+                                "notPosted"
+                            ]
+                        },
+                        "tone": "muted"
+                    }
+                ],
+                "posting": {
+                    "mode": "manual",
+                    "handler": "cash.postReceipt",
+                    "unpost": [
+                        "posted"
+                    ],
+                    "captions": {
+                        "post": {
+                            "i18n": "cash_receipt_post"
+                        },
+                        "unpost": {
+                            "i18n": "cash_receipt_unpost"
+                        },
+                        "postAndClose": {
+                            "i18n": "cash_receipt_post_close"
+                        },
+                        "state": {
+                            "i18n": "posting_state_field"
+                        }
+                    },
+                    "writes": [
+                        "reg_cash",
+                        "reg_settlements"
+                    ],
+                    "writesTables": [],
+                    "depends": [],
+                    "statusOnPost": null,
+                    "statusOnUnpost": null
+                },
+                "direction": "in"
+            },
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": {
+                        "i18n": "Organization"
+                    }
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "Hotel"
+                    }
+                },
+                "operationDate": {
+                    "type": "DATE",
+                    "allowNull": false,
+                    "caption": {
+                        "i18n": "cash_operation_date_field"
+                    }
+                },
+                "cashboxId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "cashboxes",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "cash_cashbox_field"
+                    }
+                },
+                "operationTypeId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "cash_operation_types",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "cash_operation_type_field"
+                    }
+                },
+                "paymentMethod": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "transfer",
+                    "inputType": "emunList",
+                    "options": [
+                        {
+                            "value": "transfer",
+                            "caption": {
+                                "i18n": "cash_pm_transfer"
+                            }
+                        },
+                        {
+                            "value": "card",
+                            "caption": {
+                                "i18n": "cash_pm_card"
+                            }
+                        },
+                        {
+                            "value": "cash",
+                            "caption": {
+                                "i18n": "cash_pm_cash"
+                            }
+                        }
+                    ],
+                    "caption": {
+                        "i18n": "cash_payment_method_field"
+                    }
+                },
+                "clientId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "clients",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "Client"
+                    }
+                },
+                "amount": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": {
+                        "i18n": "cash_amount_field"
+                    }
+                },
+                "sourceTable": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "cash_source_table_field"
+                    }
+                },
+                "sourceUID": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "cash_source_field"
+                    }
+                },
+                "comment": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "Notes"
+                    }
+                }
+            },
+            "options": {
+                "timestamps": true,
+                "indexes": [
+                    {
+                        "fields": [
+                            "operationDate"
+                        ]
+                    },
+                    {
+                        "fields": [
+                            "cashboxId",
+                            "operationDate"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "CashPayments",
+            "tableName": "cash_payments",
+            "entityConfig": {
+                "entityType": "document",
+                "immutable": {
+                    "field": "postingState",
+                    "when": [
+                        "posted"
+                    ],
+                    "except": [
+                        "comment"
+                    ],
+                    "transitions": {
+                        "notPosted": [
+                            "queued"
+                        ],
+                        "queued": [
+                            "posted",
+                            "error",
+                            "notPosted"
+                        ],
+                        "posted": [
+                            "notPosted",
+                            "queued"
+                        ],
+                        "error": [
+                            "queued",
+                            "notPosted"
+                        ]
+                    },
+                    "deletable": [
+                        "notPosted",
+                        "error"
+                    ],
+                    "commandStates": [
+                        "notPosted",
+                        "queued",
+                        "posted",
+                        "error"
+                    ]
+                },
+                "auditLog": true,
+                "rowTones": [
+                    {
+                        "when": {
+                            "field": "postingState",
+                            "in": [
+                                "error"
+                            ]
+                        },
+                        "tone": "danger"
+                    },
+                    {
+                        "when": {
+                            "field": "postingState",
+                            "in": [
+                                "queued"
+                            ]
+                        },
+                        "tone": "yellow"
+                    },
+                    {
+                        "when": {
+                            "field": "postingState",
+                            "in": [
+                                "notPosted"
+                            ]
+                        },
+                        "tone": "muted"
+                    }
+                ],
+                "posting": {
+                    "mode": "manual",
+                    "handler": "cash.postPayment",
+                    "unpost": [
+                        "posted"
+                    ],
+                    "captions": {
+                        "post": {
+                            "i18n": "cash_payment_post"
+                        },
+                        "unpost": {
+                            "i18n": "cash_payment_unpost"
+                        },
+                        "postAndClose": {
+                            "i18n": "cash_payment_post_close"
+                        },
+                        "state": {
+                            "i18n": "posting_state_field"
+                        }
+                    },
+                    "writes": [
+                        "reg_cash",
+                        "reg_settlements"
+                    ],
+                    "writesTables": [],
+                    "depends": [],
+                    "statusOnPost": null,
+                    "statusOnUnpost": null
+                },
+                "direction": "out"
+            },
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": {
+                        "i18n": "Organization"
+                    }
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "Hotel"
+                    }
+                },
+                "operationDate": {
+                    "type": "DATE",
+                    "allowNull": false,
+                    "caption": {
+                        "i18n": "cash_operation_date_field"
+                    }
+                },
+                "cashboxId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "cashboxes",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "cash_cashbox_field"
+                    }
+                },
+                "operationTypeId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "cash_operation_types",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "cash_operation_type_field"
+                    }
+                },
+                "paymentMethod": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "transfer",
+                    "inputType": "emunList",
+                    "options": [
+                        {
+                            "value": "transfer",
+                            "caption": {
+                                "i18n": "cash_pm_transfer"
+                            }
+                        },
+                        {
+                            "value": "card",
+                            "caption": {
+                                "i18n": "cash_pm_card"
+                            }
+                        },
+                        {
+                            "value": "cash",
+                            "caption": {
+                                "i18n": "cash_pm_cash"
+                            }
+                        }
+                    ],
+                    "caption": {
+                        "i18n": "cash_payment_method_field"
+                    }
+                },
+                "clientId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "clients",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "Client"
+                    }
+                },
+                "amount": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": {
+                        "i18n": "cash_amount_field"
+                    }
+                },
+                "sourceTable": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "cash_source_table_field"
+                    }
+                },
+                "sourceUID": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "cash_source_field"
+                    }
+                },
+                "comment": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "Notes"
+                    }
+                }
+            },
+            "options": {
+                "timestamps": true,
+                "indexes": [
+                    {
+                        "fields": [
+                            "operationDate"
+                        ]
+                    },
+                    {
+                        "fields": [
+                            "cashboxId",
+                            "operationDate"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "CashTransfers",
+            "tableName": "cash_transfers",
+            "entityConfig": {
+                "entityType": "document",
+                "immutable": {
+                    "field": "postingState",
+                    "when": [
+                        "posted"
+                    ],
+                    "except": [
+                        "comment"
+                    ],
+                    "transitions": {
+                        "notPosted": [
+                            "queued"
+                        ],
+                        "queued": [
+                            "posted",
+                            "error",
+                            "notPosted"
+                        ],
+                        "posted": [
+                            "notPosted",
+                            "queued"
+                        ],
+                        "error": [
+                            "queued",
+                            "notPosted"
+                        ]
+                    },
+                    "deletable": [
+                        "notPosted",
+                        "error"
+                    ],
+                    "commandStates": [
+                        "notPosted",
+                        "queued",
+                        "posted",
+                        "error"
+                    ]
+                },
+                "auditLog": true,
+                "rowTones": [
+                    {
+                        "when": {
+                            "field": "postingState",
+                            "in": [
+                                "error"
+                            ]
+                        },
+                        "tone": "danger"
+                    },
+                    {
+                        "when": {
+                            "field": "postingState",
+                            "in": [
+                                "queued"
+                            ]
+                        },
+                        "tone": "yellow"
+                    },
+                    {
+                        "when": {
+                            "field": "postingState",
+                            "in": [
+                                "notPosted"
+                            ]
+                        },
+                        "tone": "muted"
+                    }
+                ],
+                "posting": {
+                    "mode": "manual",
+                    "handler": "cash.postTransfer",
+                    "unpost": [
+                        "posted"
+                    ],
+                    "captions": {
+                        "post": {
+                            "i18n": "cash_transfer_post"
+                        },
+                        "unpost": {
+                            "i18n": "cash_transfer_unpost"
+                        },
+                        "postAndClose": {
+                            "i18n": "cash_transfer_post_close"
+                        },
+                        "state": {
+                            "i18n": "posting_state_field"
+                        }
+                    },
+                    "writes": [
+                        "reg_cash"
+                    ],
+                    "writesTables": [],
+                    "depends": [],
+                    "statusOnPost": null,
+                    "statusOnUnpost": null
+                }
+            },
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": {
+                        "i18n": "Organization"
+                    }
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "Hotel"
+                    }
+                },
+                "operationDate": {
+                    "type": "DATE",
+                    "allowNull": false,
+                    "caption": {
+                        "i18n": "cash_operation_date_field"
+                    }
+                },
+                "fromCashboxId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "cashboxes",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "cash_from_cashbox_field"
+                    }
+                },
+                "toCashboxId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "cashboxes",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "cash_to_cashbox_field"
+                    }
+                },
+                "amount": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": {
+                        "i18n": "cash_amount_field"
+                    }
+                },
+                "feeAmount": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": true,
+                    "defaultValue": 0,
+                    "caption": {
+                        "i18n": "cash_fee_field"
+                    }
+                },
+                "comment": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "Notes"
+                    }
+                }
+            },
+            "options": {
+                "timestamps": true,
+                "indexes": [
+                    {
+                        "fields": [
+                            "operationDate"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "CashCheckDocs",
+            "tableName": "cash_check_docs",
+            "entityConfig": {
+                "entityType": "document",
+                "auditLog": true,
+                "posting": {
+                    "mode": "manual",
+                    "handler": "cash.postCheck",
+                    "unpost": [
+                        "draft",
+                        "posted"
+                    ],
+                    "captions": {
+                        "post": {
+                            "i18n": "cash_check_post"
+                        },
+                        "unpost": {
+                            "i18n": "cash_check_unpost"
+                        },
+                        "postAndClose": {
+                            "i18n": "cash_check_post_close"
+                        },
+                        "state": {
+                            "i18n": "posting_state_field"
+                        }
+                    },
+                    "writes": [
+                        "reg_cash"
+                    ],
+                    "writesTables": [],
+                    "depends": [
+                        {
+                            "register": "reg_cash",
+                            "dimensions": {
+                                "cashboxId": "cashboxId"
+                            }
+                        }
+                    ],
+                    "statusOnPost": null,
+                    "statusOnUnpost": null
+                }
+            },
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": {
+                        "i18n": "Organization"
+                    }
+                },
+                "cashboxId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": {
+                        "model": "cashboxes",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": {
+                        "i18n": "cash_cashbox_field"
+                    }
+                },
+                "balanceAtMoment": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": {
+                        "i18n": "cash_check_balance_field"
+                    }
+                },
+                "postCount": {
+                    "type": "INTEGER",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": {
+                        "i18n": "cash_check_count_field"
+                    }
+                },
+                "comment": {
+                    "type": "TEXT",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "Notes"
+                    }
+                }
+            },
+            "options": {
+                "timestamps": true
+            }
+        }
+    ],
+    "associations": [
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "Cashboxes",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "Cashboxes",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "CashOperationTypes",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "CashOperationTypes",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "CashReceipts",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "CashReceipts",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "CashPayments",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "CashPayments",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "CashTransfers",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "CashTransfers",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "CashReceipts",
+            "target": "Cashboxes",
+            "foreignKey": "cashboxId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "CashPayments",
+            "target": "Cashboxes",
+            "foreignKey": "cashboxId"
+        },
+        {
+            "type": "hasMany",
+            "source": "Organizations",
+            "target": "CashCheckDocs",
+            "foreignKey": "organizationId"
+        },
+        {
+            "type": "belongsTo",
+            "source": "CashCheckDocs",
+            "target": "Organizations",
+            "foreignKey": "organizationId"
+        }
+    ],
+    "registers": [
+        {
+            "name": "CashRegister",
+            "tableName": "reg_cash",
+            "kind": "balances",
+            "caption": {
+                "i18n": "reg_cash_caption"
+            },
+            "dimensions": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "Organization"
+                    }
+                },
+                "cashboxId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "cashboxes",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "cash_cashbox_field"
+                    }
+                }
+            },
+            "resources": {
+                "amount": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": {
+                        "i18n": "cash_amount_field"
+                    }
+                }
+            },
+            "attributes": {
+                "paymentMethod": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "cash_payment_method_field"
+                    },
+                    "options": [
+                        {
+                            "value": "transfer",
+                            "caption": {
+                                "i18n": "cash_pm_transfer"
+                            }
+                        },
+                        {
+                            "value": "card",
+                            "caption": {
+                                "i18n": "cash_pm_card"
+                            }
+                        },
+                        {
+                            "value": "cash",
+                            "caption": {
+                                "i18n": "cash_pm_cash"
+                            }
+                        }
+                    ],
+                    "inputType": "emunList"
+                },
+                "operationTypeId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "cash_operation_type_field"
+                    },
+                    "references": {
+                        "model": "cash_operation_types",
+                        "key": "UID"
+                    }
+                },
+                "clientId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "clients",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "Client"
+                    }
+                },
+                "comment": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "Notes"
+                    }
+                }
+            }
+        },
+        {
+            "name": "SettlementsRegister",
+            "tableName": "reg_settlements",
+            "kind": "balances",
+            "caption": {
+                "i18n": "reg_settlements_caption"
+            },
+            "dimensions": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "Organization"
+                    }
+                },
+                "clientId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "clients",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "Client"
+                    }
+                },
+                "settlementKind": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "debt",
+                    "inputType": "emunList",
+                    "options": [
+                        {
+                            "value": "debt",
+                            "caption": {
+                                "i18n": "stl_kind_debt"
+                            }
+                        },
+                        {
+                            "value": "prepayment",
+                            "caption": {
+                                "i18n": "stl_kind_prepayment"
+                            }
+                        },
+                        {
+                            "value": "deposit",
+                            "caption": {
+                                "i18n": "stl_kind_deposit"
+                            }
+                        }
+                    ],
+                    "caption": {
+                        "i18n": "stl_kind_field"
+                    }
+                }
+            },
+            "resources": {
+                "amount": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": {
+                        "i18n": "cash_amount_field"
+                    }
+                }
+            },
+            "attributes": {
+                "comment": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "Notes"
+                    }
+                }
+            }
+        }
+    ]
+}

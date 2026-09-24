@@ -70,7 +70,24 @@ module.exports = async function (modelsDB) {
 
         // ── Форма «Счёт» (таблица invoices) ───────────────────────────────
         const invoiceApi = require('./forms/invoices.server')(modelsDB, Utilities);
-        const serverScriptName = loadServerScript('invoice.actions', invoiceApi, 'user');
+
+        // ── Выставление счёта = ПРОВЕДЕНИЕ (ТЗ §5.3) ──────────────────────
+        // Для счёта «выставлен» = «проведён», поэтому выставление — обработчик
+        // проведения, а кнопка на форме — ядровая команда `post` с подписью
+        // «Выставить» (подписи объявляются потаблично в `entityConfig.posting`).
+        // Ядро берёт на себя очередь, транзакцию, журнал и замок формы; счёт
+        // оставляет за собой то, что знает только он: сборку документа, проверку
+        // реквизитов § 14 UStG и архивную копию.
+        // Сам обработчик объявлен в `posting.handlers.js`: проведение выполняет
+        // форкнутый воркер планировщика, а `init.js` выполняет только главный
+        // процесс — регистрация здесь была бы невидима там, где нужна.
+
+        // Обработчик проведения из набора RPC УБИРАЕМ: у него другая сигнатура
+        // `(doc, ctx)`, и оставить его вызываемым с клиента значило бы завести
+        // второй путь выставления — мимо очереди и мимо замка формы.
+        const invoiceRpc = Object.assign({}, invoiceApi);
+        delete invoiceRpc.postIssue;
+        const serverScriptName = loadServerScript('invoice.actions', invoiceRpc, 'user');
 
         const clientSource = fs
             .readFileSync(path.join(__dirname, 'forms/invoices.client.js'), 'utf8')
@@ -89,7 +106,11 @@ module.exports = async function (modelsDB) {
             formIcon:     '/apps/booking_icons/resources/public/16x16/invoice.png',
             listIcon:     '/apps/booking_icons/resources/public/16x16/invoice_journal.png',
             events: {
-                onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' }
+                onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' },
+                // Проведение закончилось — приложению остаётся ЕГО дело, печать:
+                // архивная копия к этому моменту снята, и печатать можно из неё, а
+                // не живой сборкой (она со временем разойдётся с выданным счётом).
+                onPostingFinished: { fn: 'onPostingFinished' }
             }
         });
         // Список — автогенерация uniForm (заголовок/иконка из appCaption/listIcon).

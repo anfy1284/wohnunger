@@ -31,6 +31,10 @@
         {
             "name": "formula_editor",
             "path": "/formula_editor"
+        },
+        {
+            "name": "cash",
+            "path": "/cash"
         }
     ]
 }

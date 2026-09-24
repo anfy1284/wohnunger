@@ -1,0 +1,41 @@
+{
+    "app": {
+        "caption": {
+            "i18n": "cash_receipts_app_caption"
+        },
+        "icon": "/apps/general_icons/resources/public/16x16/journal.png",
+        "order": 60
+    },
+    "settings": {
+        "taxationMode": {
+            "//": "Ist- или Sollversteuerung (§ 20 UStG). Умолчание Soll — общий случай; Ist требует разрешения налоговой. Значение выставляется владелицей при показе функционала (ТЗ §17.3). В коде — настройка, а не константа: от неё зависит, в каком периоде возникает НДС, и ошибка здесь стоит денег.",
+            "scope": "organization",
+            "type": "enum",
+            "options": [
+                {
+                    "value": "soll",
+                    "caption": {
+                        "i18n": "cash_taxation_soll"
+                    }
+                },
+                {
+                    "value": "ist",
+                    "caption": {
+                        "i18n": "cash_taxation_ist"
+                    }
+                }
+            ],
+            "default": "soll",
+            "group": {
+                "i18n": "cash_settings_group"
+            },
+            "caption": {
+                "i18n": "cash_settings_taxation_mode"
+            },
+            "hint": {
+                "i18n": "cash_settings_taxation_mode_hint"
+            },
+            "order": 10
+        }
+    }
+}

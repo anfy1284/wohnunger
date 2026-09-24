@@ -1,0 +1,244 @@
+{
+    "cash_operation_types": [
+        {
+            "UID": "000000000-cashoptype-0001",
+            "code": "invoice_payment",
+            "direction": "in",
+            "name": "Rechnungszahlung",
+            "displayOrder": 10,
+            "isTransfer": false,
+            "translatable": true,
+            "settlementKind": "debt"
+        },
+        {
+            "UID": "000000000-cashoptype-0002",
+            "code": "prepayment",
+            "direction": "in",
+            "name": "Anzahlung",
+            "displayOrder": 20,
+            "isTransfer": false,
+            "translatable": true,
+            "settlementKind": "prepayment"
+        },
+        {
+            "UID": "000000000-cashoptype-0003",
+            "code": "deposit",
+            "direction": "in",
+            "name": "Kaution",
+            "displayOrder": 30,
+            "isTransfer": false,
+            "translatable": true,
+            "settlementKind": "deposit"
+        },
+        {
+            "UID": "000000000-cashoptype-0004",
+            "code": "cancellation_fee",
+            "direction": "in",
+            "name": "Stornogebühr",
+            "displayOrder": 40,
+            "isTransfer": false,
+            "translatable": true,
+            "settlementKind": "debt"
+        },
+        {
+            "UID": "000000000-cashoptype-0005",
+            "code": "prepayment_refund",
+            "direction": "out",
+            "name": "Anzahlungserstattung",
+            "displayOrder": 50,
+            "isTransfer": false,
+            "translatable": true,
+            "settlementKind": "prepayment"
+        },
+        {
+            "UID": "000000000-cashoptype-0006",
+            "code": "transit",
+            "direction": "out",
+            "name": "Umbuchung zwischen Zahlungsorten",
+            "displayOrder": 60,
+            "isTransfer": true,
+            "translatable": true,
+            "settlementKind": "none"
+        },
+        {
+            "UID": "000000000-cashoptype-0007",
+            "code": "terminal_fee",
+            "direction": "out",
+            "name": "Terminalgebühr",
+            "displayOrder": 70,
+            "isTransfer": true,
+            "translatable": true,
+            "settlementKind": "none"
+        }
+    ],
+    "translations": [
+        {
+            "UID": "tr-cashop-en-0001",
+            "recordId": "000000000-cashoptype-0001",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "en",
+            "value": "Invoice payment"
+        },
+        {
+            "UID": "tr-cashop-ru-0002",
+            "recordId": "000000000-cashoptype-0001",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "ru",
+            "value": "Оплата по счёту"
+        },
+        {
+            "UID": "tr-cashop-pl-0003",
+            "recordId": "000000000-cashoptype-0001",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "pl",
+            "value": "Zapłata za fakturę"
+        },
+        {
+            "UID": "tr-cashop-en-0004",
+            "recordId": "000000000-cashoptype-0002",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "en",
+            "value": "Prepayment"
+        },
+        {
+            "UID": "tr-cashop-ru-0005",
+            "recordId": "000000000-cashoptype-0002",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "ru",
+            "value": "Предоплата"
+        },
+        {
+            "UID": "tr-cashop-pl-0006",
+            "recordId": "000000000-cashoptype-0002",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "pl",
+            "value": "Przedpłata"
+        },
+        {
+            "UID": "tr-cashop-en-0007",
+            "recordId": "000000000-cashoptype-0003",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "en",
+            "value": "Deposit"
+        },
+        {
+            "UID": "tr-cashop-ru-0008",
+            "recordId": "000000000-cashoptype-0003",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "ru",
+            "value": "Залог"
+        },
+        {
+            "UID": "tr-cashop-pl-0009",
+            "recordId": "000000000-cashoptype-0003",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "pl",
+            "value": "Kaucja"
+        },
+        {
+            "UID": "tr-cashop-en-0010",
+            "recordId": "000000000-cashoptype-0004",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "en",
+            "value": "Cancellation fee"
+        },
+        {
+            "UID": "tr-cashop-ru-0011",
+            "recordId": "000000000-cashoptype-0004",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "ru",
+            "value": "Плата за отмену"
+        },
+        {
+            "UID": "tr-cashop-pl-0012",
+            "recordId": "000000000-cashoptype-0004",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "pl",
+            "value": "Opłata za anulowanie"
+        },
+        {
+            "UID": "tr-cashop-en-0013",
+            "recordId": "000000000-cashoptype-0005",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "en",
+            "value": "Prepayment refund"
+        },
+        {
+            "UID": "tr-cashop-ru-0014",
+            "recordId": "000000000-cashoptype-0005",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "ru",
+            "value": "Возврат предоплаты"
+        },
+        {
+            "UID": "tr-cashop-pl-0015",
+            "recordId": "000000000-cashoptype-0005",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "pl",
+            "value": "Zwrot przedpłaty"
+        },
+        {
+            "UID": "tr-cashop-en-0016",
+            "recordId": "000000000-cashoptype-0006",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "en",
+            "value": "Transfer between locations"
+        },
+        {
+            "UID": "tr-cashop-ru-0017",
+            "recordId": "000000000-cashoptype-0006",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "ru",
+            "value": "Перенос между местами хранения"
+        },
+        {
+            "UID": "tr-cashop-pl-0018",
+            "recordId": "000000000-cashoptype-0006",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "pl",
+            "value": "Przeniesienie między miejscami"
+        },
+        {
+            "UID": "tr-cashop-en-0019",
+            "recordId": "000000000-cashoptype-0007",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "en",
+            "value": "Terminal fee"
+        },
+        {
+            "UID": "tr-cashop-ru-0020",
+            "recordId": "000000000-cashoptype-0007",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "ru",
+            "value": "Комиссия терминала"
+        },
+        {
+            "UID": "tr-cashop-pl-0021",
+            "recordId": "000000000-cashoptype-0007",
+            "tableName": "cash_operation_types",
+            "fieldName": "name",
+            "language": "pl",
+            "value": "Prowizja terminala"
+        }
+    ]
+}

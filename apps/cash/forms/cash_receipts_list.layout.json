@@ -1,0 +1,57 @@
+[
+    {
+        "type": "commandBar",
+        "extraButtons": [
+            {
+                "name": "btnPostSelected",
+                "command": "postMany",
+                "selectionFrom": "journal",
+                "confirm": false,
+                "caption": {
+                    "i18n": "posting_cmd_post"
+                },
+                "icon": "/apps/general_icons/resources/public/16x16/post.png",
+                "enabledWhen": {
+                    "selection": "journal"
+                }
+            }
+        ]
+    },
+    {
+        "type": "table",
+        "name": "journal",
+        "properties": {
+            "dynamicTable": true,
+            "appName": "uniForm",
+            "tableName": "cash_receipts",
+            "readOnly": true,
+            "multiSelect": true,
+            "visibleRows": 20,
+            "showToolbar": true,
+            "fields": [
+                "number",
+                "operationDate",
+                "cashboxId",
+                "paymentMethod",
+                "clientId",
+                "amount",
+                "comment"
+            ],
+            "columnOverrides": {
+                "operationDate": {
+                    "width": 130,
+                    "showTime": false
+                },
+                "amount": {
+                    "width": 120
+                }
+            },
+            "initialSort": [
+                {
+                    "field": "number",
+                    "order": "desc"
+                }
+            ]
+        }
+    }
+]

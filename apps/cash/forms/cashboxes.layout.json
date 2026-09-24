@@ -1,0 +1,116 @@
+[
+    {
+        "type": "commandBar",
+        "extraButtons": [
+            {
+                "name": "btnKassenbuch",
+                "caption": {
+                    "i18n": "cash_kb_title"
+                },
+                "icon": "/apps/general_icons/resources/public/16x16/cashbook.png",
+                "events": {
+                    "onClick": "printKassenbuch"
+                }
+            }
+        ]
+    },
+    {
+        "type": "group",
+        "caption": "",
+        "noBorder": true,
+        "orientation": "horizontal",
+        "layout": [
+            {
+                "type": "group",
+                "caption": "",
+                "noBorder": true,
+                "alignFields": true,
+                "orientation": "vertical",
+                "layout": [
+                    {
+                        "type": "textbox",
+                        "name": "name",
+                        "data": "name",
+                        "caption": {
+                            "i18n": "presentation_field"
+                        }
+                    },
+                    {
+                        "type": "emunList",
+                        "name": "kind",
+                        "data": "kind",
+                        "caption": {
+                            "i18n": "cash_box_kind_field"
+                        }
+                    },
+                    {
+                        "type": "textbox",
+                        "name": "currency",
+                        "data": "currency",
+                        "caption": {
+                            "i18n": "cash_currency_field"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "group",
+                "caption": "",
+                "noBorder": true,
+                "alignFields": true,
+                "orientation": "vertical",
+                "layout": [
+                    {
+                        "type": "recordSelector",
+                        "name": "organizationId",
+                        "data": "organizationId",
+                        "caption": {
+                            "i18n": "Organization"
+                        },
+                        "properties": {
+                            "selection": {
+                                "table": "organizations",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    },
+                    {
+                        "type": "recordSelector",
+                        "name": "hotelId",
+                        "data": "hotelId",
+                        "caption": {
+                            "i18n": "Hotel"
+                        },
+                        "properties": {
+                            "selection": {
+                                "table": "hotels",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    },
+                    {
+                        "type": "checkbox",
+                        "name": "isDefault",
+                        "data": "isDefault",
+                        "caption": {
+                            "i18n": "cash_box_default_field"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "textbox",
+        "name": "comment",
+        "data": "comment",
+        "caption": {
+            "i18n": "Notes"
+        },
+        "properties": {
+            "multiline": true
+        }
+    }
+]

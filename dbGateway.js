@@ -149,12 +149,33 @@ try {
  *
  * Таблиц без атрибута `organizationId` не касается (сузить нечем).
  */
+/**
+ * Условие отбора НЕПУСТО?
+ *
+ * `Object.keys()` НЕ ВИДИТ символьных ключей, а условие, собранное из операторов
+ * Sequelize (`{ [Op.and]: [...] }`, `{ [Op.or]: [...] }`), состоит ровно из них.
+ * Проверка «`Object.keys(where).length > 0`» объявляла такое условие пустым, и
+ * дальше оно не дополнялось, а ЗАМЕНЯЛОСЬ целиком — молча, без ошибки.
+ *
+ * Поймано на остатке регистра «на момент времени»: условие
+ * `(period, seq) <= (:d,:s)` выражено через `Op.or`, и служебная сессия стирала
+ * его вместе с отбором по кассе — проверочный документ видел остаток на СЕГОДНЯ
+ * вместо остатка на свою дату и записывал его как верный.
+ *
+ * Цена ошибки не ограничена этим случаем: тот же приём стоит в наложении
+ * RLS-фильтров, то есть символьное условие расширяло выборку, а не сужало.
+ */
+function hasConditions(where) {
+    if (!where || typeof where !== 'object') return false;
+    return Object.keys(where).length > 0 || Object.getOwnPropertySymbols(where).length > 0;
+}
+
 function applyOrganizationScope(request, Model, scopeOrgId) {
     if (!scopeOrgId || !Model || !Model.rawAttributes || !Model.rawAttributes.organizationId) return;
     const scopeCond = { organizationId: scopeOrgId };
     const { Op } = require('sequelize');
     const existingWhere = request.where;
-    if (existingWhere && Object.keys(existingWhere).length > 0) {
+    if (hasConditions(existingWhere)) {
         request.where = { [Op.and]: [existingWhere, scopeCond] };
     } else {
         request.where = scopeCond;
@@ -216,8 +237,19 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
 
     // Пропускаем проверку для админа — но сужение по организации служебной сессии
     // действует и на него (админская задача организации не лезет в чужие данные).
+    //
+    // КРОМЕ ГЛОБАЛЬНЫХ СПРАВОЧНИКОВ. Таблицы из `excluded_tables` — общие для всех
+    // организаций, и `organizationId` у них НЕ ЗАПОЛНЕН намеренно (см. CLAUDE.md:
+    // системная таблица без организации получает nullable organizationId и живёт
+    // с NULL). Сужение по организации выбрасывало такие строки целиком, и под
+    // служебной сессией переставали читаться ставки налогов, виды операций, типы
+    // гостей — то есть данные, без которых считается счёт. Обнаружено 23.09.2026:
+    // проведение денежного документа не могло прочитать вид операции и молча
+    // считало любой платёж погашением долга.
     if (role === 'admin') {
-        if (scopeOrgId && FILTERED_OPS.includes(operation)) {
+        const { excludedSet: adminExcluded } = getAccessConfig();
+        const isGlobalReference = adminExcluded.has(table) && table !== 'organizations';
+        if (scopeOrgId && FILTERED_OPS.includes(operation) && !isGlobalReference) {
             applyOrganizationScope(request, ModelEarly, scopeOrgId);
         }
         return await next(request);
@@ -279,7 +311,10 @@ dbGateway.use('app', async function accessControlMiddleware(request, next) {
             // Накладываем фильтры через OR (доступ, если выполняется хотя бы одно условие)
             if (filters.length > 0) {
                 const existingWhere = request.where;
-                if (Object.keys(existingWhere).length > 0) {
+                // См. `hasConditions`: символьные ключи (`Op.and`/`Op.or`) невидимы
+                // для `Object.keys`, и условие из них стиралось бы целиком — здесь
+                // это означало бы РАСШИРЕНИЕ выборки вместо сужения.
+                if (hasConditions(existingWhere)) {
                     request.where = {
                         [Op.and]: [
                             existingWhere,

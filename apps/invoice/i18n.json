@@ -334,5 +334,11 @@
         "ru": "Как должно быть",
         "de": "Wie es sein soll",
         "pl": "Jak powinno być"
+    },
+    "invoice_issue_and_close_btn": {
+        "en": "Issue and close",
+        "ru": "Выставить и закрыть",
+        "de": "Ausstellen und schließen",
+        "pl": "Wystaw i zamknij"
     }
 }

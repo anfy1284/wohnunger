@@ -1,0 +1,566 @@
+{
+    "cash_receipts_app_caption": {
+        "en": "Cash receipts",
+        "ru": "Поступления денег",
+        "de": "Geldeingänge",
+        "pl": "Wpłaty"
+    },
+    "cash_payments_app_caption": {
+        "en": "Cash payments",
+        "ru": "Списания денег",
+        "de": "Geldausgänge",
+        "pl": "Wypłaty"
+    },
+    "cash_transfers_app_caption": {
+        "en": "Money transfers",
+        "ru": "Переносы денег",
+        "de": "Geldtransit",
+        "pl": "Przelewy wewnętrzne"
+    },
+    "cash_receipt_record_caption": {
+        "en": "Cash receipt",
+        "ru": "Поступление денег",
+        "de": "Geldeingang",
+        "pl": "Wpłata"
+    },
+    "cash_payment_record_caption": {
+        "en": "Cash payment",
+        "ru": "Списание денег",
+        "de": "Geldausgang",
+        "pl": "Wypłata"
+    },
+    "cash_transfer_record_caption": {
+        "en": "Money transfer",
+        "ru": "Перенос денег",
+        "de": "Geldtransit",
+        "pl": "Przelew wewnętrzny"
+    },
+    "cash_cashboxes_app_caption": {
+        "en": "Money locations",
+        "ru": "Места хранения денег",
+        "de": "Zahlungsorte",
+        "pl": "Miejsca przechowywania"
+    },
+    "cash_operation_types_app_caption": {
+        "en": "Operation types",
+        "ru": "Виды операции",
+        "de": "Vorgangsarten",
+        "pl": "Rodzaje operacji"
+    },
+    "cash_status_field": {
+        "en": "Status",
+        "ru": "Состояние",
+        "de": "Status",
+        "pl": "Stan"
+    },
+    "cash_status_draft": {
+        "en": "Draft",
+        "ru": "Черновик",
+        "de": "Entwurf",
+        "pl": "Szkic"
+    },
+    "cash_status_posted": {
+        "en": "Posted",
+        "ru": "Проведён",
+        "de": "Gebucht",
+        "pl": "Zaksięgowany"
+    },
+    "cash_status_cancelled": {
+        "en": "Cancelled",
+        "ru": "Отменён",
+        "de": "Storniert",
+        "pl": "Anulowany"
+    },
+    "cash_operation_date_field": {
+        "en": "Operation date",
+        "ru": "Дата операции",
+        "de": "Vorgangsdatum",
+        "pl": "Data operacji"
+    },
+    "cash_cashbox_field": {
+        "en": "Money location",
+        "ru": "Место хранения",
+        "de": "Zahlungsort",
+        "pl": "Miejsce przechowywania"
+    },
+    "cash_from_cashbox_field": {
+        "en": "From",
+        "ru": "Откуда",
+        "de": "Von",
+        "pl": "Skąd"
+    },
+    "cash_to_cashbox_field": {
+        "en": "To",
+        "ru": "Куда",
+        "de": "Nach",
+        "pl": "Dokąd"
+    },
+    "cash_fee_cashbox_field": {
+        "en": "Fee charged to",
+        "ru": "Комиссия списана с",
+        "de": "Gebühr belastet",
+        "pl": "Prowizja obciąża"
+    },
+    "cash_operation_type_field": {
+        "en": "Operation type",
+        "ru": "Вид операции",
+        "de": "Vorgangsart",
+        "pl": "Rodzaj operacji"
+    },
+    "cash_payment_method_field": {
+        "en": "Payment method",
+        "ru": "Вид оплаты",
+        "de": "Zahlungsart",
+        "pl": "Forma płatności"
+    },
+    "cash_amount_field": {
+        "en": "Amount",
+        "ru": "Сумма",
+        "de": "Betrag",
+        "pl": "Kwota"
+    },
+    "cash_fee_field": {
+        "en": "Fee withheld",
+        "ru": "Удержанная комиссия",
+        "de": "Einbehaltene Gebühr",
+        "pl": "Potrącona prowizja"
+    },
+    "cash_source_table_field": {
+        "en": "Source type",
+        "ru": "Вид основания",
+        "de": "Belegart",
+        "pl": "Typ podstawy"
+    },
+    "cash_source_field": {
+        "en": "Source document",
+        "ru": "Документ-основание",
+        "de": "Grundlagenbeleg",
+        "pl": "Dokument podstawy"
+    },
+    "cash_direction_field": {
+        "en": "Direction",
+        "ru": "Направление",
+        "de": "Richtung",
+        "pl": "Kierunek"
+    },
+    "cash_dir_in": {
+        "en": "Incoming",
+        "ru": "Поступление",
+        "de": "Eingang",
+        "pl": "Wpływ"
+    },
+    "cash_dir_out": {
+        "en": "Outgoing",
+        "ru": "Списание",
+        "de": "Ausgang",
+        "pl": "Wypływ"
+    },
+    "cash_op_code_field": {
+        "en": "Code",
+        "ru": "Код",
+        "de": "Code",
+        "pl": "Kod"
+    },
+    "cash_tax_category_field": {
+        "en": "Tax category",
+        "ru": "Налоговая категория",
+        "de": "Steuerkategorie",
+        "pl": "Kategoria podatkowa"
+    },
+    "cash_is_prepayment_field": {
+        "en": "Prepayment",
+        "ru": "Предоплата",
+        "de": "Anzahlung",
+        "pl": "Przedpłata"
+    },
+    "cash_is_transfer_field": {
+        "en": "Internal transfer",
+        "ru": "Внутренний перенос",
+        "de": "Interner Transit",
+        "pl": "Przelew wewnętrzny"
+    },
+    "cash_pm_transfer": {
+        "en": "Bank transfer",
+        "ru": "Перевод",
+        "de": "Überweisung",
+        "pl": "Przelew"
+    },
+    "cash_pm_card": {
+        "en": "Card",
+        "ru": "Карта",
+        "de": "Karte",
+        "pl": "Karta"
+    },
+    "cash_pm_cash": {
+        "en": "Cash",
+        "ru": "Наличные",
+        "de": "Bar",
+        "pl": "Gotówka"
+    },
+    "cash_box_kind_field": {
+        "en": "Kind",
+        "ru": "Вид",
+        "de": "Art",
+        "pl": "Rodzaj"
+    },
+    "cash_box_kind_cash": {
+        "en": "Cash box",
+        "ru": "Наличная касса",
+        "de": "Barkasse",
+        "pl": "Kasa gotówkowa"
+    },
+    "cash_box_kind_bank": {
+        "en": "Bank account",
+        "ru": "Банковский счёт",
+        "de": "Bankkonto",
+        "pl": "Rachunek bankowy"
+    },
+    "cash_box_kind_transit": {
+        "en": "Card payments in transit",
+        "ru": "Карточные платежи в пути",
+        "de": "Kartenzahlungen unterwegs",
+        "pl": "Płatności kartą w drodze"
+    },
+    "cash_box_default_field": {
+        "en": "Default",
+        "ru": "По умолчанию",
+        "de": "Standard",
+        "pl": "Domyślne"
+    },
+    "cash_currency_field": {
+        "en": "Currency",
+        "ru": "Валюта",
+        "de": "Währung",
+        "pl": "Waluta"
+    },
+    "reg_cash_caption": {
+        "en": "Cash register",
+        "ru": "Регистр «Деньги»",
+        "de": "Register Geldbestand",
+        "pl": "Rejestr środków pieniężnych"
+    },
+    "cash_receipt_post": {
+        "en": "Post",
+        "ru": "Провести",
+        "de": "Verbuchen",
+        "pl": "Zaksięguj"
+    },
+    "cash_receipt_unpost": {
+        "en": "Unpost",
+        "ru": "Распровести",
+        "de": "Verbuchung aufheben",
+        "pl": "Wycofaj księgowanie"
+    },
+    "cash_receipt_post_close": {
+        "en": "Post and close",
+        "ru": "Провести и закрыть",
+        "de": "Verbuchen und schließen",
+        "pl": "Zaksięguj i zamknij"
+    },
+    "cash_payment_post": {
+        "en": "Post",
+        "ru": "Провести",
+        "de": "Verbuchen",
+        "pl": "Zaksięguj"
+    },
+    "cash_payment_unpost": {
+        "en": "Unpost",
+        "ru": "Распровести",
+        "de": "Verbuchung aufheben",
+        "pl": "Wycofaj księgowanie"
+    },
+    "cash_payment_post_close": {
+        "en": "Post and close",
+        "ru": "Провести и закрыть",
+        "de": "Verbuchen und schließen",
+        "pl": "Zaksięguj i zamknij"
+    },
+    "cash_transfer_post": {
+        "en": "Post",
+        "ru": "Провести",
+        "de": "Verbuchen",
+        "pl": "Zaksięguj"
+    },
+    "cash_transfer_unpost": {
+        "en": "Unpost",
+        "ru": "Распровести",
+        "de": "Verbuchung aufheben",
+        "pl": "Wycofaj księgowanie"
+    },
+    "cash_transfer_post_close": {
+        "en": "Post and close",
+        "ru": "Провести и закрыть",
+        "de": "Verbuchen und schließen",
+        "pl": "Zaksięguj i zamknij"
+    },
+    "cash_err_negative_amount": {
+        "en": "The amount cannot be negative: the direction is set by the document type.",
+        "ru": "Сумма не может быть отрицательной: направление задаёт вид документа.",
+        "de": "Der Betrag darf nicht negativ sein: die Richtung ergibt sich aus der Belegart.",
+        "pl": "Kwota nie może być ujemna: kierunek wynika z rodzaju dokumentu."
+    },
+    "cash_kb_title": {
+        "en": "Cash book",
+        "ru": "Кассовая книга",
+        "de": "Kassenbuch",
+        "pl": "Księga kasowa"
+    },
+    "cash_kb_period": {
+        "en": "Period",
+        "ru": "Период",
+        "de": "Zeitraum",
+        "pl": "Okres"
+    },
+    "cash_kb_opening": {
+        "en": "Opening balance",
+        "ru": "Остаток на начало",
+        "de": "Anfangsbestand",
+        "pl": "Bilans otwarcia"
+    },
+    "cash_kb_closing": {
+        "en": "Closing balance",
+        "ru": "Остаток на конец",
+        "de": "Endbestand",
+        "pl": "Bilans zamknięcia"
+    },
+    "cash_kb_col_date": {
+        "en": "Date",
+        "ru": "Дата",
+        "de": "Datum",
+        "pl": "Data"
+    },
+    "cash_kb_col_number": {
+        "en": "Doc. no.",
+        "ru": "№ документа",
+        "de": "Beleg-Nr.",
+        "pl": "Nr dokumentu"
+    },
+    "cash_kb_col_text": {
+        "en": "Transaction",
+        "ru": "Содержание",
+        "de": "Vorgang",
+        "pl": "Treść"
+    },
+    "cash_kb_col_income": {
+        "en": "Income",
+        "ru": "Приход",
+        "de": "Einnahme",
+        "pl": "Wpływ"
+    },
+    "cash_kb_col_expense": {
+        "en": "Expense",
+        "ru": "Расход",
+        "de": "Ausgabe",
+        "pl": "Wydatek"
+    },
+    "cash_kb_col_balance": {
+        "en": "Balance",
+        "ru": "Остаток",
+        "de": "Bestand",
+        "pl": "Saldo"
+    },
+    "cash_kb_day_total": {
+        "en": "Day total",
+        "ru": "Итог за день",
+        "de": "Tagessumme",
+        "pl": "Suma dnia"
+    },
+    "cash_kb_entered": {
+        "en": "entered",
+        "ru": "введено",
+        "de": "erfasst",
+        "pl": "wprowadzono"
+    },
+    "cash_kb_err_no_cashbox": {
+        "en": "No money location selected",
+        "ru": "Не выбрано место хранения денег",
+        "de": "Kein Zahlungsort ausgewählt",
+        "pl": "Nie wybrano miejsca przechowywania"
+    },
+    "cash_settings_group": {
+        "en": "Cash and payments",
+        "ru": "Деньги и оплаты",
+        "de": "Geld und Zahlungen",
+        "pl": "Pieniądze i płatności"
+    },
+    "cash_settings_taxation_mode": {
+        "en": "Taxation mode (§ 20 UStG)",
+        "ru": "Момент налогообложения (§ 20 UStG)",
+        "de": "Besteuerungsart (§ 20 UStG)",
+        "pl": "Moment opodatkowania (§ 20 UStG)"
+    },
+    "cash_settings_taxation_mode_hint": {
+        "en": "Soll: VAT arises when the service is rendered. Ist: when the payment is received (requires approval by the tax office).",
+        "ru": "Soll: НДС возникает при оказании услуги. Ist: при поступлении оплаты (требует разрешения налоговой).",
+        "de": "Soll: Die Steuer entsteht mit Leistungserbringung. Ist: mit Vereinnahmung des Entgelts (Genehmigung erforderlich).",
+        "pl": "Soll: VAT powstaje w chwili wykonania usługi. Ist: w chwili otrzymania zapłaty (wymaga zgody urzędu)."
+    },
+    "cash_taxation_soll": {
+        "en": "Soll (accrual)",
+        "ru": "Soll (по отгрузке)",
+        "de": "Sollversteuerung",
+        "pl": "Soll (memoriałowo)"
+    },
+    "cash_taxation_ist": {
+        "en": "Ist (cash)",
+        "ru": "Ist (по оплате)",
+        "de": "Istversteuerung",
+        "pl": "Ist (kasowo)"
+    },
+    "cash_op_invoice_payment": {
+        "en": "Invoice payment",
+        "ru": "Оплата по счёту",
+        "de": "Rechnungszahlung",
+        "pl": "Zapłata za fakturę"
+    },
+    "cash_op_prepayment": {
+        "en": "Prepayment",
+        "ru": "Предоплата",
+        "de": "Anzahlung",
+        "pl": "Przedpłata"
+    },
+    "cash_op_prepayment_refund": {
+        "en": "Prepayment refund",
+        "ru": "Возврат предоплаты",
+        "de": "Anzahlungserstattung",
+        "pl": "Zwrot przedpłaty"
+    },
+    "cash_op_deposit": {
+        "en": "Deposit",
+        "ru": "Залог",
+        "de": "Kaution",
+        "pl": "Kaucja"
+    },
+    "cash_op_cancellation_fee": {
+        "en": "Cancellation fee",
+        "ru": "Плата за отмену",
+        "de": "Stornogebühr",
+        "pl": "Opłata za anulowanie"
+    },
+    "cash_op_transit": {
+        "en": "Transfer between locations",
+        "ru": "Перенос между местами хранения",
+        "de": "Umbuchung zwischen Zahlungsorten",
+        "pl": "Przeniesienie między miejscami"
+    },
+    "cash_op_terminal_fee": {
+        "en": "Terminal fee",
+        "ru": "Комиссия терминала",
+        "de": "Terminalgebühr",
+        "pl": "Prowizja terminala"
+    },
+    "cash_check_app_caption": {
+        "en": "Cascade check documents",
+        "ru": "Проверочные документы каскада",
+        "de": "Prüfbelege Kaskade",
+        "pl": "Dokumenty kontrolne kaskady"
+    },
+    "cash_check_record_caption": {
+        "en": "Cascade check document",
+        "ru": "Проверочный документ каскада",
+        "de": "Prüfbeleg Kaskade",
+        "pl": "Dokument kontrolny kaskady"
+    },
+    "cash_check_balance_field": {
+        "en": "Balance at moment",
+        "ru": "Остаток на момент",
+        "de": "Bestand zum Zeitpunkt",
+        "pl": "Saldo na moment"
+    },
+    "cash_check_count_field": {
+        "en": "Times posted",
+        "ru": "Проведений",
+        "de": "Verbuchungen",
+        "pl": "Księgowań"
+    },
+    "cash_check_post": {
+        "en": "Post",
+        "ru": "Провести",
+        "de": "Verbuchen",
+        "pl": "Zaksięguj"
+    },
+    "cash_check_unpost": {
+        "en": "Unpost",
+        "ru": "Распровести",
+        "de": "Verbuchung aufheben",
+        "pl": "Wycofaj księgowanie"
+    },
+    "cash_check_post_close": {
+        "en": "Post and close",
+        "ru": "Провести и закрыть",
+        "de": "Verbuchen und schließen",
+        "pl": "Zaksięguj i zamknij"
+    },
+    "cash_err_zero_amount": {
+        "en": "The amount is zero — there is nothing to post",
+        "ru": "Сумма документа равна нулю — проводить нечего",
+        "de": "Der Betrag ist null — es gibt nichts zu verbuchen",
+        "pl": "Kwota wynosi zero — nie ma czego księgować"
+    },
+    "cash_err_no_cashbox": {
+        "en": "No money location is selected",
+        "ru": "Не указано место хранения денег",
+        "de": "Es ist kein Zahlungsort angegeben",
+        "pl": "Nie wskazano miejsca przechowywania pieniędzy"
+    },
+    "cash_err_zero_transfer": {
+        "en": "The transfer amount is zero — there is nothing to move",
+        "ru": "Сумма переноса равна нулю — переносить нечего",
+        "de": "Der Umbuchungsbetrag ist null — es gibt nichts zu übertragen",
+        "pl": "Kwota przeniesienia wynosi zero — nie ma czego przenosić"
+    },
+    "cash_err_no_transfer_box": {
+        "en": "The money location is missing (from or to)",
+        "ru": "Не указано место хранения (откуда или куда)",
+        "de": "Zahlungsort fehlt (von oder nach)",
+        "pl": "Brak miejsca przechowywania (skąd lub dokąd)"
+    },
+    "cash_err_same_box": {
+        "en": "Moving money to the same location changes nothing",
+        "ru": "Перенос в то же самое место хранения ничего не меняет",
+        "de": "Eine Umbuchung auf denselben Zahlungsort ändert nichts",
+        "pl": "Przeniesienie do tego samego miejsca nic nie zmienia"
+    },
+    "cash_err_fee_too_big": {
+        "en": "The fee is larger than the transfer amount",
+        "ru": "Комиссия больше суммы переноса",
+        "de": "Die Gebühr ist größer als der Umbuchungsbetrag",
+        "pl": "Prowizja jest większa niż kwota przeniesienia"
+    },
+    "reg_settlements_caption": {
+        "en": "Settlements with clients",
+        "ru": "Взаиморасчёты с клиентами",
+        "de": "Verrechnungen mit Kunden",
+        "pl": "Rozrachunki z klientami"
+    },
+    "stl_kind_field": {
+        "en": "Settlement type",
+        "ru": "Вид расчётов",
+        "de": "Verrechnungsart",
+        "pl": "Rodzaj rozrachunku"
+    },
+    "stl_kind_debt": {
+        "en": "Receivable",
+        "ru": "Долг клиента",
+        "de": "Forderung",
+        "pl": "Należność"
+    },
+    "stl_kind_prepayment": {
+        "en": "Prepayment",
+        "ru": "Предоплата",
+        "de": "Anzahlung",
+        "pl": "Przedpłata"
+    },
+    "stl_kind_deposit": {
+        "en": "Deposit",
+        "ru": "Залог",
+        "de": "Kaution",
+        "pl": "Kaucja"
+    },
+    "stl_kind_none": {
+        "en": "Not a settlement",
+        "ru": "Не расчёты с клиентом",
+        "de": "Keine Kundenverrechnung",
+        "pl": "Nie dotyczy rozrachunków"
+    }
+}

@@ -7,63 +7,192 @@
                 "entityType": "document",
                 "immutable": {
                     "field": "status",
-                    "when": ["issued", "paid", "cancelled", "void"],
-                    "except": ["status", "paidAt", "issuedAt"],
+                    "when": [
+                        "issued",
+                        "paid",
+                        "cancelled",
+                        "void"
+                    ],
+                    "except": [
+                        "status",
+                        "paidAt",
+                        "issuedAt"
+                    ],
                     "transitions": {
-                        "draft": ["issued"],
-                        "issued": ["paid", "cancelled", "void"],
-                        "paid": ["cancelled"]
+                        "draft": [
+                            "issued"
+                        ],
+                        "issued": [
+                            "paid",
+                            "cancelled",
+                            "void"
+                        ],
+                        "paid": [
+                            "cancelled"
+                        ]
                     },
-                    "deletable": ["draft"],
-                    "formEditable": ["paidAt"],
-                    "commandStates": ["issued", "cancelled", "void"]
+                    "deletable": [
+                        "draft"
+                    ],
+                    "formEditable": [
+                        "paidAt"
+                    ],
+                    "commandStates": [
+                        "issued",
+                        "cancelled",
+                        "void"
+                    ]
                 },
                 "invalidate": {
                     "status": "void",
-                    "from": ["issued"],
-                    "notice": { "i18n": "invoice_void_notice" },
+                    "from": [
+                        "issued"
+                    ],
+                    "notice": {
+                        "i18n": "invoice_void_notice"
+                    },
                     "titleSelector": "h2"
                 },
                 "rowTones": [
-                    { "when": { "field": "status", "in": ["void"] }, "tone": "rose" },
-                    { "when": { "field": "status", "in": ["cancelled"] }, "tone": "red" },
-                    { "when": { "field": "correctionKind", "in": ["storno"] }, "tone": "redDark" },
-                    { "when": { "field": "correctionKind", "in": ["correction"] }, "tone": "pink" },
-                    { "when": { "field": "status", "in": ["paid"] }, "tone": "green" },
-                    { "when": { "field": "status", "in": ["draft"] }, "tone": "yellow" }
+                    {
+                        "when": {
+                            "field": "status",
+                            "in": [
+                                "void"
+                            ]
+                        },
+                        "tone": "rose"
+                    },
+                    {
+                        "when": {
+                            "field": "status",
+                            "in": [
+                                "cancelled"
+                            ]
+                        },
+                        "tone": "red"
+                    },
+                    {
+                        "when": {
+                            "field": "correctionKind",
+                            "in": [
+                                "storno"
+                            ]
+                        },
+                        "tone": "redDark"
+                    },
+                    {
+                        "when": {
+                            "field": "correctionKind",
+                            "in": [
+                                "correction"
+                            ]
+                        },
+                        "tone": "pink"
+                    },
+                    {
+                        "when": {
+                            "field": "status",
+                            "in": [
+                                "paid"
+                            ]
+                        },
+                        "tone": "green"
+                    },
+                    {
+                        "when": {
+                            "field": "status",
+                            "in": [
+                                "draft"
+                            ]
+                        },
+                        "tone": "yellow"
+                    }
                 ],
                 "storno": {
                     "link": "correctsInvoiceId",
                     "kindField": "correctionKind",
                     "kindValue": "storno",
-                    "negate": ["prepayment"],
+                    "negate": [
+                        "prepayment"
+                    ],
                     "cancelStatus": "cancelled",
-                    "copyExclude": ["status", "issuedAt", "paidAt", "correctsInvoiceId", "correctionKind"],
+                    "copyExclude": [
+                        "status",
+                        "issuedAt",
+                        "paidAt",
+                        "correctsInvoiceId",
+                        "correctionKind"
+                    ],
                     "hook": "invoice.onStorno"
                 },
                 "correction": {
                     "link": "correctsInvoiceId",
                     "kindField": "correctionKind",
                     "kindValue": "correction",
-                    "copyExclude": ["status", "issuedAt", "paidAt", "correctsInvoiceId", "correctionKind"],
+                    "copyExclude": [
+                        "status",
+                        "issuedAt",
+                        "paidAt",
+                        "correctsInvoiceId",
+                        "correctionKind"
+                    ],
                     "difference": {
                         "section": "invoice_lines",
                         "targetTable": "invoice_target_lines",
-                        "targetCaption": { "i18n": "invoice_target_lines_tab" },
-                        "matchBy": ["serviceId", "bookingRoomId", "taxComponentName", "taxRate", "taxCategoryId", "unitPrice"],
+                        "targetCaption": {
+                            "i18n": "invoice_target_lines_tab"
+                        },
+                        "matchBy": [
+                            "serviceId",
+                            "bookingRoomId",
+                            "taxComponentName",
+                            "taxRate",
+                            "taxCategoryId",
+                            "unitPrice"
+                        ],
                         "quantity": "quantity",
                         "price": "unitPrice",
                         "amount": "amount",
                         "order": "sortOrder"
                     }
                 },
-                "auditLog": true
+                "auditLog": true,
+                "posting": {
+                    "//": "Для счёта «выставлен» = «проведён» (ТЗ §5.3). Команда на форме называется «Выставить», а не «Провести»: подписи объявляются потаблично.",
+                    "mode": "manual",
+                    "handler": "invoice.postIssue",
+                    "unpost": [],
+                    "captions": {
+                        "post": {
+                            "i18n": "issue_invoice_btn"
+                        },
+                        "unpost": {
+                            "i18n": "posting_cmd_unpost"
+                        },
+                        "postAndClose": {
+                            "i18n": "invoice_issue_and_close_btn"
+                        },
+                        "state": {
+                            "i18n": "posting_state_field"
+                        }
+                    },
+                    "writes": [
+                        "reg_settlements"
+                    ],
+                    "writesTables": [],
+                    "depends": [],
+                    "statusOnPost": "issued",
+                    "statusOnUnpost": null
+                }
             },
             "fields": {
                 "name": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "name_field" }
+                    "caption": {
+                        "i18n": "name_field"
+                    }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -74,7 +203,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "hotelId": {
                     "type": "STRING",
@@ -85,7 +216,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": { "i18n": "Hotel" }
+                    "caption": {
+                        "i18n": "Hotel"
+                    }
                 },
                 "clientId": {
                     "type": "STRING",
@@ -96,64 +229,113 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": { "i18n": "Client" }
+                    "caption": {
+                        "i18n": "Client"
+                    }
                 },
                 "dueDate": {
                     "type": "DATEONLY",
                     "allowNull": true,
-                    "caption": { "i18n": "due_date" }
+                    "caption": {
+                        "i18n": "due_date"
+                    }
                 },
                 "status": {
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "draft",
-                    "caption": { "i18n": "Status" },
+                    "caption": {
+                        "i18n": "Status"
+                    },
                     "inputType": "emunList",
                     "options": [
-                        { "value": "draft",     "caption": { "i18n": "invoice_status_draft" } },
-                        { "value": "issued",    "caption": { "i18n": "invoice_status_issued" } },
-                        { "value": "paid",      "caption": { "i18n": "invoice_status_paid" } },
-                        { "value": "cancelled", "caption": { "i18n": "invoice_status_cancelled" } },
-                        { "value": "void",      "caption": { "i18n": "invoice_status_void" } }
+                        {
+                            "value": "draft",
+                            "caption": {
+                                "i18n": "invoice_status_draft"
+                            }
+                        },
+                        {
+                            "value": "issued",
+                            "caption": {
+                                "i18n": "invoice_status_issued"
+                            }
+                        },
+                        {
+                            "value": "paid",
+                            "caption": {
+                                "i18n": "invoice_status_paid"
+                            }
+                        },
+                        {
+                            "value": "cancelled",
+                            "caption": {
+                                "i18n": "invoice_status_cancelled"
+                            }
+                        },
+                        {
+                            "value": "void",
+                            "caption": {
+                                "i18n": "invoice_status_void"
+                            }
+                        }
                     ]
                 },
                 "prepayment": {
                     "type": "DECIMAL(12,2)",
                     "allowNull": false,
                     "defaultValue": 0,
-                    "caption": { "i18n": "prepayment_field" }
+                    "caption": {
+                        "i18n": "prepayment_field"
+                    }
                 },
                 "notes": {
                     "type": "TEXT",
                     "allowNull": true,
-                    "caption": { "i18n": "Notes" }
+                    "caption": {
+                        "i18n": "Notes"
+                    }
                 },
                 "discountValue": {
                     "type": "DECIMAL(12,2)",
                     "allowNull": false,
                     "defaultValue": 0,
-                    "caption": { "i18n": "discount_value_field" }
+                    "caption": {
+                        "i18n": "discount_value_field"
+                    }
                 },
                 "discountMode": {
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "percent",
-                    "caption": { "i18n": "discount_mode_field" },
+                    "caption": {
+                        "i18n": "discount_mode_field"
+                    },
                     "inputType": "emunList",
                     "options": [
-                        { "value": "percent", "caption": "%" },
-                        { "value": "amount",  "caption": "€" }
+                        {
+                            "value": "percent",
+                            "caption": "%"
+                        },
+                        {
+                            "value": "amount",
+                            "caption": "€"
+                        }
                     ]
                 },
                 "issuedAt": {
                     "type": "DATE",
                     "allowNull": true,
-                    "caption": { "i18n": "invoice_issued_at" }
+                    "caption": {
+                        "i18n": "invoice_issued_at"
+                    }
                 },
                 "paidAt": {
                     "type": "DATE",
                     "allowNull": true,
-                    "caption": { "i18n": "invoice_paid_at" }
+                    "caption": {
+                        "i18n": "invoice_paid_at"
+                    }
                 },
                 "correctsInvoiceId": {
                     "type": "STRING",
@@ -164,16 +346,30 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": { "i18n": "invoice_corrects_field" }
+                    "caption": {
+                        "i18n": "invoice_corrects_field"
+                    }
                 },
                 "correctionKind": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "invoice_correction_kind_field" },
+                    "caption": {
+                        "i18n": "invoice_correction_kind_field"
+                    },
                     "inputType": "emunList",
                     "options": [
-                        { "value": "storno", "caption": { "i18n": "invoice_kind_storno" } },
-                        { "value": "correction", "caption": { "i18n": "invoice_kind_correction" } }
+                        {
+                            "value": "storno",
+                            "caption": {
+                                "i18n": "invoice_kind_storno"
+                            }
+                        },
+                        {
+                            "value": "correction",
+                            "caption": {
+                                "i18n": "invoice_kind_correction"
+                            }
+                        }
                     ]
                 },
                 "reportVariantId": {
@@ -185,7 +381,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": { "i18n": "report_variant_field" }
+                    "caption": {
+                        "i18n": "report_variant_field"
+                    }
                 }
             },
             "options": {
@@ -205,7 +403,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "invoiceId": {
                     "type": "STRING",
@@ -216,7 +416,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Invoice" }
+                    "caption": {
+                        "i18n": "Invoice"
+                    }
                 },
                 "bookingId": {
                     "type": "STRING",
@@ -227,13 +429,17 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": { "i18n": "booking_ref" }
+                    "caption": {
+                        "i18n": "booking_ref"
+                    }
                 }
             },
             "tabularSection": {
                 "parentTable": "invoices",
                 "parentField": "invoiceId",
-                "caption": { "i18n": "invoice_bookings_tab" }
+                "caption": {
+                    "i18n": "invoice_bookings_tab"
+                }
             },
             "options": {
                 "timestamps": true
@@ -244,14 +450,19 @@
             "tableName": "invoice_lines",
             "entityConfig": {
                 "storno": {
-                    "negate": ["quantity", "amount"]
+                    "negate": [
+                        "quantity",
+                        "amount"
+                    ]
                 }
             },
             "fields": {
                 "label": {
                     "type": "STRING",
                     "allowNull": false,
-                    "caption": { "i18n": "Description" }
+                    "caption": {
+                        "i18n": "Description"
+                    }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -262,7 +473,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Organization" }
+                    "caption": {
+                        "i18n": "Organization"
+                    }
                 },
                 "invoiceId": {
                     "type": "STRING",
@@ -273,7 +486,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "CASCADE",
-                    "caption": { "i18n": "Invoice" }
+                    "caption": {
+                        "i18n": "Invoice"
+                    }
                 },
                 "bookingId": {
                     "type": "STRING",
@@ -284,7 +499,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": { "i18n": "booking_ref" }
+                    "caption": {
+                        "i18n": "booking_ref"
+                    }
                 },
                 "bookingRoomId": {
                     "type": "STRING",
@@ -295,17 +512,23 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": { "i18n": "booking_room_ref" }
+                    "caption": {
+                        "i18n": "booking_room_ref"
+                    }
                 },
                 "sectionLabel": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "section_label" }
+                    "caption": {
+                        "i18n": "section_label"
+                    }
                 },
                 "taxComponentName": {
                     "type": "STRING",
                     "allowNull": true,
-                    "caption": { "i18n": "tax_component_name" }
+                    "caption": {
+                        "i18n": "tax_component_name"
+                    }
                 },
                 "serviceId": {
                     "type": "STRING",
@@ -316,7 +539,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": { "i18n": "Service" }
+                    "caption": {
+                        "i18n": "Service"
+                    }
                 },
                 "guestTypeId": {
                     "type": "STRING",
@@ -327,17 +552,23 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "SET NULL",
-                    "caption": { "i18n": "guest_type_field" }
+                    "caption": {
+                        "i18n": "guest_type_field"
+                    }
                 },
                 "quantity": {
                     "type": "FLOAT",
                     "allowNull": false,
-                    "caption": { "i18n": "Quantity" }
+                    "caption": {
+                        "i18n": "Quantity"
+                    }
                 },
                 "unitPrice": {
                     "type": "DECIMAL(12,2)",
                     "allowNull": false,
-                    "caption": { "i18n": "unit_price" }
+                    "caption": {
+                        "i18n": "unit_price"
+                    }
                 },
                 "taxRateId": {
                     "type": "STRING",
@@ -348,7 +579,9 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": { "i18n": "tax_rate" }
+                    "caption": {
+                        "i18n": "tax_rate"
+                    }
                 },
                 "taxCategoryId": {
                     "type": "STRING",
@@ -359,30 +592,40 @@
                     },
                     "onUpdate": "CASCADE",
                     "onDelete": "RESTRICT",
-                    "caption": { "i18n": "tax_category" }
+                    "caption": {
+                        "i18n": "tax_category"
+                    }
                 },
                 "taxRate": {
                     "type": "DECIMAL(5,2)",
                     "allowNull": false,
                     "defaultValue": 0,
-                    "caption": { "i18n": "vat_rate_field" }
+                    "caption": {
+                        "i18n": "vat_rate_field"
+                    }
                 },
                 "amount": {
                     "type": "DECIMAL(12,2)",
                     "allowNull": false,
-                    "caption": { "i18n": "Amount" }
+                    "caption": {
+                        "i18n": "Amount"
+                    }
                 },
                 "sortOrder": {
                     "type": "INTEGER",
                     "allowNull": false,
                     "defaultValue": 0,
-                    "caption": { "i18n": "sort_order" }
+                    "caption": {
+                        "i18n": "sort_order"
+                    }
                 }
             },
             "tabularSection": {
                 "parentTable": "invoices",
                 "parentField": "invoiceId",
-                "caption": { "i18n": "invoice_lines_tab" }
+                "caption": {
+                    "i18n": "invoice_lines_tab"
+                }
             },
             "options": {
                 "timestamps": false

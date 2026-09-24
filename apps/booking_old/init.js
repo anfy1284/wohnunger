@@ -337,7 +337,7 @@ module.exports = async function (modelsDB) {
                 var result = await callServer('reports.actions', 'generateInvoiceHTML', { bookingId: bookingId });
                 if (result.error) { showAlert('Ошибка: ' + result.error); return; }
 
-                // Открываем в Win95-окне printPreview
+                // Открываем в ретро-окне printPreview
                 if (window.MySpace && typeof window.MySpace.open === 'function') {
                     await window.MySpace.open('printPreview', { html: result.html });
                 }

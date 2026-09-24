@@ -1,0 +1,193 @@
+[
+    {
+        "type": "commandBar",
+        "extraButtons": [
+            {
+                "name": "btnPost",
+                "command": "post",
+                "confirm": false,
+                "caption": {
+                    "i18n": "cash_transfer_post"
+                },
+                "icon": "/apps/general_icons/resources/public/16x16/post.png",
+                "enabledWhen": {
+                    "field": "postingState",
+                    "in": [
+                        "notPosted",
+                        "error"
+                    ]
+                }
+            },
+            {
+                "name": "btnUnpost",
+                "command": "unpost",
+                "confirm": false,
+                "caption": {
+                    "i18n": "cash_transfer_unpost"
+                },
+                "icon": "/apps/general_icons/resources/public/16x16/unpost.png",
+                "enabledWhen": {
+                    "field": "postingState",
+                    "in": [
+                        "posted"
+                    ]
+                }
+            },
+            {
+                "name": "btnMovements",
+                "command": "movements",
+                "confirm": false,
+                "caption": {
+                    "i18n": "mv_command"
+                },
+                "icon": "/apps/general_icons/resources/public/16x16/register.png"
+            }
+        ]
+    },
+    {
+        "type": "group",
+        "caption": "",
+        "noBorder": true,
+        "orientation": "horizontal",
+        "layout": [
+            {
+                "type": "group",
+                "caption": "",
+                "noBorder": true,
+                "alignFields": true,
+                "orientation": "vertical",
+                "layout": [
+                    {
+                        "type": "textbox",
+                        "name": "number",
+                        "data": "number",
+                        "caption": {
+                            "i18n": "number_field"
+                        }
+                    },
+                    {
+                        "type": "date",
+                        "name": "date",
+                        "data": "date",
+                        "caption": {
+                            "i18n": "document_date_field"
+                        }
+                    },
+                    {
+                        "type": "date",
+                        "name": "operationDate",
+                        "data": "operationDate",
+                        "caption": {
+                            "i18n": "cash_operation_date_field"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "group",
+                "caption": "",
+                "noBorder": true,
+                "alignFields": true,
+                "orientation": "vertical",
+                "layout": [
+                    {
+                        "type": "recordSelector",
+                        "name": "fromCashboxId",
+                        "data": "fromCashboxId",
+                        "caption": {
+                            "i18n": "cash_from_cashbox_field"
+                        },
+                        "properties": {
+                            "selection": {
+                                "table": "cashboxes",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    },
+                    {
+                        "type": "recordSelector",
+                        "name": "toCashboxId",
+                        "data": "toCashboxId",
+                        "caption": {
+                            "i18n": "cash_to_cashbox_field"
+                        },
+                        "properties": {
+                            "selection": {
+                                "table": "cashboxes",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    },
+                    {
+                        "type": "number",
+                        "name": "amount",
+                        "data": "amount",
+                        "caption": {
+                            "i18n": "cash_amount_field"
+                        }
+                    },
+                    {
+                        "type": "number",
+                        "name": "feeAmount",
+                        "data": "feeAmount",
+                        "caption": {
+                            "i18n": "cash_fee_field"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "group",
+                "caption": "",
+                "noBorder": true,
+                "alignFields": true,
+                "orientation": "vertical",
+                "layout": [
+                    {
+                        "type": "recordSelector",
+                        "name": "organizationId",
+                        "data": "organizationId",
+                        "caption": {
+                            "i18n": "Organization"
+                        },
+                        "properties": {
+                            "selection": {
+                                "table": "organizations",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    },
+                    {
+                        "type": "recordSelector",
+                        "name": "hotelId",
+                        "data": "hotelId",
+                        "caption": {
+                            "i18n": "Hotel"
+                        },
+                        "properties": {
+                            "selection": {
+                                "table": "hotels",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "textbox",
+        "name": "comment",
+        "data": "comment",
+        "caption": {
+            "i18n": "Notes"
+        },
+        "properties": {
+            "multiline": true
+        }
+    }
+]

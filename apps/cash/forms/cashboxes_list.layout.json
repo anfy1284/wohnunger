@@ -1,0 +1,21 @@
+[
+    {
+        "type": "table",
+        "name": "journal",
+        "properties": {
+            "dynamicTable": true,
+            "appName": "uniForm",
+            "tableName": "cashboxes",
+            "readOnly": true,
+            "visibleRows": 20,
+            "showToolbar": true,
+            "fields": [
+                "name",
+                "kind",
+                "currency",
+                "isDefault",
+                "comment"
+            ]
+        }
+    }
+]
