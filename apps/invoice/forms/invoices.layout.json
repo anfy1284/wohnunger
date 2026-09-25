@@ -15,7 +15,10 @@
                     "field": "status",
                     "in": [
                         "draft"
-                    ]
+                    ],
+                    "reason": {
+                        "i18n": "invoice_only_draft"
+                    }
                 }
             },
             {
@@ -38,7 +41,10 @@
                     "field": "status",
                     "in": [
                         "draft"
-                    ]
+                    ],
+                    "reason": {
+                        "i18n": "invoice_only_draft"
+                    }
                 },
                 "command": "post",
                 "confirm": {
@@ -58,7 +64,10 @@
                     "field": "status",
                     "in": [
                         "draft"
-                    ]
+                    ],
+                    "reason": {
+                        "i18n": "invoice_only_draft"
+                    }
                 }
             },
             {
@@ -76,7 +85,10 @@
                     "in": [
                         "issued",
                         "paid"
-                    ]
+                    ],
+                    "reason": {
+                        "i18n": "invoice_only_issued"
+                    }
                 }
             },
             {
@@ -94,24 +106,10 @@
                     "in": [
                         "issued",
                         "paid"
-                    ]
-                }
-            },
-            {
-                "name": "btnInvalidate",
-                "caption": {
-                    "i18n": "void_invoice_btn"
-                },
-                "icon": "/apps/booking_icons/resources/public/16x16/invoice_void.png",
-                "command": "invalidate",
-                "confirm": {
-                    "i18n": "void_invoice_confirm"
-                },
-                "enabledWhen": {
-                    "field": "status",
-                    "in": [
-                        "issued"
-                    ]
+                    ],
+                    "reason": {
+                        "i18n": "invoice_only_issued"
+                    }
                 }
             },
             {

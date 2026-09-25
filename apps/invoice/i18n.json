@@ -197,6 +197,18 @@
         "de": "Ausstellen",
         "pl": "Wystaw"
     },
+    "invoice_only_draft": {
+        "en": "Only possible while the invoice is still a draft.",
+        "ru": "Доступно, пока счёт в статусе «Черновик».",
+        "de": "Nur möglich, solange die Rechnung ein Entwurf ist.",
+        "pl": "Możliwe tylko, dopóki faktura jest wersją roboczą."
+    },
+    "invoice_only_issued": {
+        "en": "Only possible once the invoice has been issued. Issue it first.",
+        "ru": "Доступно только для выставленного или оплаченного счёта. Сначала выставьте его.",
+        "de": "Nur möglich, wenn die Rechnung ausgestellt oder bezahlt ist. Stelle sie zuerst aus.",
+        "pl": "Możliwe tylko wtedy, gdy faktura jest wystawiona lub opłacona. Najpierw ją wystaw."
+    },
     "issue_and_print_invoice_btn": {
         "en": "Issue and print",
         "ru": "Выставить и напечатать",
