@@ -72,16 +72,16 @@
         "pl": "Wypełnij"
     },
     "invoice_bookings_changed_refill": {
-        "en": "The bookings of the invoice have changed. Refill the invoice lines from them? Manual corrections of the lines will be lost.",
-        "ru": "Брони счёта изменились. Перезаполнить строки счёта по ним? Ручные правки строк будут потеряны.",
-        "de": "Die Buchungen der Rechnung wurden geändert. Rechnungspositionen danach neu ausfüllen? Manuelle Korrekturen der Positionen gehen verloren.",
-        "pl": "Rezerwacje faktury zostały zmienione. Wypełnić pozycje faktury od nowa? Ręczne poprawki pozycji zostaną utracone."
+        "en": "The bookings of the invoice have changed. Refill the invoice lines from them? Manual corrections of lines from bookings will be lost; lines added without a booking are kept.",
+        "ru": "Брони счёта изменились. Перезаполнить строки счёта по ним? Ручные правки строк из броней будут потеряны; строки, добавленные без брони, останутся.",
+        "de": "Die Buchungen der Rechnung wurden geändert. Rechnungspositionen danach neu ausfüllen? Manuelle Korrekturen an Positionen aus Buchungen gehen verloren; ohne Buchung hinzugefügte Positionen bleiben erhalten.",
+        "pl": "Rezerwacje faktury zostały zmienione. Wypełnić pozycje faktury od nowa? Ręczne poprawki pozycji z rezerwacji zostaną utracone; pozycje dodane bez rezerwacji pozostaną."
     },
     "refill_lines_warning": {
-        "en": "Invoice lines will be refilled, manual corrections will be lost. Continue?",
-        "ru": "Строки счёта будут перезаполнены, ручные корректировки будут потеряны. Продолжить?",
-        "de": "Die Rechnungspositionen werden neu befüllt, manuelle Korrekturen gehen verloren. Fortfahren?",
-        "pl": "Pozycje rachunku zostaną wypełnione ponownie, ręczne poprawki zostaną utracone. Kontynuować?"
+        "en": "Invoice lines from bookings will be refilled, manual corrections of them will be lost. Lines added without a booking are kept. Continue?",
+        "ru": "Строки счёта из броней будут перезаполнены, ручные правки в них будут потеряны. Строки, добавленные без брони, останутся. Продолжить?",
+        "de": "Die Positionen aus Buchungen werden neu befüllt, manuelle Korrekturen daran gehen verloren. Ohne Buchung hinzugefügte Positionen bleiben erhalten. Fortfahren?",
+        "pl": "Pozycje z rezerwacji zostaną wypełnione ponownie, ręczne poprawki w nich zostaną utracone. Pozycje dodane bez rezerwacji pozostaną. Kontynuować?"
     },
     "invoice_not_found": {
         "en": "Invoice not found",
@@ -190,6 +190,12 @@
         "ru": "Бронь № {{number}}, {{from}} – {{to}}",
         "de": "Buchung Nr. {{number}}, {{from}} – {{to}}",
         "pl": "Rezerwacja nr {{number}}, {{from}} – {{to}}"
+    },
+    "invoice_section_other": {
+        "en": "Other services",
+        "ru": "Прочие услуги",
+        "de": "Weitere Leistungen",
+        "pl": "Inne usługi"
     },
     "services_skipped_title": {
         "en": "Please check the invoice — some items were not charged:",

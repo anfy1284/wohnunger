@@ -91,7 +91,9 @@ function renderInvoiceHTML({ invoice, bookings, invoiceBookings, client, hotel, 
 
     // Строки печатаются КАК ХРАНЯТСЯ (WYSIWYG). При НЕСКОЛЬКИХ бронях —
     // посекционно (заголовок «Buchung Nr. X, даты» + строки этой брони);
-    // строки без bookingId (ручные) — в конце без заголовка. Одна бронь — без секций.
+    // строки без bookingId (дописанные вручную, вне брони) — в конце своим разделом
+    // «Weitere Leistungen» (решение владельца 21.10.2026: выставлено вне брони —
+    // и печатается вне брони, а не хвостом последней из них). Одна бронь — без секций.
     // Свод MwSt (taxGroups) считается из тех же строк.
     const sectionsOf = (src) => {
         const out = [];
@@ -107,7 +109,7 @@ function renderInvoiceHTML({ invoice, bookings, invoiceBookings, client, hotel, 
                 });
             }
             const orphan = src.filter(ln => !ln.bookingId || !bookings.some(b => b.UID === ln.bookingId));
-            if (orphan.length) out.push({ header: null, lines: orphan });
+            if (orphan.length) out.push({ header: tf('invoice_section_other'), lines: orphan });
         } else {
             out.push({ header: null, lines: src });
         }

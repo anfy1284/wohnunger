@@ -290,6 +290,31 @@ module.exports = function (modelsDB, Utilities) {
         });
         allLines.length = 0;
         allLines.push(...limited.lines);
+        const fromBookingsCount = allLines.length;
+
+        // СТРОКИ ВНЕ БРОНИ ОСТАЮТСЯ (решение владельца 21.10.2026). Строку без
+        // брони дописал в счёт человек: бронь её не заказывала, в регистр услуг
+        // она не пишется (`writeServicesIssued`), и пересчёт «по броням» ей не
+        // источник — стереть её значило бы потерять то, что заполнение заново
+        // не вернёт. Ручная правка строки ИЗ брони по-прежнему перезаписывается:
+        // у неё источник есть.
+        const kept = await modelsDB.InvoiceLines.findAll({
+            where: { invoiceId }, order: [['sortOrder', 'ASC']], raw: true
+        });
+        for (const ln of (kept || [])) {
+            if (ln.bookingId) continue;
+            const copy = Object.assign({}, ln);
+            delete copy.createdAt; delete copy.updatedAt;
+            // Подписи ссылочных ячеек — как у заполненных строк (`collapse`),
+            // иначе форма после «Заполнить» показала бы в них UID.
+            const rr = copy.taxRateId ? taxRateRows.find(r => r.UID === copy.taxRateId) : null;
+            if (rr) copy.__taxRateId_display = rr.name;
+            if (copy.serviceId) {
+                const svc = await modelsDB.Services.findByPk(copy.serviceId, { raw: true });
+                if (svc) copy.__serviceId_display = svc.name;
+            }
+            allLines.push(copy);
+        }
 
         allLines.forEach((ln, i) => {
             ln.invoiceId = invoiceId;
@@ -387,7 +412,7 @@ module.exports = function (modelsDB, Utilities) {
         // уже выставлены, обязательно: это нормальный исход («второй счёт по той
         // же брони»), и он выглядит в точности как сбой.
         const alreadyNotice = limited.droppedCount
-            ? await tfForSession(allLines.length ? 'invoice_partly_invoiced' : 'invoice_all_invoiced',
+            ? await tfForSession(fromBookingsCount ? 'invoice_partly_invoiced' : 'invoice_all_invoiced',
                 ctx.sessionID, { count: limited.droppedCount })
             : null;
         // Строки «Buchungen» — со скидками броней, которые заполнение могло вписать.
