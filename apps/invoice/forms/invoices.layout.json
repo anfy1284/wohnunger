@@ -46,10 +46,7 @@
                         "i18n": "invoice_only_draft"
                     }
                 },
-                "command": "post",
-                "confirm": {
-                    "i18n": "issue_invoice_confirm"
-                }
+                "command": "post"
             },
             {
                 "name": "btnIssueAndPrint",
@@ -369,12 +366,15 @@
                                         "data": "prepayment",
                                         "caption": {
                                             "i18n": "prepayment_field"
+                                        },
+                                        "events": {
+                                            "onChange": "onTotalsFieldChanged"
                                         }
                                     },
                                     {
                                         "type": "group",
                                         "caption": {
-                                            "i18n": "discount_value_field"
+                                            "i18n": "invoice_extra_discount"
                                         },
                                         "noBorder": true,
                                         "orientation": "horizontal",
@@ -386,6 +386,9 @@
                                                 "caption": "",
                                                 "properties": {
                                                     "width": 90
+                                                },
+                                                "events": {
+                                                    "onChange": "onTotalsFieldChanged"
                                                 }
                                             },
                                             {
@@ -395,6 +398,9 @@
                                                 "caption": "",
                                                 "properties": {
                                                     "width": 60
+                                                },
+                                                "events": {
+                                                    "onChange": "onTotalsFieldChanged"
                                                 },
                                                 "options": [
                                                     {
@@ -408,6 +414,21 @@
                                                 ]
                                             }
                                         ]
+                                    },
+                                    {
+                                        "//": "СУММА К ОПЛАТЕ — РЕКВИЗИТ ФОРМЫ (колонки такой нет и быть не должно: значение выводится из строк, скидки и предоплаты). То же число, которое печатается в «Gesamtbetrag»/«Zu zahlen»: нижняя строка таблицы — это сумма КОЛОНКИ, и скидка в неё не входит, поэтому экран и печать расходились (решение владельца 17.10.2026). Считает сервер (`payable`), клиент только показывает — второй калькулятор разошёлся бы с печатью.",
+                                        "type": "number",
+                                        "name": "payableAmount",
+                                        "data": "payableAmount",
+                                        "attribute": true,
+                                        "readOnly": true,
+                                        "caption": {
+                                            "i18n": "invoice_payable_field"
+                                        },
+                                        "properties": {
+                                            "width": 120,
+                                            "decimals": 2
+                                        }
                                     }
                                 ]
                             }
@@ -463,7 +484,10 @@
                                                 },
                                                 "data": "quantity",
                                                 "width": 90,
-                                                "inputType": "number"
+                                                "inputType": "number",
+                                                "events": {
+                                                    "onChange": "onTargetLineQtyOrPriceEdited"
+                                                }
                                             },
                                             {
                                                 "caption": {
@@ -471,7 +495,10 @@
                                                 },
                                                 "data": "unitPrice",
                                                 "width": 100,
-                                                "inputType": "number"
+                                                "inputType": "number",
+                                                "events": {
+                                                    "onChange": "onTargetLineQtyOrPriceEdited"
+                                                }
                                             },
                                             {
                                                 "caption": {
@@ -634,6 +661,36 @@
                                                         "idField": "UID",
                                                         "displayField": "name"
                                                     }
+                                                },
+                                                "events": {
+                                                    "onChange": "onBookingsChanged"
+                                                }
+                                            },
+                                            {
+                                                "caption": {
+                                                    "i18n": "booking_discount_column"
+                                                },
+                                                "tooltip": {
+                                                    "i18n": "booking_discount_column_hint"
+                                                },
+                                                "data": "discountValue",
+                                                "width": 100,
+                                                "inputType": "number",
+                                                "events": {
+                                                    "onChange": "onBookingDiscountEdited"
+                                                }
+                                            },
+                                            {
+                                                "caption": " ",
+                                                "data": "discountMode",
+                                                "width": 60,
+                                                "inputType": "emunList",
+                                                "options": [
+                                                    { "value": "percent", "caption": "%" },
+                                                    { "value": "amount", "caption": "€" }
+                                                ],
+                                                "events": {
+                                                    "onChange": "onBookingDiscountEdited"
                                                 }
                                             }
                                         ],
@@ -647,6 +704,10 @@
                                                 "listSettings",
                                                 "recordOpen"
                                             ]
+                                        },
+                                        "//events": "Изменилась ТЧ «Buchungen» — бронь выбрана/заменена (onChange колонки выше) или строка удалена (onRowDeleted, событие ядра): счёт предлагает перезаполнить строки «Ausfüllen» (решение владельца 21.10.2026).",
+                                        "events": {
+                                            "onRowDeleted": "onBookingsChanged"
                                         }
                                     }
                                 ]

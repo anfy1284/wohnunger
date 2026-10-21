@@ -50,15 +50,12 @@ async function printKassenbuch(ev, ctx) {
         // 30-й (31-й) день месяца не попадал в книгу вместе с конечным
         // остатком. Границы считает ядро (MySpace.startOfMonth/endOfMonth),
         // чтобы правило было одно на всю программу.
-        var now = new Date();
-        var from = window.MySpace.startOfMonth(now);
-        var to = window.MySpace.endOfMonth(now);
-
+        //
+        // Период не передаём: «текущий месяц» считает СЕРВЕР по своим часам
+        // (правило владельца 15.10.2026 — автоматическая дата только с сервера).
         var res = await window.callServer('__REPORT_SCRIPT__', 'build', {
             cashboxId: cashboxId,
-            organizationId: organizationId,
-            from: from.toISOString(),
-            to: to.toISOString()
+            organizationId: organizationId
         });
         if (!res || res.error) {
             showAlert(__t('Error: ') + ((res && res.error) || ''));

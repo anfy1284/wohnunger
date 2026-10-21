@@ -34,30 +34,18 @@ module.exports = async function (modelsDB) {
         // чистом модуле-фабрике, который грузят оба процесса.
 
         // ── Представления (поле name) ─────────────────────────────────────
-        // Номер + дата операции + сумма: по этой строке документ узнаётся в
-        // списке ссылок и в кассовой книге.
-        const money = require('../../node_modules/my-old-space/drive_root/db/money');
-        function cashPresentation(data) {
-            const parts = [];
-            if (data.number) parts.push(String(data.number));
-            const d = data.operationDate ? new Date(data.operationDate) : null;
-            if (d && !isNaN(d.getTime())) {
-                const p = n => String(n).padStart(2, '0');
-                parts.push(`${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`);
-            }
-            if (data.amount !== undefined && data.amount !== null) {
-                parts.push(money.db(money.num(data.amount)));
-            }
-            return parts.join(' ');
-        }
-        entityHooks.registerPresentation('cash_receipts', async (data) => cashPresentation(data));
-        entityHooks.registerPresentation('cash_payments', async (data) => cashPresentation(data));
-        entityHooks.registerPresentation('cash_transfers', async (data) => cashPresentation(data));
+        // ЗДЕСЬ ИХ НЕТ намеренно — они в `presentations.js`: денежный документ
+        // создаёт и проведение брони (аванс → поступление) в форкнутом воркере,
+        // где `init.js` не выполняется, и поступление оставалось без `name`.
 
         // ── Серверные скрипты ─────────────────────────────────────────────
+        const formMethods = require('../../node_modules/my-old-space/drive_root/formMethods');
+        const APP = 'cash';
+        const cashDocFns = require('./forms/cash_documents.server')(modelsDB, Utilities);
+
         const docsScript = loadServerScript(
             'cash.actions',
-            require('./forms/cash_documents.server')(modelsDB, Utilities),
+            cashDocFns,
             'user'
         );
         const reportScript = loadServerScript(
@@ -82,37 +70,45 @@ module.exports = async function (modelsDB) {
         };
 
         // ── Документы ─────────────────────────────────────────────────────
+        // Свой значок у каждого вида: в журнале «Geldbewegungen» виды стоят рядом,
+        // и отличить приход от расхода надо с одного взгляда (колонка «вид документа»
+        // берёт значок у формы записи — drive_root/db/journals.js).
         const DOCS = [
-            { table: 'cash_receipts', caption: 'cash_receipts_app_caption', record: 'cash_receipt_record_caption' },
-            { table: 'cash_payments', caption: 'cash_payments_app_caption', record: 'cash_payment_record_caption' },
-            { table: 'cash_transfers', caption: 'cash_transfers_app_caption', record: 'cash_transfer_record_caption' }
+            { table: 'cash_receipts', caption: 'cash_receipts_app_caption', record: 'cash_receipt_record_caption',
+              icon: '/apps/booking_icons/resources/public/16x16/cash_in.png' },
+            { table: 'cash_payments', caption: 'cash_payments_app_caption', record: 'cash_payment_record_caption',
+              icon: '/apps/booking_icons/resources/public/16x16/cash_out.png' },
+            { table: 'cash_transfers', caption: 'cash_transfers_app_caption', record: 'cash_transfer_record_caption',
+              icon: '/apps/booking_icons/resources/public/16x16/cash_transfer.png' }
         ];
 
         for (const doc of DOCS) {
+            // Методы ФОРМЫ записи документа — одни и те же на все три документа:
+            // событие `onBeforeSave` у них общее, и раскладывать его копиями по
+            // приложениям незачем.
+            formMethods.register({
+                app: APP, subject: { table: doc.table, kind: 'record' },
+                methods: cashDocFns, roles: ['user', 'admin']
+            });
             await layoutMemory.saveLayout({
-                appName: 'uniForm',
-                mode: 'record',
-                tableName: doc.table,
+                app: APP,
+                subject: { table: doc.table, kind: 'record' },
                 roles: '*',
                 layout: require(`./forms/${doc.table}.layout.json`),
                 clientScript: clientUID,
                 appCaption: { i18n: doc.caption },
                 recordCaption: { i18n: doc.record },
-                formIcon: ICONS.receipt,
-                listIcon: ICONS.journal,
-                events: {
-                    onBeforeSave: { serverScript: docsScript, fn: 'onBeforeSave' }
-                }
+                formIcon: doc.icon,
+                listIcon: ICONS.journal
             });
             await layoutMemory.saveLayout({
-                appName: 'uniForm',
-                mode: 'list',
-                tableName: doc.table,
+                app: APP,
+                subject: { table: doc.table, kind: 'list' },
                 roles: '*',
                 layout: require(`./forms/${doc.table}_list.layout.json`),
                 appCaption: { i18n: doc.caption },
                 recordCaption: { i18n: doc.record },
-                formIcon: ICONS.receipt,
+                formIcon: doc.icon,
                 listIcon: ICONS.journal
             });
             // Журнал денежных документов читается от свежих к старым: вчерашняя
@@ -120,13 +116,31 @@ module.exports = async function (modelsDB) {
             layoutMemory.registerListSort(doc.table, [{ field: 'number', order: 'desc' }]);
         }
 
+        // ── Журнал документов «Geldbewegungen» ────────────────────────────
+        // Все денежные документы одним списком (`journals` в db.json, механизм
+        // ядра drive_root/db/journals.js). Журнал своей формы записи не имеет:
+        // «Открыть» ведёт в форму документа его вида, «Добавить» спрашивает вид.
+        await layoutMemory.saveLayout({
+            app: APP,
+            subject: { table: 'jrn_cash_documents', kind: 'list' },
+            roles: '*',
+            layout: require('./forms/jrn_cash_documents_list.layout.json'),
+            appCaption: { i18n: 'jrn_cash_documents_caption' },
+            listIcon: ICONS.journal
+        });
+        // Порядок — по МОМЕНТУ времени (дата + номер в последовательности), свежие
+        // сверху: виды документов перемешаны, и номер у каждого вида свой.
+        layoutMemory.registerListSort('jrn_cash_documents', [
+            { field: 'date', order: 'desc' }, { field: 'seq', order: 'desc' }
+        ]);
+
         // ── Справочники ───────────────────────────────────────────────────
         // Формы автогенерируются uniForm: собственной логики у них нет, и
         // рукописный лейаут ради перечисления тех же полей был бы лишним.
         // Проверочный документ каскада: форма автогенерируется, в меню его нет —
         // он служебный, и место ему в административном списке таблиц.
         await layoutMemory.saveLayout({
-            appName: 'uniForm', mode: 'list', tableName: 'cash_check_docs', roles: '*',
+            app: APP, subject: { table: 'cash_check_docs', kind: 'list' }, roles: '*',
             layout: [],
             appCaption: { i18n: 'cash_check_app_caption' },
             recordCaption: { i18n: 'cash_check_record_caption' },
@@ -137,7 +151,7 @@ module.exports = async function (modelsDB) {
         // Книга принадлежит месту хранения («кассовая книга наличной кассы»,
         // «выписка по счёту»), поэтому кнопка здесь, а не в журнале документов.
         await layoutMemory.saveLayout({
-            appName: 'uniForm', mode: 'record', tableName: 'cashboxes', roles: '*',
+            app: APP, subject: { table: 'cashboxes', kind: 'record' }, roles: '*',
             layout: require('./forms/cashboxes.layout.json'),
             clientScript: clientUID,
             appCaption: { i18n: 'cash_cashboxes_app_caption' },
@@ -145,7 +159,7 @@ module.exports = async function (modelsDB) {
             listIcon: ICONS.catalog, formIcon: ICONS.catalog
         });
         await layoutMemory.saveLayout({
-            appName: 'uniForm', mode: 'list', tableName: 'cashboxes', roles: '*',
+            app: APP, subject: { table: 'cashboxes', kind: 'list' }, roles: '*',
             layout: require('./forms/cashboxes_list.layout.json'),
             appCaption: { i18n: 'cash_cashboxes_app_caption' },
             listIcon: ICONS.catalog, formIcon: ICONS.catalog
@@ -153,7 +167,7 @@ module.exports = async function (modelsDB) {
 
         // Виды операции — автоформа: собственной логики у справочника нет.
         await layoutMemory.saveLayout({
-            appName: 'uniForm', mode: 'list', tableName: 'cash_operation_types', roles: '*',
+            app: APP, subject: { table: 'cash_operation_types', kind: 'list' }, roles: '*',
             layout: [],
             appCaption: { i18n: 'cash_operation_types_app_caption' },
             listIcon: ICONS.catalog, formIcon: ICONS.catalog
@@ -164,6 +178,14 @@ module.exports = async function (modelsDB) {
         mainMenu.addMenuItems([{
             id: 'main',
             items: [
+                // Все денежные документы одним журналом — первым: с него начинают,
+                // а журналы одного вида нужны, когда ищут именно приходы или расходы.
+                {
+                    caption: { i18n: 'jrn_cash_documents_caption' },
+                    action: 'open', singleton: true, appName: 'uniForm', order: 94,
+                    icon: ICONS.journal,
+                    params: { mode: 'list', dbTable: 'jrn_cash_documents' }
+                },
                 {
                     caption: { i18n: 'cash_receipts_app_caption' },
                     action: 'open', singleton: true, appName: 'uniForm', order: 95,

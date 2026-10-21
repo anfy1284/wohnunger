@@ -52,29 +52,30 @@ module.exports = async function (modelsDB) {
         });
 
         // ── Форма «Прайс-лист» (таблица price_lists) ─────────────────────
-        const serverScriptName = loadServerScript(
-            'priceList.actions',
-            require('./forms/price_lists.server')(modelsDB, Utilities),
-            'user'
-        );
+        const formMethods = require('../../node_modules/my-old-space/drive_root/formMethods');
+        const APP = 'priceList';
+        const priceFns = require('./forms/price_lists.server')(modelsDB, Utilities);
+        // Методы ФОРМЫ прайс-листа — здесь же её серверное событие `onBeforeSave`.
+        formMethods.register({
+            app: APP, subject: { table: 'price_lists', kind: 'record' },
+            methods: priceFns, roles: ['user', 'admin']
+        });
+        const serverScriptName = loadServerScript('priceList.actions', priceFns, 'user');
 
         const clientSource = fs.readFileSync(path.join(__dirname, 'forms/price_lists.client.js'), 'utf8');
         const clientUID = await loadScript(clientSource, 'user');
 
         await layoutMemory.saveLayout({
-            appName:      'uniForm',
-            mode:         'record',
-            tableName:    'price_lists',
+            app:          APP,
+            subject:      { table: 'price_lists', kind: 'record' },
             roles:        '*',
             layout:       require('./forms/price_lists.layout.json'),
             clientScript: clientUID,
             appCaption:   { i18n: 'price_list_app_caption' },
             recordCaption:{ i18n: 'PriceList' },
             formIcon:     '/apps/booking_icons/resources/public/16x16/price_list.png',
-            listIcon:     '/apps/booking_icons/resources/public/16x16/price_list_journal.png',
-            events: {
-                onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' }
-            }
+            listIcon:     '/apps/booking_icons/resources/public/16x16/price_list_journal.png'
+            // Серверное событие `onBeforeSave` — метод формы (зарегистрирован выше).
         });
         // Список — автогенерация uniForm (заголовок/иконка из appCaption/listIcon).
 

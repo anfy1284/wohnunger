@@ -12,6 +12,9 @@ const path = require('path');
 const FW = path.join(__dirname, '..', '..', '..', 'node_modules', 'my-old-space');
 const money = require(path.join(FW, 'drive_root', 'db', 'money'));
 const emptyValues = require(path.join(FW, 'drive_root', 'db', 'emptyValues'));
+const dbGateway = require(path.join(FW, 'drive_root', 'dbGateway'));
+// Способ оплаты и вид места хранения обязаны совпадать — см. `_checkPaymentPlace`.
+const cashPlaces = require('../lib/cashPlaces');
 
 /**
  * Денежные реквизиты денежных документов — те, у которых минус бессмыслен.
@@ -33,10 +36,16 @@ module.exports = function (modelsDB, Utilities) {
      * уехало бы в учёт молча (drive_root/db/emptyValues.js).
      */
     async function onBeforeSave(params, ctx) {
-        const data = (params && params.data) || {};
-
-        if (emptyValues.isEmptyDate(data.operationDate)) {
-            data.operationDate = data.date || new Date();
+        // Метод формы получает `{ record, changes, … }` (16.10.2026). Раньше здесь
+        // читалось `params.data` — его нет, и хук молча не делал ничего: пустая
+        // дата операции уходила в учёт, кассовая книга печатала «01.01.1»
+        // (прогон сценариев, F3).
+        const data = (params && (params.changes || params.data)) || {};
+        const record = (params && params.record) || {};
+        const opDate = Object.prototype.hasOwnProperty.call(data, 'operationDate') ? data.operationDate : record.operationDate;
+        if (emptyValues.isEmptyDate(opDate)) {
+            const docDate = data.date || record.date;
+            data.operationDate = emptyValues.isEmptyDate(docDate) ? new Date() : docDate;
         }
 
         // Сумма — через money.js: с формы приходит число, из базы строка, и
@@ -59,10 +68,58 @@ module.exports = function (modelsDB, Utilities) {
         for (const field of MONEY_FIELDS) {
             if (data[field] === undefined) continue;
             if (money.cmp(money.num(data[field] || 0), 0) < 0) {
-                return { error: await t(ctx, 'cash_err_negative_amount', 'Сумма не может быть отрицательной') };
+                // Исключение, а не `{ error }`: отменяет сохранение только оно.
+                throw new Error(await t(ctx, 'cash_err_negative_amount', 'Сумма не может быть отрицательной'));
             }
         }
+
+        await _checkPaymentPlace(data, record, ctx);
         return { ok: true, data };
+    }
+
+    /**
+     * СПОСОБ ОПЛАТЫ И МЕСТО ХРАНЕНИЯ ОБЯЗАНЫ СОВПАДАТЬ ПО ВИДУ.
+     *
+     * Кассовая книга ведёт наличные (§ 146 Abs. 1 AO), безналичный оборот в неё
+     * не входит. Перевод, записанный в кассу, делает кассовую книгу неверной —
+     * и делает это МОЛЧА: в книге просто появляется день с лишними деньгами.
+     * Поэтому отказываем словами, назвав и место, и что выбрать вместо него.
+     *
+     * Правило — в `apps/cash/lib/cashPlaces.js`, одно на всех: его же
+     * спрашивает тот, кто создаёт документ за человека (диалог аванса).
+     *
+     * У переноса между местами хранения ни способа оплаты, ни одного
+     * `cashboxId` нет — проверять нечего, и выдумывать способ по виду места
+     * тоже нельзя.
+     */
+    async function _checkPaymentPlace(data, record, ctx) {
+        const has = (k) => Object.prototype.hasOwnProperty.call(data, k);
+        const cashboxId = has('cashboxId') ? data.cashboxId : record.cashboxId;
+        if (!cashboxId) return;
+        const method = (has('paymentMethod') ? data.paymentMethod : record.paymentMethod)
+            || cashPlaces.DEFAULT_METHOD;
+
+        const rows = await dbGateway.execute({
+            operation: 'read', table: 'cashboxes', where: { UID: cashboxId },
+            options: { raw: true, limit: 1 },
+            context: { appName: 'cash', sessionID: ctx && ctx.sessionID }
+        });
+        const box = (Array.isArray(rows) && rows[0]) || null;
+        if (!box || cashPlaces.isAllowed(method, box.kind)) return;
+
+        const place = box.name || box.number || '';
+        const key = (method === 'cash') ? 'cash_err_cash_place_required' : 'cash_err_noncash_place_required';
+        throw new Error(await tf(ctx, key, { place }));
+    }
+
+    /** Перевод с подстановками — ДВЕ фигурные скобки у ключей (`i18n.tf`). */
+    async function tf(ctx, key, vars) {
+        try {
+            const { tfForSession } = require(path.join(FW, 'drive_forms', 'globalServerContext'));
+            const v = await tfForSession(key, ctx && ctx.sessionID, vars || {});
+            if (v && v !== key) return v;
+        } catch (e) { /* перевода нет */ }
+        return key;
     }
 
     async function t(ctx, key, fallback) {

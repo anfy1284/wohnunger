@@ -1,5 +1,7 @@
 [
-    { "type": "commandBar" },
+    {
+        "type": "commandBar"
+    },
     {
         "type": "group",
         "caption": "",
@@ -7,37 +9,214 @@
         "alignFields": true,
         "orientation": "vertical",
         "layout": [
-            { "type": "textbox", "name": "name", "data": "name", "caption": { "i18n": "Name" } },
+            {
+                "type": "textbox",
+                "name": "name",
+                "data": "name",
+                "caption": {
+                    "i18n": "Name"
+                }
+            },
             {
                 "type": "recordSelector",
                 "name": "taxCategoryId",
                 "data": "taxCategoryId",
-                "caption": { "i18n": "tax_category" },
-                "properties": { "selection": { "table": "tax_categories", "idField": "UID", "displayField": "name" } }
+                "caption": {
+                    "i18n": "tax_category"
+                },
+                "properties": {
+                    "selection": {
+                        "table": "tax_categories",
+                        "idField": "UID",
+                        "displayField": "name"
+                    }
+                }
             },
             {
                 "type": "recordSelector",
                 "name": "hotelId",
                 "data": "hotelId",
-                "caption": { "i18n": "Hotel" },
-                "properties": { "selection": { "table": "hotels", "idField": "UID", "displayField": "name" } }
+                "caption": {
+                    "i18n": "Hotel"
+                },
+                "properties": {
+                    "selection": {
+                        "table": "hotels",
+                        "idField": "UID",
+                        "displayField": "name",
+                        "where": {
+                            "organizationId": "{organizationId}"
+                        }
+                    }
+                }
             },
             {
                 "type": "recordSelector",
                 "name": "organizationId",
                 "data": "organizationId",
-                "caption": { "i18n": "Organization" },
-                "properties": { "selection": { "table": "organizations", "idField": "UID", "displayField": "name" } }
+                "caption": {
+                    "i18n": "Organization"
+                },
+                "properties": {
+                    "selection": {
+                        "table": "organizations",
+                        "idField": "UID",
+                        "displayField": "name"
+                    }
+                }
             },
-            { "type": "integer", "name": "displayOrder", "data": "displayOrder", "caption": { "i18n": "display_order" } },
-            { "type": "checkbox", "name": "includeByDefault", "data": "includeByDefault", "caption": { "i18n": "include_by_default" } },
+            {
+                "type": "integer",
+                "name": "displayOrder",
+                "data": "displayOrder",
+                "caption": {
+                    "i18n": "display_order"
+                }
+            },
+            {
+                "type": "emunList",
+                "name": "chargeMode",
+                "data": "chargeMode",
+                "caption": {
+                    "i18n": "service_charge_mode"
+                }
+            },
+            {
+                "type": "checkbox",
+                "name": "includeByDefault",
+                "data": "includeByDefault",
+                "caption": {
+                    "i18n": "include_by_default"
+                }
+            },
             {
                 "type": "textbox",
                 "name": "quantityFormula",
                 "data": "quantityFormula",
-                "caption": { "i18n": "quantity_formula" },
-                "properties": { "editorButton": true },
-                "events": { "onSelectionStart": "openFormulaEditor" }
+                "caption": {
+                    "i18n": "quantity_formula"
+                },
+                "properties": {
+                    "editorButton": true
+                },
+                "events": {
+                    "onSelectionStart": "openFormulaEditor"
+                }
+            }
+        ]
+    },
+    {
+        "//": "Разделение цены услуги по ставкам НДС (16.10.2026) — табличная часть service_tax_components. Пусто — вся цена по налоговой категории услуги.",
+        "type": "group",
+        "caption": {
+            "i18n": "tax_components_tab"
+        },
+        "noBorder": true,
+        "orientation": "vertical",
+        "layout": [
+            {
+                "type": "table",
+                "name": "ts_service_tax_components",
+                "data": "service_tax_components",
+                "columns": [
+                    {
+                        "caption": {
+                            "i18n": "tax_component_name"
+                        },
+                        "data": "name",
+                        "width": 180,
+                        "inputType": "textbox"
+                    },
+                    {
+                        "caption": {
+                            "i18n": "tax_category"
+                        },
+                        "data": "taxCategoryId",
+                        "width": 180,
+                        "inputType": "recordSelector",
+                        "properties": {
+                            "selection": {
+                                "table": "tax_categories",
+                                "idField": "UID",
+                                "displayField": "name"
+                            }
+                        }
+                    },
+                    {
+                        "caption": {
+                            "i18n": "tax_split_mode"
+                        },
+                        "data": "splitMode",
+                        "width": 150,
+                        "inputType": "emunList",
+                        "options": [
+                            {
+                                "value": "percent",
+                                "caption": {
+                                    "i18n": "tax_split_percent"
+                                }
+                            },
+                            {
+                                "value": "amount",
+                                "caption": {
+                                    "i18n": "tax_split_amount"
+                                }
+                            },
+                            {
+                                "value": "remainder",
+                                "caption": {
+                                    "i18n": "tax_split_remainder"
+                                }
+                            }
+                        ],
+                        "defaultValue": "percent"
+                    },
+                    {
+                        "caption": {
+                            "i18n": "tax_split_value"
+                        },
+                        "data": "splitValue",
+                        "width": 110,
+                        "inputType": "number"
+                    },
+                    {
+                        "caption": {
+                            "i18n": "date_from"
+                        },
+                        "data": "validFrom",
+                        "width": 110,
+                        "inputType": "date"
+                    },
+                    {
+                        "caption": {
+                            "i18n": "date_to"
+                        },
+                        "data": "validTo",
+                        "width": 110,
+                        "inputType": "date"
+                    },
+                    {
+                        "caption": {
+                            "i18n": "display_order"
+                        },
+                        "data": "displayOrder",
+                        "width": 90,
+                        "inputType": "integer",
+                        "defaultValue": 50
+                    }
+                ],
+                "properties": {
+                    "editMode": "cell-immediate",
+                    "visibleRows": 4,
+                    "autoPickSingleRef": false,
+                    "tabularFilter": {
+                        "serviceId": "{UID}"
+                    },
+                    "hiddenButtons": [
+                        "listSettings",
+                        "recordOpen"
+                    ]
+                }
             }
         ]
     }

@@ -24,9 +24,8 @@ module.exports = async function (modelsDB) {
         // Форма записи — кастомный лейаут (имя + многострочное примечание);
         // список — автогенерация uniForm, заголовок/иконка из appCaption/listIcon.
         await layoutMemory.saveLayout({
-            appName:       'uniForm',
-            mode:          'record',
-            tableName:     'report_variants',
+            app:           'reports',
+            subject:       { table: 'report_variants', kind: 'record' },
             roles:         '*',
             layout:        require('./forms/report_variants.layout.json'),
             appCaption:    { i18n: 'report_variants' },
@@ -168,8 +167,7 @@ module.exports = async function (modelsDB) {
                 const i18n = require('../../node_modules/my-old-space/drive_root/i18n');
                 const t = (key) => i18n.t(key, lang);
                 const tf = (key, vars) => i18n.tf(key, lang, vars);
-                const localeMap = { en: 'en-GB', ru: 'ru-RU', pl: 'pl-PL', de: 'de-DE' };
-                const locale = localeMap[lang] || 'de-DE';
+                const locale = require('../common/lib/locale').localeOf(lang);
 
                 const html = renderPriceListHTML({ priceList, rows, seasonsById, periodsBySeason, roomsById, t, tf, locale, lang });
                 return { html };

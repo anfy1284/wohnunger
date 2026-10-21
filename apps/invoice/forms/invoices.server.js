@@ -7,21 +7,25 @@
 //
 // Каждая функция получает (params, ctx) где ctx = { sessionID, user, role }.
 //
-// Расчёт строк (_buildInvoiceLines) переехал сюда из apps/booking/forms/bookings.server.js:
-// счёт — самостоятельный документ, строит свои строки сам (кнопка «Заполнить» /
-// создание из брони), сохранение брони счета больше НЕ трогает. Данные брони
-// (шапка + ТЧ) читаются из БД по bookingId, цены — только через priceResolver
-// (срез прайс-листов на дату ценообразования). Ставки НДС по-прежнему резолвятся
-// по дате ОКАЗАНИЯ услуги (дата заезда брони) — периодичность касается только цен.
+// Расчёт состава услуг и свёртка строк живут в apps/common/lib/bookingServices.js:
+// тот же состав нужен проведению брони («что заказано» в регистр), и два расчёта
+// одного и того же разошлись бы — вопрос только когда. Счёт при этом остаётся
+// самостоятельным документом: он решает, ЧТО из состава попадёт в документ
+// (кнопка «Заполнить» / создание из брони), и сохранение брони его не трогает.
 
-const i18n = require('../../../node_modules/my-old-space/drive_root/i18n');
 // Деньги: суммы хранятся как DECIMAL и приходят из базы СТРОКОЙ, а считаются
 // в целых центах. Любая арифметика над суммами — только через этот модуль.
 const M = require('../../../node_modules/my-old-space/drive_root/db/money');
-const formulaEngine = require('../../common/lib/formulaEngine');
-const { tForSession, tfForSession } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
-const { resolveOrgReportLang } = require('../../common/lib/orgReportLanguage');
+// Предоплата брони — остаток регистра расчётов, а не поле брони.
+const settlementBalance = require('../../common/lib/settlementBalance');
+// Состав услуг по брони: расчёт, свёртка и КЛЮЧ ПОЗИЦИИ (один на всю систему).
+const bookingServices = require('../../common/lib/bookingServices');
+const { tForSession, tfForSession, getSessionContext } = require('../../../node_modules/my-old-space/drive_forms/globalServerContext');
 const { resolveOrgPricingMode } = require('../../common/lib/orgPricingMode');
+// Локаль форматирования по коду языка — один список на решение.
+const locale = require('../../common/lib/locale');
+// «Отменена ли бронь» — один ответ на всю систему.
+const bookingStatus = require('../../booking/lib/bookingStatus');
 const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGateway');
 // Сборка печатной формы — общая с приложением reports: архив обязан хранить
 // ровно тот HTML, который увидит пользователь, а не его пересборку.
@@ -36,32 +40,75 @@ const documentArchive = require('../../../node_modules/my-old-space/drive_root/d
 // проверка объявит период действия истёкшим.
 const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
 
-// ── Периоды действия (validFrom..validTo) ────────────────────────────
-// Пустая граница означает «ограничения нет». Проверять её через
-// `if (r.validTo)` НЕЛЬЗЯ: пустая дата в проекте — 0001-01-01, значение
-// истинное, и такая проверка объявила бы период истёкшим. Практически это
-// значит, что КАЖДАЯ ставка НДС без даты окончания перестала бы
-// применяться, а счета остались бы без налога.
-const periodCovers = (r, day) =>
-    (isEmptyDate(r.validFrom) || new Date(r.validFrom) <= day) &&
-    (isEmptyDate(r.validTo)   || new Date(r.validTo)   >= day);
+// Периоды действия (validFrom..validTo) — из общего модуля: пустая граница
+// означает «ограничения нет», и проверять её через `if (r.validTo)` НЕЛЬЗЯ
+// (пустая дата в проекте — 0001-01-01, значение истинное; такая проверка
+// объявила бы период истёкшим, то есть каждая ставка НДС без даты окончания
+// перестала бы применяться, а счета остались бы без налога).
+const { periodCovers, validFromOrder } = bookingServices;
 
-// Для выбора «самой поздней из подходящих» пустое начало — минус
-// бесконечность: строка без даты начала действует всегда, но любая строка
-// с датой её перебивает.
-const validFromOrder = r => (isEmptyDate(r.validFrom) ? -Infinity : new Date(r.validFrom).getTime());
+/**
+ * ПРЕДЕЛ ПРЕДОПЛАТЫ В СЧЁТЕ — сумма, которую счёт просит заплатить.
+ *
+ * Счёт не возвращает деньги: зачесть в него аванса больше, чем начислено,
+ * значит напечатать отрицательный «Zahlbetrag» и зачесть по регистру больше,
+ * чем счётом начислено. Излишек остаётся остатком предоплаты по брони и
+ * достанется следующему счёту.
+ *
+ * ЗНАК ОБЯЗАТЕЛЕН в этом правиле. У сторно и коррекции суммы отрицательны, и
+ * предел там тоже отрицательный: сравнение «по величине» (`v > t`) выдержало
+ * бы обычный счёт и молча обнулило бы предоплату сторно. Поэтому ограничение
+ * двустороннее — значение зажимается в отрезок между нулём и итогом, каким бы
+ * знаком этот итог ни был.
+ *
+ * @param {number|string} value — предоплата, которую хотят записать
+ * @param {number|string} total — итог счёта (брутто после скидки), как он печатается
+ * @returns {number} допустимое значение предоплаты
+ */
+function capPrepayment(value, total) {
+    const v = M.round(M.num(value));
+    const t = M.round(M.num(total));
+    if (M.isZero(t)) return 0;                                // платить нечего — зачитывать нечего
+    if (M.cmp(t, 0) > 0) return M.cmp(v, t) > 0 ? t : (M.cmp(v, 0) < 0 ? 0 : v);
+    return M.cmp(v, t) < 0 ? t : (M.cmp(v, 0) > 0 ? 0 : v);   // встречный документ: отрезок [итог, 0]
+}
 
 module.exports = function (modelsDB, Utilities) {
 
     // Цены проживания и услуг — ТОЛЬКО через резолвер прайс-листов.
     const priceResolver = require('../../common/lib/priceResolver')(modelsDB);
 
-    // Округление до цента — из общего модуля денег, а не своё.
-    // Прежняя запись `Math.round(v * 100) / 100` ошибалась на границе половины
-    // цента (1.005 → 1.00, 8.165 → 8.16): множитель 100 сначала загонял число
-    // в двоичную дробь чуть меньше нужной. Здесь разбор идёт по десятичной
-    // записи, поэтому округление совпадает с бухгалтерским.
-    const r2 = M.num;
+    // Состав услуг по брони и свёртка печатных строк — общие с проведением брони.
+    const services = bookingServices(modelsDB, Utilities);
+
+    /**
+     * СУММА, КОТОРУЮ СЧЁТ ПРОСИТ ЗАПЛАТИТЬ (до вычета аванса) — по тем же
+     * правилам, по которым она печатается: расчёт один, в `reports/invoice/totals.js`.
+     *
+     * Нужна там, где предоплату подставляет ПРОГРАММА (подготовка счёта из
+     * брони, «Заполнить»): подставленное число обязано быть допустимым.
+     * Признак «на этот оборот скидка распространяется» — данные справочника,
+     * поэтому категории строк дочитываются здесь.
+     *
+     * @param {Array} lines — строки счёта (`amount`, `taxCategoryId`, `bookingId`)
+     * @param {Object} invoice — скидка на весь счёт (`discountMode`, `discountValue`)
+     * @param {Array} [bookingDiscounts] — строки ТЧ «Buchungen» со скидками броней
+     */
+    async function _payableTotal(lines, invoice, bookingDiscounts) {
+        const { invoiceTotals } = require('../../reports/invoice/totals');
+        const taxCategories = {};
+        try {
+            const ids = [...new Set((lines || []).map(l => l && l.taxCategoryId).filter(Boolean))];
+            if (ids.length && modelsDB.TaxCategories) {
+                const cats = await modelsDB.TaxCategories.findAll({ where: { UID: ids }, raw: true });
+                for (const c of cats) taxCategories[c.UID] = { discountable: c.discountable !== false };
+            }
+        } catch (e) {
+            console.warn('[invoice/_payableTotal] категории строк не дочитаны:', e && e.message || e);
+        }
+        return invoiceTotals({ lines: lines || [], invoice: invoice || {}, taxCategories,
+                               bookingDiscounts: bookingDiscounts || [] }).discountedBrutto;
+    }
 
     // SSE-оповещение подписанных списков (журнал счетов, вкладка «Счета» брони).
     // fillInvoice/createFromBooking меняют данные мимо applyChanges — оповещаем сами.
@@ -74,544 +121,6 @@ module.exports = function (modelsDB, Utilities) {
         } catch (e) {
             console.warn('[invoice/notifyTables]', e && e.message);
         }
-    }
-
-    // ── Агрегация скидок броней-оснований в одну скидку счёта ─────────────
-    // list: [{ mode:'percent'|'amount', value>0 }] по броням с ненулевой скидкой.
-    //   все amount → сумма; все percent → max; смешанные → max percent (абсолютные
-    //   игнорируем, о чём предупреждаем). warn=true, если ненулевых скидок больше
-    //   одной и они различаются (режимом или значением). Пустой список → discount:null
-    //   (скидку счёта не трогаем).
-    function _aggregateBookingDiscounts(list) {
-        if (!list.length) return { discount: null, warn: false };
-        const percents = list.filter(d => d.mode === 'percent');
-        const amounts  = list.filter(d => d.mode === 'amount');
-        let discount;
-        if (percents.length) {
-            discount = { mode: 'percent', value: Math.max(...percents.map(d => d.value)) };
-        } else {
-            discount = { mode: 'amount', value: M.sum(amounts, 'value') };
-        }
-        const allSame = list.every(d => d.mode === list[0].mode && d.value === list[0].value);
-        return { discount, warn: list.length > 1 && !allSame };
-    }
-
-    // ── Построение строк счёта по ОДНОЙ брони ────────────────────────────
-    // Данные брони читаются из БД (шапка + ТЧ rooms/guests/roomServices/extraLines).
-    // pricingDate — дата ценообразования (дата брони или дата счёта, см. fillInvoice).
-    // Возвращает { lines } — строки БЕЗ invoiceId и БЕЗ сквозного sortOrder
-    // (их проставляет fillInvoice).
-    async function _buildInvoiceLines({ bookingId, pricingDate }, ctx) {
-        const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
-        if (!booking) return { lines: [] };
-
-        const orgId   = booking.organizationId;
-        const hotelId = booking.hotelId;
-        const checkInDate  = new Date(booking.checkIn);
-        const checkOutDate = new Date(booking.checkOut);
-        const nights       = Math.round((checkOutDate - checkInDate) / 86400000);
-        if (!isFinite(nights) || nights <= 0) return { lines: [] };
-
-        const [rooms, guests, roomServices, extraLines] = await Promise.all([
-            modelsDB.BookingRooms.findAll({ where: { bookingId }, raw: true }),
-            modelsDB.BookingGuests.findAll({ where: { bookingId }, raw: true }),
-            modelsDB.BookingRoomServices.findAll({ where: { bookingId }, raw: true }),
-            modelsDB.BookingExtraLines.findAll({ where: { bookingId }, raw: true })
-        ]);
-
-        // Строки счёта — часть ДОКУМЕНТА организации: тексты (sectionLabel, label)
-        // строятся на ЯЗЫКЕ ОРГАНИЗАЦИИ (reportLanguage), НЕ на языке сессии.
-        const invLang = await resolveOrgReportLang(modelsDB, orgId);
-        const tInv  = (key)       => i18n.t(key, invLang);
-        const tfInv = (key, vars) => i18n.tf(key, invLang, vars);
-
-        // Счётные существительные — через формы числа (i18n.tf с `count`).
-        // «1 Gäste»/«1 гостей» в юридическом документе недопустимо, а одиночное
-        // заселение — штатный случай: у каждой квартиры есть цена на 1 человека.
-        // Именно из-за отсутствия форм в подписях стояли сокращения («Pers.»,
-        // «ÜN»), которые склонения не требуют.
-        const nGuests = n => tfInv('guests_count', { count: n });
-        const nNights = n => tfInv('nights_count', { count: n });
-
-        // Разложение количества на сомножители («2 Gäste × 3 ÜN») собирает СВЁРТКА:
-        // там число гостей суммируется по группе. Знак «×» законен ТОЛЬКО когда оба
-        // числа — действительно сомножители графы «Количество»; прежнее
-        // «6 Gäste × 4 ÜN» при количестве 4 врало, 6 в произведении не участвовало.
-        //
-        // Единица ВТОРОГО сомножителя у услуги. Назвать её ночами можно только по
-        // ОБЪЯВЛЕННОМУ правилу услуги (quantityFormula = переменная «ночи») и только
-        // если количество действительно посчитано правилом: ручной ввод правило
-        // перебивает, и тогда это уже не ночи. Совпадение количества с числом ночей
-        // основанием НЕ является — три массажа за три ночи не становятся ночёвками.
-        // Токен берётся из реестра переменных, а не строкой в коде.
-        const NIGHTS_TOKEN = (formulaEngine.VARIABLES.find(v => v.id === 'nights') || {}).token;
-        const serviceUnitsLabel = (svc, rs, cnt) => {
-            const f = ((svc && svc.quantityFormula) || '').trim();
-            if (NIGHTS_TOKEN && f === NIGHTS_TOKEN && rs.autoQuantity !== false) return nNights(cnt);
-            return String(cnt);
-        };
-
-        const guestTypes = await modelsDB.GuestTypes.findAll({ raw: true });
-        const gtMap = {};
-        for (const gt of guestTypes) gtMap[gt.UID] = gt;
-
-        // Название вида гостя — из СПРАВОЧНИКА, на языке организации.
-        // Дублировать его строкой в i18n.json нельзя: там оно застынет
-        // («Kinder 6–13»), а границы возраста живут в guest_types и владелец
-        // вправе их менять — счёт печатал бы полосу, которой уже нет.
-        // findAll идёт мимо dbGateway, поэтому перевод берём явно (middleware
-        // здесь не отработает и вернул бы английский base).
-        const tmw = require('../../../node_modules/my-old-space/drive_root/translationMiddleware');
-        const gtLookup = (invLang && invLang !== 'en')
-            ? await tmw.getTranslationLookup('guest_types', invLang, modelsDB) : null;
-        const gtName = gt => (gtLookup && gtLookup.get(gt.UID + '|name')) || gt.name;
-
-        // Режим учёта вида гостя в проживании (реквизит справочника):
-        //   included — входит в сетку тарифа номера;
-        //   separate — своя цена проживания из прайс-листа;
-        //   free     — ОБЪЯВЛЕННОЕ бесплатное проживание (младенцы).
-        // Различать `free` и «цену забыли завести» обязательно: без этого
-        // предупреждение об отсутствии цены срабатывало бы на каждой броне
-        // с младенцем, то есть на штатной настройке, и его перестали бы читать.
-        // Пустое значение (записи старше реквизита) — как `included`,
-        // тот же дефолт, что в модели.
-        const roomRateMode = gt => (gt && gt.roomRateMode) || 'included';
-
-        // Виды гостей в порядке справочника — им же идут строки счёта.
-        const gtOrdered = guestTypes.slice().sort((a, b) =>
-            (a.displayOrder != null ? a.displayOrder : 50) - (b.displayOrder != null ? b.displayOrder : 50));
-
-        const roomIds  = rooms.map(r => r.roomId).filter(Boolean);
-        const roomRecs = roomIds.length ? await modelsDB.Rooms.findAll({ where: { UID: roomIds }, raw: true }) : [];
-        const roomMap  = {};
-        for (const r of roomRecs) roomMap[r.UID] = r;
-
-        // Срез прайс-листов на дату ценообразования — один на всю бронь.
-        const priceSlice = await priceResolver.loadSlice({
-            organizationId: orgId, hotelId, pricingDate
-        });
-
-        const serviceIds = [...new Set(roomServices.map(s => s.serviceId).filter(Boolean))];
-        const svcRecs    = serviceIds.length
-            ? await modelsDB.Services.findAll({ where: { UID: serviceIds }, raw: true }) : [];
-        const svcMap = {};
-        for (const s of svcRecs) svcMap[s.UID] = s;
-
-        // Актуальные полосы цен услуг («срез последних» по позициям услуги).
-        const svcPrices = [];
-        for (const sid of serviceIds) {
-            svcPrices.push(...priceResolver.pickServicePrices(priceSlice, { serviceId: sid }));
-        }
-
-        // Налоговые компоненты услуг (дробление одной услуги на несколько ставок НДС).
-        const svcComponents = serviceIds.length
-            ? await modelsDB.ServiceTaxComponents.findAll({ where: { serviceId: serviceIds }, raw: true }) : [];
-        const compMap = {};
-        for (const c of svcComponents) (compMap[c.serviceId] = compMap[c.serviceId] || []).push(c);
-        for (const k of Object.keys(compMap)) {
-            compMap[k].sort((a, b) => (a.displayOrder != null ? a.displayOrder : 50) - (b.displayOrder != null ? b.displayOrder : 50));
-        }
-
-        // Налоговые группы и ставки (ставка — ДАННЫЕ, резолв по дате заезда).
-        const taxCats     = await modelsDB.TaxCategories.findAll({ raw: true });
-        const taxCatRates = await modelsDB.TaxCategoryRates.findAll({ raw: true });
-        const taxRateVals = await modelsDB.TaxRates.findAll({ raw: true });
-        const catCodeToId = {};
-        for (const c of taxCats) catCodeToId[c.code] = c.UID;
-        const rateValById = {};
-        // Ставка нормализуется в ЧИСЛО на границе чтения: колонка `tax_rates.rate`
-        // — DECIMAL и приходит строкой «7.00», а fallback в `resolveRate` числовой.
-        // Смешение форм разошлось бы в ключе свёртки строк
-        // (`serviceId|component|rate|category|unitPrice`): «7.00» и 7 — разные
-        // ключи, и одинаковые строки перестали бы схлопываться в одну позицию.
-        for (const v of taxRateVals) rateValById[v.UID] = M.num(v.rate);
-
-        // Полосы цен услуги для конкретной комнаты (покомнатные → иначе общие).
-        const pricesForRoom = (serviceId, roomId) => {
-            const rows = svcPrices.filter(p => p.serviceId === serviceId);
-            const roomRows = rows.filter(p => p.roomId === roomId);
-            return roomRows.length ? roomRows : rows.filter(p => p.roomId == null);
-        };
-
-        // Детский тариф проживания — сумма из прайс-листа (позиция srv-child).
-        const CHILD_SERVICE_ID = 'srv-child';
-        const auxPrices = priceResolver.pickServicePrices(priceSlice, { serviceId: CHILD_SERVICE_ID });
-        // Полоса ищется по ВСЕМУ возрастному диапазону вида гостя (как в услугах),
-        // а не по одному числу: раньше цена бралась запросом «сколько стоит гость
-        // 3 лет» с фолбэком 10 € — и возраст, и сумма были вписаны в код.
-        const auxPriceForGuestType = (serviceId, gt) => {
-            const p = auxPrices.find(x => x.serviceId === serviceId
-                && priceResolver.ageBandMatches(x, gt.ageFrom, gt.ageTo));
-            return p ? Number(p.price) : 0;
-        };
-
-        const lines = [];
-        let sortOrd = 0;
-
-        // Услуги брони, которые НЕ дали ни одной строки счёта. Раньше такие услуги
-        // выпадали молча (нет цены в прайсе / услуга начисляется расчётом сам) —
-        // деньги пропадали из счёта без единого признака. Список уходит на клиент
-        // предупреждением (см. fillInvoice / prepareFromBooking).
-        //   reason: 'auto'    — начисляется расчётом автоматически, строка не нужна;
-        //   reason: 'noprice' — в срезе прайс-листов нет подходящей цены;
-        //   reason: 'manual'  — количество введено вручную и РАСХОДИТСЯ с правилом
-        //                       услуги: строка в счёт попадает (ручной ввод законно
-        //                       перебивает правило), но молчать об этом нельзя.
-        // Ноль по правилу услуги сюда НЕ попадает: это штатное состояние, а не
-        // потерянные деньги (решение владельца 2026-07-29).
-        const skipped = [];
-        const addSkipped = (name, reason, vars) => {
-            if (!name) return;
-            if (skipped.some(s => s.service === name && s.reason === reason)) return;
-            skipped.push({ service: name, reason, vars: vars || null });
-        };
-
-        // Количество услуги по её собственному правилу (services.quantityFormula)
-        // на срок этой брони. null — правила нет либо оно не вычисляется.
-        // Тот же движок и тот же реестр переменных, что и в пересчёте брони
-        // (apps/booking/forms/bookings.server.js) — второго источника правды нет.
-        const formulaVars = formulaEngine.resolveVariables({
-            checkIn: booking.checkIn, checkOut: booking.checkOut
-        });
-        const ruleQuantity = (svc) => {
-            const f = ((svc && svc.quantityFormula) || '').trim();
-            if (!f) return null;
-            let q = null;
-            try { q = formulaEngine.evaluate(f, formulaVars); } catch (_) { return null; }
-            if (q == null || !isFinite(q)) return null;
-            return Math.max(0, Math.round(q));
-        };
-
-        // Ставка налоговой группы на дату ЗАЕЗДА (дата оказания услуги).
-        // periodCovers/validFromOrder — на уровне модуля, см. верх файла.
-        function resolveRate(categoryId, fallback) {
-            if (!categoryId) return fallback;
-            let best = null;
-            for (const r of taxCatRates) {
-                if (r.taxCategoryId !== categoryId) continue;
-                if (!periodCovers(r, checkInDate)) continue;
-                if (!best || validFromOrder(r) > validFromOrder(best)) best = r;
-            }
-            if (!best) return fallback;
-            const val = rateValById[best.rateId];
-            return (val != null) ? val : fallback;
-        }
-        const rateByCode = (code, fallback) => resolveRate(catCodeToId[code], fallback);
-        const svcRate = svc => resolveRate(svc.taxCategoryId, 0);
-        // Налоговая категория пишется в строку СНАПШОТОМ (как и % ставки): из неё
-        // печатная форма берёт основание ставки (tax_categories.invoiceNote) —
-        // напр. «durchlaufender Posten § 10 Abs. 1 S. 4 UStG» для курсбора.
-        // Одна и та же ставка 0% может иметь РАЗНЫЕ основания, поэтому хранить
-        // достаточно ставки нельзя.
-        const ACCOMMODATION_CAT = catCodeToId['accommodation'] || null;
-
-        // Делит строку услуги на компоненты НДС (percent/amount/remainder),
-        // поглощая копеечный дрейф. Логика без изменений (см. историю в booking).
-        function splitLineByComponents(base, comps) {
-            const qty  = base.quantity;
-            const unit = base.unitPrice;
-            const parts = comps.map(c => ({ c, unitPart: 0 }));
-            let assigned = 0, remIdx = -1;
-            for (let i = 0; i < parts.length; i++) {
-                const c = parts[i].c;
-                if (c.splitMode === 'remainder') { remIdx = i; continue; }
-                const up = c.splitMode === 'amount'
-                    ? M.num(c.splitValue)
-                    : M.pct(unit, c.splitValue);
-                parts[i].unitPart = up;
-                assigned = M.add(assigned, up);
-            }
-            if (remIdx >= 0) parts[remIdx].unitPart = M.sub(unit, assigned);
-            else if (parts.length) {
-                const last = parts[parts.length - 1];
-                last.unitPart = M.add(last.unitPart, M.sub(unit, assigned));
-            }
-            const out = [];
-            let amtSum = 0;
-            for (let i = 0; i < parts.length; i++) {
-                const { c, unitPart } = parts[i];
-                const amount = M.mul(unitPart, qty);
-                out.push(Object.assign({}, base, {
-                    UID: Utilities.generateUID('InvoiceLines'),
-                    label: (base.label || '') + ' – ' + c.name,
-                    taxComponentName: c.name,
-                    // Порядок компонента из справочника (comps уже отсортированы
-                    // по displayOrder) — по нему свёртка держит Speisen перед
-                    // Getränke, а не раскидывает их по величине суммы.
-                    _compOrder: i,
-                    unitPrice: unitPart,
-                    taxRate: resolveRate(c.taxCategoryId, base.taxRate),
-                    taxCategoryId: c.taxCategoryId || base.taxCategoryId || null,
-                    amount
-                }));
-                amtSum = M.add(amtSum, amount);
-            }
-            const drift = M.sub(base.amount, amtSum);
-            if (drift !== 0 && out.length) {
-                let mx = 0;
-                for (let i = 1; i < out.length; i++) if (M.cmp(out[i].amount, out[mx].amount) > 0) mx = i;
-                out[mx].amount = M.add(out[mx].amount, drift);
-            }
-            return out;
-        }
-
-        // Компонент действует, если дата услуги (заезд) попадает в validFrom..validTo.
-        // Пустая граница = ограничения нет (см. periodCovers выше).
-        const componentApplies = c => periodCovers(c, checkInDate);
-
-        function emitServiceLine(base, serviceId) {
-            const all = compMap[serviceId];
-            const comps = all ? all.filter(componentApplies) : null;
-            if (!comps || comps.length === 0) { lines.push(base); return; }
-            for (const ln of splitLineByComponents(base, comps)) lines.push(ln);
-        }
-
-        for (const room of rooms) {
-            if (!room.UID) continue;
-            const rGuests = guests.filter(g => g.bookingRoomId === room.UID);
-            const rSvcs   = roomServices.filter(s => s.bookingRoomId === room.UID);
-            const rInfo   = roomMap[room.roomId];
-            const rLabel  = rInfo ? rInfo.number : '?';
-
-            // Гости комнаты — по ВИДАМ из справочника, без корзин с порогами.
-            // Раньше здесь стояла лесенка `gt.ageFrom >= 16 / 14 / 6 / 3 / 2`:
-            // шесть чисел в коде, повторявших границы, которые владелец правит
-            // в guest_types. Заведи он седьмой вид или сдвинь границу — расчёт
-            // молча отнёс бы гостя не в ту корзину.
-            const cntByGt = new Map();
-            for (const g of rGuests) {
-                const gt = gtMap[g.guestTypeId];
-                if (!gt) continue;
-                cntByGt.set(gt.UID, (cntByGt.get(gt.UID) || 0) + (g.count || 1));
-            }
-
-            // В сетку тарифа номера входят виды с режимом `included`
-            // (у Seiler — от 6 лет и старше). Это правило данных, а не кода:
-            // у другой организации порог другой.
-            let billingGuests = 0;
-            for (const gt of gtOrdered) {
-                if (roomRateMode(gt) === 'included') billingGuests += (cntByGt.get(gt.UID) || 0);
-            }
-
-            // 1. Проживание — цена из среза прайс-листов.
-            const rp = priceResolver.pickRoomPrice(priceSlice, {
-                roomId: room.roomId, guestsCount: billingGuests, stayDate: checkInDate
-            });
-            if (rp) {
-                lines.push({
-                    UID: Utilities.generateUID('InvoiceLines'),
-                    bookingId, bookingRoomId: room.UID, organizationId: orgId,
-                    sectionLabel: tInv('accommodation_section'),
-                    // Количество этой строки — НОЧИ, поэтому в подписи их нет:
-                    // они и так стоят в графе «Количество». Число гостей, наоборот,
-                    // есть только здесь — от него зависит цена, а сомножителем
-                    // количества оно не является (цена уже за квартиру целиком).
-                    label:    tfInv('room_line_label', { room: rLabel, guests: nGuests(billingGuests) }),
-                    quantity: nights, unitPrice: rp.price,
-                    taxRate:  rateByCode('accommodation', 0),
-                    taxCategoryId: ACCOMMODATION_CAT,
-                    amount:   M.mul(rp.price, nights), sortOrder: ++sortOrd
-                });
-            } else if (billingGuests > 0) {
-                // Проживание молча выпадало из счёта, если в срезе прайс-листов
-                // нет цены на такое число гостей (новый вид гостя сдвинул счёт,
-                // сезон не покрыт, квартиру не внесли в прайс). Это самая
-                // дорогая строка документа — молчать о её отсутствии нельзя.
-                addSkipped(rLabel, 'roomnoprice', { guests: billingGuests });
-            }
-
-            // 2. Виды гостей ВНЕ тарифа номера, у которых есть собственная цена
-            //    проживания (позиция прайс-листа srv-child). Раньше это были два
-            //    жёстко прописанных блока «дети 3–5» и «дети 2 года» с UID видов
-            //    прямо в коде. Кого накрывает цена — решает возрастная полоса
-            //    позиции: младенцы под неё не попадают и строки не получают,
-            //    а новый вид гостя подхватится сам, без правки кода.
-            for (const gt of gtOrdered) {
-                const mode = roomRateMode(gt);
-                // `included` уже посчитан в тарифе номера, `free` — объявленное
-                // бесплатное проживание (младенцы). Предупреждать надо только
-                // про `separate`: у него ЗАЯВЛЕНА своя цена, а её нет.
-                if (mode !== 'separate') continue;
-                const n = cntByGt.get(gt.UID) || 0;
-                if (n <= 0) continue;
-                const price = auxPriceForGuestType(CHILD_SERVICE_ID, gt);
-                if (!price) {
-                    addSkipped(gtName(gt), 'guestnoprice');
-                    continue;
-                }
-                const qty = n * nights;
-                lines.push({
-                    UID: Utilities.generateUID('InvoiceLines'),
-                    bookingId, bookingRoomId: room.UID, organizationId: orgId,
-                    guestTypeId: gt.UID,
-                    sectionLabel: tInv('accommodation_section'),
-                    // Здесь количество — человеко-ночи, и оба сомножителя известны
-                    // по построению, поэтому подпись их называет.
-                    label:    tfInv('room_guest_type_line_label', {
-                        room: rLabel, guestType: gtName(gt),
-                        guests: nGuests(n), nights: nNights(nights)
-                    }),
-                    quantity: qty, unitPrice: price, taxRate: rateByCode('accommodation', 0),
-                    taxCategoryId: ACCOMMODATION_CAT,
-                    amount:   M.mul(price, qty), sortOrder: ++sortOrd
-                });
-            }
-
-            // 3. Услуги из BookingRoomServices (только «включённые», count > 0).
-            for (const rs of rSvcs) {
-                if (rs.included === false) continue;
-                const svc = svcMap[rs.serviceId];
-                if (!svc) continue;
-                const cnt = Number(rs.count);
-
-                // Сверка количества с правилом услуги. Ручной ввод (autoQuantity=false)
-                // правило перебивает — это законно, но пользователь обязан узнать, что
-                // счёт расходится с прайс-листом: счёт 00010 получил 120 € уборки,
-                // которую правило «только при проживании ≤ 3 ночей» начислять запрещает,
-                // и ни один из двух проверяющих этого не заметил.
-                const ruleQty = ruleQuantity(svc);
-                if (ruleQty != null && rs.autoQuantity === false && ruleQty !== cnt) {
-                    addSkipped(svc.name, 'manual', { count: cnt, expected: ruleQty });
-                }
-                if (!cnt) {
-                    // Ноль по правилу услуги — ШТАТНОЕ состояние, а не потерянные
-                    // деньги: условие услуги просто не выполнилось (уборка при
-                    // проживании > 3 ночей). Решение владельца 2026-07-29: об этом
-                    // не сообщать, сообщение было лишним. Предупреждаем только о
-                    // РАСХОЖДЕНИИ ручного ввода с правилом (см. выше) — там счёт
-                    // молча расходится с прайс-листом, и это пользователю важно.
-                    continue;
-                }
-
-                // Детский тариф проживания начисляется блоком №2 ИЗ СОСТАВА ГОСТЕЙ
-                // (виды вне тарифа номера × ночи). Если эта же услуга добавлена строкой
-                // ТЧ брони, начисление удваивается — ровно это дал счёт 00009
-                // (две строки по 75 € за одного ребёнка). Услуга-носитель цены не
-                // является отдельно продаваемой: строку игнорируем и говорим об этом.
-                if (rs.serviceId === CHILD_SERVICE_ID) {
-                    addSkipped(svc.name, 'auto');
-                    continue;
-                }
-
-                const linesBefore = lines.length;
-                const roomPriceRows = pricesForRoom(rs.serviceId, room.roomId);
-                // Полоса есть, если заполнена хотя бы одна граница. Прямое
-                // `ageFrom != null` здесь было бы неверно: по правилу умолчаний
-                // «пусто» у числа — это 0, а не NULL (см. priceResolver).
-                const agePrices = roomPriceRows.filter(sp => priceResolver.hasAgeBand(sp));
-
-                if (agePrices.length > 0) {
-                    // Перебор — по справочнику видов гостей, а не по списку UID
-                    // в коде: раньше шесть предопределённых видов были выписаны
-                    // здесь поимённо, и седьмой просто не попал бы в счёт.
-                    for (const gt of gtOrdered) {
-                        const n = cntByGt.get(gt.UID) || 0;
-                        if (n <= 0) continue;
-                        const sp = agePrices.find(p => priceResolver.ageBandMatches(p, gt.ageFrom, gt.ageTo));
-                        if (!sp || sp.price === 0) continue;
-                        const qty = n * cnt;
-                        const gLabel = gtName(gt);
-                        const unitsLabel = serviceUnitsLabel(svc, rs, cnt);
-                        emitServiceLine({
-                            UID: Utilities.generateUID('InvoiceLines'),
-                            bookingId, bookingRoomId: room.UID, organizationId: orgId,
-                            serviceId: rs.serviceId, guestTypeId: gt.UID,
-                            sectionLabel: svc.name,
-                            // Печатную подпись строки услуги собирает СВЁРТКА (из
-                            // sectionLabel + видов гостя + компонента + разложения),
-                            // поэтому здесь label — только запасное значение на случай
-                            // пустого sectionLabel. Собирать тут развёрнутый текст
-                            // бессмысленно: свёртка его отбрасывает.
-                            label:    svc.name,
-                            // Составляющие подписи уходят свёртке ОТДЕЛЬНЫМИ реквизитами,
-                            // чтобы ей не пришлось разбирать готовый текст обратно на части.
-                            // Порядок — из справочника (guest_types.displayOrder), а не из
-                            // порядка перебора: строки счёта идут по видам гостей.
-                            _ageLabel: gLabel,
-                            _ageOrder: gt.displayOrder != null ? gt.displayOrder : 50,
-                            // Сомножители количества — свёртке: печатную подпись
-                            // строит она, и число гостей у неё СУММИРУЕТСЯ по группе
-                            // (одна ценовая полоса накрывает несколько видов гостей).
-                            _persons: n, _unitsLabel: unitsLabel,
-                            quantity: qty, unitPrice: sp.price, taxRate: svcRate(svc),
-                            taxCategoryId: svc.taxCategoryId || null,
-                            amount:   M.mul(sp.price, qty), sortOrder: ++sortOrd
-                        }, rs.serviceId);
-                    }
-                } else {
-                    const sp    = roomPriceRows.find(p => !priceResolver.hasAgeBand(p));
-                    const price = sp ? sp.price : 0;
-                    if (price > 0) {
-                        const qty = cnt;
-                        emitServiceLine({
-                            UID: Utilities.generateUID('InvoiceLines'),
-                            bookingId, bookingRoomId: room.UID, organizationId: orgId,
-                            serviceId: rs.serviceId, sectionLabel: svc.name,
-                            // Как и выше: подпись собирает свёртка, здесь — запасное значение.
-                            label:    svc.name,
-                            quantity: qty, unitPrice: price, taxRate: svcRate(svc),
-                            taxCategoryId: svc.taxCategoryId || null,
-                            amount:   M.mul(price, qty), sortOrder: ++sortOrd
-                        }, rs.serviceId);
-                    }
-                }
-
-                // Услуга включена и количество задано, а строк не появилось —
-                // значит в срезе прайс-листов на дату расчёта нет подходящей цены
-                // (нет позиции вообще, либо возрастные полосы не накрывают гостей).
-                // Молчать здесь нельзя: это недобор денег в счёте.
-                if (lines.length === linesBefore) addSkipped(svc.name, 'noprice');
-            }
-        }
-
-        // 6. Доп.услуги (booking_extra_lines) — прямо в счёт отдельными строками.
-        for (const el of (extraLines || [])) {
-            if (!el || !el.name) continue;
-            const amount = Number(el.amount);
-            if (!Number.isFinite(amount) || amount === 0) continue;
-            const rate = el.taxRateId && rateValById[el.taxRateId] != null ? rateValById[el.taxRateId] : 0;
-            lines.push({
-                UID: Utilities.generateUID('InvoiceLines'),
-                bookingId, organizationId: orgId,
-                sectionLabel: tInv('extra_lines_section'),
-                label:    el.name,
-                quantity: 1, unitPrice: M.num(amount),
-                taxRate:  rate,
-                amount:   M.num(amount), sortOrder: ++sortOrd,
-                _isExtra: true
-            });
-        }
-
-        // Приоритет сортировки из displayOrder справочников.
-        for (const ln of lines) {
-            if (ln._isExtra) {
-                ln._sortPriority = 95;
-            } else if (ln.serviceId != null) {
-                const svc = svcMap[ln.serviceId];
-                ln._sortPriority = (svc && svc.displayOrder != null) ? svc.displayOrder : 50;
-                // Те же ключи нужны свёртке: она пересобирает строки заново и
-                // без них теряет порядок справочника услуг.
-                ln._svcOrder = ln._sortPriority;
-                ln._svcName  = (svc && svc.name) || '';
-            } else if (ln.guestTypeId != null) {
-                const gt = gtMap[ln.guestTypeId];
-                ln._sortPriority = (gt && gt.displayOrder != null) ? gt.displayOrder : 50;
-            } else {
-                ln._sortPriority = 10; // проживание — всегда первым
-            }
-        }
-        lines.sort((a, b) => {
-            if (a._sortPriority !== b._sortPriority) return a._sortPriority - b._sortPriority;
-            return (a.label || '').localeCompare(b.label || '', 'de');
-        });
-        lines.forEach((ln, i) => {
-            ln.sortOrder = i + 1;
-            delete ln._sortPriority;
-            delete ln._isExtra;
-        });
-        // invLang уходит наружу: печатную подпись строк услуг собирает свёртка,
-        // и язык организации нужен ей так же, как расчёту.
-        return { lines, booking, skipped, invLang };
     }
 
     // Сообщение «эти услуги брони в счёт не попали» — UI-алерт пользователю,
@@ -648,143 +157,65 @@ module.exports = function (modelsDB, Utilities) {
         return await tForSession('services_skipped_title', sessionID) + '\n' + parts.join('\n');
     }
 
-    // ── Свёртка детальных строк в «печатный» вид (WYSIWYG) ───────────────
-    // ТЧ счёта хранит РОВНО те строки, что печатаются, — корректировать удобно.
-    // Классификация как раньше в печати: услуги группируются по
-    // serviceId + налоговый компонент + ставка + ЦЕНА ЗА ЕДИНИЦУ, проживание и
-    // доп.строки — как есть. Порядок: проживание (по убыванию суммы)
-    // → услуги (по убыванию суммы) → доп.строки.
-    //
-    // Цена в ключе — обязательна. Без неё возрастные полосы одной услуги
-    // (курсбор 2,10 взр. / 1,00 дети 6–15; завтрак 14,50 / 8,50 / 3,50)
-    // сливались в одну строку, и, поскольку общей цены за единицу у них нет,
-    // строка вырождалась в «Menge 1 × вся сумма»: в счёте 1397 курсбор
-    // печатался как 1 × 72,00 вместо 20 × 2,10 + 20 × 1,00 + 10 × 1,00.
-    // Это прямо нарушало § 14 Abs. 4 Nr. 5 UStG (Menge и Einzelpreis —
-    // самостоятельные реквизиты) и не давало гостю проверить сумму.
-    // С ценой в ключе строк ровно столько, сколько сработало ценовых полос,
-    // и у каждой честные количество и цена; сумма счёта не меняется.
-    //
-    // Подпись строки: имя услуги [+ налоговый компонент] [+ возрастные группы].
-    // Группы перечисляются, потому что одна ценовая полоса может накрывать
-    // несколько видов гостей (дети 6–13 и подростки 14–15 платят курсбор по 1,00).
-    // Ставка НДС — ссылкой на справочник tax_rates (taxRateId); % (taxRate)
-    // остаётся снапшотом документа рядом.
-    function _collapseInvoiceLines(rawLines, taxRateRows, invLang) {
-        // Подпись печатной строки услуги собирается ЗДЕСЬ, поэтому язык
-        // организации нужен и здесь: строки счёта — содержимое документа
-        // организации, а не интерфейс пользователя.
-        const tfL = (key, vars) => i18n.tf(key, invLang || 'en', vars);
-        const accommodation = [];
-        const extra = [];
-        const svcGroups = new Map(); // ключ: serviceId|компонент|ставка|категория|цена
-        for (const ln of rawLines) {
-            if (ln.serviceId) {
-                const rate = ln.taxRate || 0;
-                const comp = ln.taxComponentName || '';
-                const unit = Number(ln.unitPrice) || 0;
-                // Категория — часть ключа: одинаковая ставка с РАЗНЫМ основанием
-                // (0% durchlaufender Posten vs 0% § 4 Nr. 12a) не должна сливаться.
-                const key = ln.serviceId + '|' + comp + '|' + rate + '|' + (ln.taxCategoryId || '') + '|' + unit;
-                let g = svcGroups.get(key);
-                if (!g) {
-                    g = { proto: ln, base: ln.sectionLabel || ln.label, comp,
-                          ages: [], ageOrder: Infinity, rows: [],
-                          persons: 0, unitsLabel: null, unitsMixed: false };
-                    svcGroups.set(key, g);
-                }
-                if (ln._persons != null) {
-                    g.persons += Number(ln._persons) || 0;
-                    // Разные вторые сомножители в одной группе (напр. одна услуга с
-                    // разным количеством по номерам) разложить нечем — тогда его
-                    // просто не печатаем, вместо того чтобы взять первый попавшийся.
-                    if (g.unitsLabel == null) g.unitsLabel = ln._unitsLabel;
-                    else if (g.unitsLabel !== ln._unitsLabel) g.unitsMixed = true;
-                }
-                if (ln._ageLabel) {
-                    const ord = ln._ageOrder != null ? ln._ageOrder : 50;
-                    if (!g.ages.some(a => a.label === ln._ageLabel)) g.ages.push({ label: ln._ageLabel, order: ord });
-                    if (ord < g.ageOrder) g.ageOrder = ord;
-                }
-                g.rows.push(ln);
-            } else if (ln.bookingRoomId) {
-                accommodation.push(ln);
-            } else {
-                extra.push(ln);
-            }
-        }
-        const services = [];
-        for (const g of svcGroups.values()) {
-            const amount = M.sum(g.rows, 'amount');
-            const qtySum = r2(g.rows.reduce((s, r) => s + (Number(r.quantity) || 0), 0));
-            // Цена входит в ключ группы, поэтому она одна на все строки —
-            // количество всегда суммируется, вырожденного «1 × вся сумма» нет.
-            // Вид гостя — перед налоговым компонентом: строки одного гостя
-            // должны читаться подряд («… — Erwachsener – Speisen», «… —
-            // Erwachsener – Getränke»), а не разбиваться по еде и напиткам.
-            let label = g.base;
-            if (g.ages.length) {
-                label += ' — ' + g.ages.slice()
-                    .sort((a, b) => a.order - b.order).map(a => a.label).join(', ');
-            }
-            if (g.comp) label += ' – ' + g.comp;
-            // Разложение количества — в конце: «Kurbeitrag — Erwachsener (2 Gäste × 3 ÜN)».
-            // Без него графа «Количество» показывала бы 6 без единого объяснения,
-            // откуда шестёрка (2 гостя × 3 ночи).
-            if (g.persons > 0 && g.unitsLabel && !g.unitsMixed) {
-                label += ' (' + tfL('line_qty_breakdown', {
-                    guests: tfL('guests_count', { count: g.persons }),
-                    units:  g.unitsLabel
-                }) + ')';
-            }
-            services.push({
-                UID: Utilities.generateUID('InvoiceLines'),
-                bookingId:        g.proto.bookingId,
-                organizationId:   g.proto.organizationId,
-                serviceId:        g.proto.serviceId,
-                guestTypeId:      g.rows.length === 1 ? (g.proto.guestTypeId || null) : null,
-                taxComponentName: g.proto.taxComponentName || null,
-                sectionLabel:     g.proto.sectionLabel || null,
-                label:            label,
-                quantity:         qtySum,
-                unitPrice:        Number(g.proto.unitPrice) || 0,
-                taxRate:          g.proto.taxRate || 0,
-                taxCategoryId:    g.proto.taxCategoryId || null,
-                amount,
-                // Ключи порядка — временные, снимаются сразу после сортировки.
-                _svcOrder:  g.proto._svcOrder != null ? g.proto._svcOrder : 50,
-                _svcName:   g.proto._svcName || '',
-                _ageOrder:  g.ageOrder === Infinity ? 0 : g.ageOrder,
-                _compOrder: g.proto._compOrder != null ? g.proto._compOrder : 0
-            });
-        }
-        accommodation.sort((a, b) => b.amount - a.amount);
-        // Строки одной услуги обязаны идти подряд. Сортировка по одной лишь
-        // сумме их перемешивала: в счёте 1396 курсбор вставал между «Frühstück
-        // – Speisen» и «Frühstück – Getränke», потому что его 33,60 попадали
-        // между ними по величине. Порядок: услуга (displayOrder справочника,
-        // при равенстве — по названию) → вид гостя (displayOrder справочника)
-        // → налоговый компонент → сумма. Вид гостя ВЫШЕ компонента: гость
-        // сверяет счёт по людям, а не по ставкам НДС.
-        services.sort((a, b) => {
-            if (a._svcOrder !== b._svcOrder)   return a._svcOrder - b._svcOrder;
-            if (a._svcName !== b._svcName)     return a._svcName.localeCompare(b._svcName, 'de');
-            if (a._ageOrder !== b._ageOrder)   return a._ageOrder - b._ageOrder;
-            if (a._compOrder !== b._compOrder) return a._compOrder - b._compOrder;
-            return b.amount - a.amount;
+    /**
+     * ОСТАВИТЬ ТОЛЬКО НЕВЫСТАВЛЕННОЕ (ТЗ «Учёт услуг по брони», §7).
+     *
+     * Состав услуг отвечает, ЧТО называется и сколько стоит; регистр —
+     * СКОЛЬКО из этого ещё не выставлено. Поэтому строка не просто проходит
+     * или не проходит: её количество урезается остатком, и сумма пересчитывается
+     * под урезанное количество (`Menge × Einzelpreis` обязано давать
+     * напечатанную сумму, § 14 Abs. 4 Nr. 5 UStG).
+     *
+     * Защита от двойного выставления здесь АРИФМЕТИЧЕСКАЯ: второй счёт по той же
+     * брони видит остаток, уже уменьшенный проведением первого, и предложить то
+     * же самое ему просто нечем. Проверки «а не выставлено ли это уже» в коде
+     * нет и не должно быть — она была бы второй правдой рядом с остатком.
+     *
+     * Собственные движения заполняемого счёта из остатка ИСКЛЮЧАЮТСЯ: он их
+     * сейчас перепишет, и считать их выставленными значило бы предложить ему
+     * пустоту (случай «админ вернул выставленный счёт в черновик» — состояние
+     * сменилось, а движения остались).
+     *
+     * Несколько строк печати могут делить одну позицию учёта (цена в ключ
+     * позиции не входит — см. `bookingServices.POSITION_FIELDS`). Тогда остаток
+     * расходится по ним в порядке строк: иного основания предпочесть одну
+     * другой у механизма нет, а выдумывать его — значит прятать произвол в код.
+     *
+     * @returns {Promise<{lines: Array, droppedCount: number}>}
+     */
+    async function _limitToRemaining(lines, { bookingIds, invoiceId, sessionID }) {
+        const remaining = await bookingServices.remaining({
+            bookingIds,
+            excludeRecorder: invoiceId ? { table: 'invoices', uid: invoiceId } : null,
+            sessionID
         });
-        for (const s of services) {
-            delete s._svcOrder; delete s._svcName; delete s._ageOrder; delete s._compOrder;
+
+        // Рабочие остатки: уменьшаются по мере раздачи строкам.
+        const left = new Map();
+        for (const [key, row] of remaining.entries()) left.set(key, row.quantity);
+
+        const out = [];
+        let droppedCount = 0;
+        for (const ln of lines) {
+            const key = bookingServices.keyOf(ln, ln.bookingId);
+            const avail = left.has(key) ? left.get(key) : 0;
+            // Остаток не больше нуля — позиция уже выставлена (или выставлена
+            // с избытком, и это разбирается корректировкой, а не новым счётом).
+            if (M.cmp(avail, 0) <= 0) { droppedCount++; continue; }
+
+            const want = M.num(ln.quantity);
+            const take = (M.cmp(avail, want) < 0) ? avail : want;
+            left.set(key, M.sub(avail, take));
+
+            if (M.cmp(take, want) !== 0) {
+                // Количество урезано — сумму пересчитываем от ЦЕНЫ, а не делим
+                // прежнюю сумму: печатается именно произведение.
+                ln.quantity = take;
+                ln.amount = M.mul(ln.unitPrice, take);
+            }
+            out.push(ln);
         }
-        const out = accommodation.concat(services, extra);
-        // Ссылка на справочник ставок + display-значения для FK-ячеек формы.
-        for (const ln of out) {
-            const rr = taxRateRows.find(r => Number(r.rate) === Number(ln.taxRate || 0));
-            ln.taxRateId = rr ? rr.UID : null;
-            if (rr) ln.__taxRateId_display = rr.name;
-            if (ln.serviceId && ln.sectionLabel) ln.__serviceId_display = ln.sectionLabel;
-        }
-        return out;
+        return { lines: out, droppedCount };
     }
 
     // ── Перезаполнение строк счёта по ТЧ «Бронирования» ──────────────────
@@ -815,21 +246,51 @@ module.exports = function (modelsDB, Utilities) {
             const pricingDate = (mode === 'invoiceDate')
                 ? (invoice.date || new Date())
                 : (booking.date || invoice.date || new Date());
-            const { lines, skipped, invLang } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
+            const { lines, skipped, invLang } = await services.buildLines({ bookingId, pricingDate }, ctx);
             for (const s of (skipped || [])) {
                 if (!allSkipped.some(x => x.service === s.service && x.reason === s.reason)) allSkipped.push(s);
             }
-            prepaymentSum = M.add(prepaymentSum, booking.prepayment);
+            // Предоплата брони не хранится в ней: это остаток регистра расчётов
+            // по этой броне (apps/common/lib/settlementBalance.js). Спрашиваем там
+            // же, где её спрашивает форма брони, — иначе счёт и бронь показали бы
+            // разные числа про одну и ту же сумму.
+            prepaymentSum = M.add(prepaymentSum, await settlementBalance.ofBooking({
+                bookingId, sessionID: ctx.sessionID
+            }));
 
-            // Скидка брони-основания (переносится в счёт, см. агрегацию ниже).
-            const dv = Number(booking.discountValue) || 0;
-            if (dv > 0) bookingDiscounts.push({ mode: booking.discountMode || 'percent', value: dv });
+            // СКИДКА БРОНИ — в строку этой брони в ТЧ «Buchungen» и только на её
+            // строки (решение владельца 19.10.2026, apps/reports/invoice/totals.js).
+            // Раньше скидки броней сводились в одну скидку шапки, и в общем счёте на
+            // брони с 10 % и 0 % гость второй брони получал чужую скидку (прогон
+            // 17.10.2026, Q3b). Ненулевая скидка в строке — решение человека, её
+            // перезаполнение не затирает; ноль — «не заполнено».
+            const link = links.find(l => l.bookingId === bookingId);
+            if (link) {
+                if (!M.num(link.discountValue) && Number(booking.discountValue)) {
+                    link.discountMode  = booking.discountMode || 'percent';
+                    link.discountValue = M.db(booking.discountValue);
+                    await dbGateway.execute({
+                        operation: 'update', table: 'invoice_bookings', where: { UID: link.UID },
+                        data: { discountMode: link.discountMode, discountValue: link.discountValue },
+                        context: { sessionID: ctx.sessionID }
+                    });
+                }
+                bookingDiscounts.push(link);
+            }
 
             // ТЧ хранит свёрнутые «печатные» строки (WYSIWYG) — детализация по
             // возрастным группам схлопывается здесь же, как раньше в печати.
-            allLines.push(..._collapseInvoiceLines(lines, taxRateRows, invLang));
+            allLines.push(...services.collapse(lines, taxRateRows, invLang));
         }
-        const { discount: aggDiscount, warn: discWarn } = _aggregateBookingDiscounts(bookingDiscounts);
+
+        // В счёт попадает только НЕВЫСТАВЛЕННОЕ: сколько именно — отвечает
+        // регистр, а не сверка со старыми счетами в коде.
+        const limited = await _limitToRemaining(allLines, {
+            bookingIds, invoiceId, sessionID: ctx.sessionID
+        });
+        allLines.length = 0;
+        allLines.push(...limited.lines);
+
         allLines.forEach((ln, i) => {
             ln.invoiceId = invoiceId;
             ln.sortOrder = i + 1;
@@ -852,43 +313,85 @@ module.exports = function (modelsDB, Utilities) {
         // введённые вручную 100 € (в брони-основании стоял ноль).
         // Ноль в счёте читаем как «не заполнено» — тогда подтягиваем сумму
         // предоплат всех броней-оснований.
-        // Скидка — ровно то же правило: ненулевая скидка В СЧЁТЕ сильнее
-        // агрегата по броням. Раньше правило было односторонним (агрегат
-        // применялся, как только у любой брони скидка ненулевая) — и счёт с
-        // согласованной вручную скидкой молча получал другую при нажатии
-        // «Заполнить».
-        const invUpdate = {};
+        // Скидка в шапке — дополнительная скидка на весь счёт: заполнение её не
+        // трогает (скидки броней легли в строки «Buchungen» выше).
         const keepPrepayment = (Number(invoice.prepayment) || 0) !== 0;
-        const keepDiscount   = (Number(invoice.discountValue) || 0) !== 0;
-        if (!keepPrepayment) invUpdate.prepayment = prepaymentSum;
-        if (aggDiscount && !keepDiscount) {
-            invUpdate.discountMode  = aggDiscount.mode;
-            invUpdate.discountValue = aggDiscount.value;
-        }
-        if (Object.keys(invUpdate).length) {
+
+        // ПРЕДОПЛАТА — ПОСЛЕ скидки и НЕ БОЛЬШЕ, ЧЕМ СЧЁТ ПРОСИТ ЗАПЛАТИТЬ.
+        //
+        // Остаток предоплат по броням бывает больше этого счёта: клиент внёс
+        // аванс за весь заезд, а счёт выставляется на часть, либо аванс просто
+        // больше суммы. Записать в счёт всё значило бы напечатать отрицательный
+        // «Zahlbetrag» — счёт, который возвращает деньги, — и зачесть при
+        // проведении больше, чем счётом начислено (прогон 16.10.2026: счёт на
+        // 457,00 зачёл 20 050,00). Излишек НИКУДА НЕ ДЕВАЕТСЯ: он остаётся
+        // остатком предоплаты по брони, и его возьмёт следующий счёт.
+        //
+        // Предел — то же число, которое печатается («сумма к оплате» до вычета
+        // аванса): берём его у СБОРЩИКА печатной формы, а не считаем здесь
+        // заново, иначе появился бы второй счёт-калькулятор.
+        if (!keepPrepayment) {
+            let value = prepaymentSum;
+            try {
+                value = capPrepayment(value, await _payableTotal(allLines, invoice, bookingDiscounts));
+            } catch (e) {
+                console.error('[invoice/_fillInvoice] предел предоплаты не определён:', e && e.message || e);
+            }
             await dbGateway.execute({
                 operation: 'update', table: 'invoices',
-                where: { UID: invoiceId }, data: invUpdate,
+                where: { UID: invoiceId }, data: { prepayment: M.db(value) },
                 context: dbCtx
             });
         }
 
-        // Предупреждение пользователю (язык сессии — это UI-алерт, не документ):
-        // у нескольких броней-оснований разные скидки, объединены в одну.
-        // Только если скидку действительно применили: если она осталась своя,
-        // сообщение про объединение скидок броней относилось бы к тому, чего
-        // не произошло.
-        let discountNotice = null;
-        if (discWarn && aggDiscount && !keepDiscount) {
-            const disp = aggDiscount.mode === 'percent'
-                ? (aggDiscount.value + ' %') : (aggDiscount.value + ' €');
-            discountNotice = await tfForSession('discount_multi_booking_warning', ctx.sessionID, { discount: disp });
+        notifyTables('update', invoiceId);
+
+        // ОПОВЕЩЕНИЯ СЧЁТА (ТЗ оповещений §15): предупреждения расчёта перестают
+        // быть одноразовыми. Диалог ниже остаётся — это ответ на нажатие кнопки,
+        // а оповещение живёт на счёте, пока причина не устранена, и видно в
+        // журнале значком.
+        //
+        // Переписываются только строки СВОЕГО правила: то, что записало
+        // проведение, заполнение задеть не вправе. Удалять оповещения приложение
+        // не умеет и не должно — пустой список причин снимет их само ядро.
+        try {
+            const documentAlerts = require('../../../node_modules/my-old-space/drive_root/db/documentAlerts');
+            await documentAlerts.rebuild({
+                table: 'invoices', uid: invoiceId,
+                ruleCodes: ['invoice.fillWarnings'],
+                input: { skipped: allSkipped },
+                sessionID: ctx.sessionID,
+                requestedBy: (ctx.user && ctx.user.UID) || null
+            });
+            // ПУША ЗДЕСЬ НЕТ — и это не забывчивость.
+            //
+            // Заполнение счёта нажал человек, который прямо сейчас смотрит на эту
+            // форму: он получает те же слова ответом на кнопку (диалог ниже) и
+            // третий раз видит их в панели оповещений формы. Пуш был четвёртой
+            // копией одной фразы — прогон 16.10.2026 так и записал: «один текст
+            // двумя каналами». Две копии одной фразы — дефект, а не
+            // подстраховка; уведомление нужно тому, кого в этот момент у формы
+            // нет. Отметка об отправке при этом НЕ ставится: оповещение остаётся
+            // «не сказанным», и если причина доживёт до чужого пересчёта, оно
+            // уйдёт тому, кто о ней ещё не знает.
+            notifyTables('update', invoiceId);
+            require('../../../node_modules/my-old-space/apps/uniForm/server.js')
+                .notifyTableChange(documentAlerts.TABLE, 'update', invoiceId);
+        } catch (e) {
+            console.error('[invoice/_fillInvoice] оповещения не пересчитаны:', e && e.message || e);
         }
 
-        notifyTables('update', invoiceId);
         const freshInvoice = await modelsDB.Invoices.findByPk(invoiceId, { raw: true });
         const skippedNotice = await _skippedNotice(allSkipped, ctx.sessionID);
-        return { invoice: freshInvoice, lines: allLines, discountNotice, skippedNotice };
+        // Пустой счёт без объяснения читается как поломка. Сказать, что услуги
+        // уже выставлены, обязательно: это нормальный исход («второй счёт по той
+        // же брони»), и он выглядит в точности как сбой.
+        const alreadyNotice = limited.droppedCount
+            ? await tfForSession(allLines.length ? 'invoice_partly_invoiced' : 'invoice_all_invoiced',
+                ctx.sessionID, { count: limited.droppedCount })
+            : null;
+        // Строки «Buchungen» — со скидками броней, которые заполнение могло вписать.
+        return { invoice: freshInvoice, lines: allLines, bookings: links, skippedNotice, alreadyNotice };
     }
 
     /**
@@ -946,6 +449,141 @@ module.exports = function (modelsDB, Utilities) {
         }]);
     }
 
+    /**
+     * ЗАЧЁТ ПРЕДОПЛАТЫ (16.10.2026).
+     *
+     * Счёт вычитает предоплату броней («Anzahlung»), но раньше регистр расчётов об
+     * этом не знал: долг рос на всё брутто, предоплата брони оставалась нетронутой —
+     * и СЛЕДУЮЩИЙ счёт по той же брони вычитал её снова (прогон сценариев Q5: 110 − 100
+     * при уже учтённых 100), а в расчётах висели «долг 100» и «предоплата 100» сразу.
+     *
+     * Теперь проведение счёта ЗАЧИТЫВАЕТ вычтенную предоплату: по каждой брони —
+     * `prepayment −` (в пределах её остатка НА МОМЕНТ счёта), и столько же `debt −`
+     * клиенту. Остаток предоплаты брони после этого — то, что ещё не зачтено, и
+     * следующий счёт берёт только его.
+     *
+     * Отрицательная предоплата (сторно, коррекция) возвращает зачтённое по тем же
+     * броням, что зачёл исходный счёт (`correctsInvoiceId`), — зеркально, не по
+     * сегодняшним остаткам.
+     */
+    async function writePrepaymentApplied(doc, ctx) {
+        const applied = M.round(M.num(doc.prepayment));
+        if (M.isZero(applied) || !doc.clientId) return;
+        const registers = require('../../../node_modules/my-old-space/drive_root/db/registers');
+        const rctx = { sessionID: ctx.sessionID, transaction: ctx.transaction };
+        const parts = [];   // [{ bookingId, amount }] — модуль зачёта по брони
+
+        if (M.cmp(applied, 0) > 0) {
+            const links = await modelsDB.InvoiceBookings.findAll({
+                where: { invoiceId: doc.UID }, raw: true,
+                transaction: ctx.transaction || undefined
+            });
+            const ids = [...new Set((links || []).map(l => l.bookingId).filter(Boolean))];
+            if (!ids.length) return;
+            const rows = await registers.balance({
+                register: 'reg_settlements',
+                dimensions: { bookingId: ids, settlementKind: 'prepayment' },
+                groupBy: ['bookingId'],
+                moment: ctx.moment,
+                context: rctx
+            });
+            const byBooking = {};
+            for (const r of (rows || [])) if (r && r.bookingId) byBooking[r.bookingId] = M.num(r.amount);
+            let rest = applied;
+            for (const id of ids) {
+                if (M.cmp(rest, 0) <= 0) break;
+                const avail = byBooking[id] || 0;
+                if (M.cmp(avail, 0) <= 0) continue;
+                const take = M.cmp(avail, rest) < 0 ? avail : rest;
+                parts.push({ bookingId: id, amount: take });
+                rest = M.sub(rest, take);
+            }
+            // Остаток сверх зарегистрированной предоплаты (вписан от руки — деньги
+            // прошли мимо программы) зачитывать НЕ из чего: регистр о нём не знает.
+        } else if (doc.correctsInvoiceId) {
+            const src = await ctx.dbGateway.execute({
+                operation: 'read', table: 'reg_settlements',
+                where: { recorderTable: 'invoices', recorderUID: doc.correctsInvoiceId, settlementKind: 'prepayment' },
+                options: { raw: true, transaction: ctx.transaction || undefined },
+                context: rctx
+            }) || [];
+            let rest = M.num(applied) * -1;   // сколько вернуть, положительно
+            for (const m of src) {
+                if (!m.bookingId || M.cmp(rest, 0) <= 0) continue;
+                const was = M.num(m.amount);
+                const back = M.cmp(was, rest) < 0 ? was : rest;
+                parts.push({ bookingId: m.bookingId, amount: M.num(back) * -1 });
+                rest = M.sub(rest, back);
+            }
+        }
+        if (!parts.length) return;
+
+        const rowsOut = [];
+        let total = 0;
+        for (const p of parts) {
+            const neg = M.cmp(p.amount, 0) < 0;
+            rowsOut.push({
+                sign: neg ? +1 : -1,
+                organizationId: doc.organizationId,
+                clientId: doc.clientId,
+                bookingId: p.bookingId,
+                settlementKind: 'prepayment',
+                amount: Math.abs(M.num(p.amount)),
+                comment: doc.name || null
+            });
+            total = M.add(total, p.amount);
+        }
+        rowsOut.push({
+            sign: M.cmp(total, 0) < 0 ? +1 : -1,
+            organizationId: doc.organizationId,
+            clientId: doc.clientId,
+            settlementKind: 'debt',
+            amount: Math.abs(M.num(total)),
+            comment: doc.name || null
+        });
+        await ctx.movements.write('reg_settlements', rowsOut);
+    }
+
+    /**
+     * ВЫСТАВЛЕНО — движение счёта по регистру услуг по брони (ТЗ §7).
+     *
+     * Пишется из СВОИХ СТРОК, а не из пересчёта состава: строки к моменту
+     * проведения заморожены, печатная форма берётся из архива, и считать здесь
+     * заново значило бы завести второй ответ на вопрос «что выставлено».
+     *
+     * ЗНАК постоянный, `−1`: количество и сумма едут такими, какими лежат в
+     * строке. Поэтому сторно и коррекция не требуют ни единой строки особого
+     * кода — у них строки уже отрицательные, и `−1 × (−20)` возвращает услуги в
+     * «не выставлено» само.
+     *
+     * Строка БЕЗ брони движения не даёт: ручная строка, дописанная в счёт от
+     * руки, никакой бронью не заказывалась — её «выставление» нечему
+     * противопоставить, а приписав её брони, механизм получил бы отрицательный
+     * остаток и объявил расхождением то, что человек сделал намеренно.
+     */
+    async function writeServicesIssued(doc, ctx) {
+        const lines = await modelsDB.InvoiceLines.findAll({
+            where: { invoiceId: doc.UID }, raw: true
+        });
+        const rows = [];
+        for (const ln of (lines || [])) {
+            if (!ln.bookingId) continue;
+            const quantity = M.num(ln.quantity);
+            const amount   = M.num(ln.amount);
+            if (M.isZero(quantity) && M.isZero(amount)) continue;
+            rows.push(Object.assign({
+                sign: -1,
+                organizationId: ln.organizationId || doc.organizationId,
+                bookingId: ln.bookingId,
+                quantity,
+                amount,
+                unitPrice: M.num(ln.unitPrice),
+                label: ln.label || null
+            }, bookingServices.positionOf(ln)));
+        }
+        if (rows.length) await ctx.movements.write(bookingServices.REGISTER, rows);
+    }
+
     async function postIssue(doc, ctx) {
         const invoiceId = doc && doc.UID;
         if (!invoiceId) throw new Error(await tForSession('invoice_not_found', ctx.sessionID));
@@ -955,50 +593,86 @@ module.exports = function (modelsDB, Utilities) {
         // значило бы потерять долг при любом перепроведении — молча и насовсем.
         const built = await buildInvoiceDoc(modelsDB, invoiceId, { draft: false });
 
-        // Уже выставлен — архивная копия снята тогда же и переснятию не подлежит
-        // (так приходит каскад и повторное нажатие). Но движение пишем.
-        if (doc.status && doc.status !== 'draft') {
-            await writeInvoiceDebt(doc, ctx, built.brutto);
-            return;
+        // ОДНОРАЗОВОЕ ВНУТРИ ПОВТОРЯЕМОГО (ТЗ §9.5). Проведение зовут снова каскад,
+        // очередь после сбоя, групповое перепроведение и первичное наполнение
+        // регистров — движения для того и переписываются. А выставление счёта
+        // одноразово, и признак этого — НАЛИЧИЕ АРХИВНОЙ КОПИИ, а не состояние
+        // документа: состояние ставит ядро после обработчика, его можно сменить
+        // руками админским обходом, а копия либо снята, либо нет. Пересобрать её
+        // сегодня — значит собрать по сегодняшним справочникам и ценам и разойтись
+        // с бумагой, которая у клиента на руках (§ 14b UStG, хранение 8 лет).
+        const archived = await documentArchive.exists('invoices', invoiceId);
+
+        if (!archived) {
+            // Полнота реквизитов — условие СОСТОЯНИЯ, а не печати.
+            if (built.missingKeys && built.missingKeys.length) {
+                const names = [];
+                for (const key of built.missingKeys) names.push(await tForSession(key, ctx.sessionID));
+                throw new Error(await tForSession('invoice_issue_missing_data', ctx.sessionID)
+                    + ' ' + names.join('; '));
+            }
+
+            // ПРЕДОПЛАТА НЕ БОЛЬШЕ ИТОГА — условие состояния, как и § 14.
+            //
+            // Заполнение счёта ограничивает её само (`capPrepayment`), но поле
+            // правится руками, и выставить счёт, который возвращает деньги,
+            // нельзя: клиенту уходит документ с отрицательной суммой к оплате,
+            // а регистр расчётов зачитывает аванса больше, чем счётом начислено
+            // (прогон 16.10.2026: счёт на 457,00 с предоплатой 20 050,00 вышел
+            // без единого вопроса). Поправить это молча тоже нельзя — число
+            // ввёл человек, и менять его за него в денежном поле не дело
+            // программы. Поэтому отказ словами, с обоими числами.
+            const capped = capPrepayment(doc.prepayment, built.brutto);
+            if (M.cmp(capped, M.round(M.num(doc.prepayment))) !== 0) {
+                // Суммы — в виде, привычном читателю сообщения (язык СЕССИИ: это
+                // сообщение человеку, а не содержимое документа), иначе немец
+                // читает «20050.00» и спотыкается о точку.
+                const sc = await getSessionContext(ctx.sessionID);
+                const lang = (sc && sc.language) || 'de';
+                throw new Error(await tfForSession('invoice_prepayment_exceeds_total', ctx.sessionID, {
+                    prepayment: locale.money(doc.prepayment, lang),
+                    total:      locale.money(built.brutto, lang)
+                }));
+            }
+
+            // Дата выставления — ДАТА ДОКУМЕНТА, а не показания часов. По
+            // § 14 Abs. 4 Nr. 3 UStG Ausstellungsdatum и есть дата счёта, так что
+            // это одно и то же значение: сколько его ни ставь повторно, оно не
+            // изменится, и вопрос «что делать при перепроведении» исчезает по
+            // построению. Заодно чинится ошибка, которая была и без повторов:
+            // счёт, выставленный задним числом, получал «сегодня».
+            const issuedAt = isEmptyDate(doc.date) ? new Date() : new Date(doc.date);
+            await ctx.dbGateway.execute({
+                operation: 'update',
+                table: 'invoices',
+                where: { UID: invoiceId },
+                data: { issuedAt },
+                context: { sessionID: ctx.sessionID }
+            });
+
+            // Снимок кладём уже с итоговым состоянием: архив хранит документ таким,
+            // каким он ушёл, а ушёл он выставленным. Состояние в базе к этому моменту
+            // ещё `draft` — его поставит ядро после обработчика, — поэтому в payload
+            // оно подставляется явно.
+            built.payload.invoice = Object.assign({}, built.payload.invoice,
+                { status: 'issued', issuedAt });
+
+            await documentArchive.save({
+                documentTable:  'invoices',
+                documentUID:    invoiceId,
+                documentNumber: doc.number || null,
+                organizationId: doc.organizationId || null,
+                lang:           built.lang || null,
+                html:           built.html,
+                payload:        built.payload,
+                createdBy:      ctx.requestedBy || null,
+                transaction:    ctx.transaction
+            });
         }
-
-        // Полнота реквизитов — условие СОСТОЯНИЯ, а не печати.
-        if (built.missingKeys && built.missingKeys.length) {
-            const names = [];
-            for (const key of built.missingKeys) names.push(await tForSession(key, ctx.sessionID));
-            throw new Error(await tForSession('invoice_issue_missing_data', ctx.sessionID)
-                + ' ' + names.join('; '));
-        }
-
-        const issuedAt = new Date();
-        await ctx.dbGateway.execute({
-            operation: 'update',
-            table: 'invoices',
-            where: { UID: invoiceId },
-            data: { issuedAt },
-            context: { sessionID: ctx.sessionID }
-        });
-
-        // Снимок кладём уже с итоговым состоянием: архив хранит документ таким,
-        // каким он ушёл, а ушёл он выставленным. Состояние в базе к этому моменту
-        // ещё `draft` — его поставит ядро после обработчика, — поэтому в payload
-        // оно подставляется явно.
-        built.payload.invoice = Object.assign({}, built.payload.invoice,
-            { status: 'issued', issuedAt });
-
-        await documentArchive.save({
-            documentTable:  'invoices',
-            documentUID:    invoiceId,
-            documentNumber: doc.number || null,
-            organizationId: doc.organizationId || null,
-            lang:           built.lang || null,
-            html:           built.html,
-            payload:        built.payload,
-            createdBy:      ctx.requestedBy || null,
-            transaction:    ctx.transaction
-        });
 
         await writeInvoiceDebt(doc, ctx, built.brutto);
+        await writePrepaymentApplied(doc, ctx);
+        await writeServicesIssued(doc, ctx);
     }
 
 
@@ -1022,10 +696,70 @@ module.exports = function (modelsDB, Utilities) {
         // НИЧЕГО не пишет в БД: считает строки и возвращает prefill/prefillTabular
         // для открытия ЗАПОЛНЕННОЙ новой формы счёта («создать на основании»).
         // Номер/дата/представление присвоятся при сохранении формы (хуки dbGateway).
+        /**
+         * РЕКВИЗИТЫ ФОРМЫ счёта: «сумма к оплате».
+         *
+         * Нижняя строка таблицы — это сумма КОЛОНКИ строк, и скидка с
+         * предоплатой в неё не входят: на печати стоит одно число, а на экране
+         * другое (прогон 16.10.2026, Q14.4). Поэтому на форме есть отдельный
+         * реквизит, и считает его СЕРВЕР — тем же расчётом, которым печатается
+         * «Gesamtbetrag» (`reports/invoice/totals.js`).
+         */
+        async onLoadAttributes({ recordID, isNew, record }, ctx) {
+            if (isNew || !recordID) return { payableAmount: 0 };
+            const lines = await modelsDB.InvoiceLines.findAll({
+                where: { invoiceId: recordID }, raw: true
+            });
+            const links = await modelsDB.InvoiceBookings.findAll({ where: { invoiceId: recordID }, raw: true });
+            const total = await _payableTotal(lines, record || {}, links);
+            return { payableAmount: M.num(M.sub(total, M.num((record || {}).prepayment))) };
+        },
+
+        /**
+         * «Сумма к оплате» по ТОМУ, ЧТО СЕЙЧАС НА ФОРМЕ, — для живого пересчёта.
+         *
+         * Клиент правит строку и сразу спрашивает число здесь, а не считает его
+         * сам: правило скидки знает справочник (`tax_categories.discountable` —
+         * курортный сбор уменьшать нельзя), и вторая копия этого правила в
+         * браузере разошлась бы с печатью. Метод НИЧЕГО НЕ ПИШЕТ.
+         */
+        async payable({ lines, discountMode, discountValue, prepayment, bookings }, ctx) {
+            const rows = Array.isArray(lines) ? lines : [];
+            const total = await _payableTotal(rows, { discountMode, discountValue },
+                Array.isArray(bookings) ? bookings : []);
+            return { payableAmount: M.num(M.sub(total, M.num(prepayment))) };
+        },
+
         async prepareFromBooking({ bookingId }, ctx) {
             if (!bookingId) return { error: await tForSession('booking_not_found', ctx.sessionID) };
             const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
             if (!booking) return { error: await tForSession('booking_not_found', ctx.sessionID) };
+
+            // НЕПРОВЕДЁННАЯ БРОНЬ — отказ со словами, а не пустой счёт.
+            //
+            // Состав услуг счёт берёт из остатка регистра, а «заказано» туда
+            // пишет проведение брони — всегда отложенное (синхронного нет ни в
+            // одном режиме). Пока бронь стоит в очереди, остатка по ней нет, и
+            // молча отдать пустой prefill значило бы отдать счёт без услуг,
+            // причём выглядело бы это поломкой расчёта. Поэтому спрашиваем
+            // состояние и отвечаем человеку: «в очереди» — подождать и повторить,
+            // остальное («не проведена», «ошибка проведения») — разбираться с
+            // бронью; причина уже лежит в строке очереди и показывается штатно.
+            const postState = booking.postingState || 'notPosted';
+            if (postState !== 'posted') {
+                return { error: await tForSession(
+                    postState === 'queued' ? 'booking_posting_pending' : 'booking_not_posted',
+                    ctx.sessionID) };
+            }
+
+            // ОТМЕНЁННАЯ БРОНЬ СЧЁТА НЕ ПОЛУЧАЕТ (решение владельца 17.10.2026):
+            // услуги не оказаны, и движений «заказано» у неё нет. Без этой
+            // проверки счёт вышел бы пустым с сообщением «все услуги уже
+            // выставлены» — ответ на другой вопрос, то есть ложь. Плата за
+            // отмену (Stornogebühr) — отдельный предмет и отдельный документ.
+            if (await bookingStatus.isCancelled(booking, ctx)) {
+                return { error: await tForSession('booking_cancelled_no_invoice', ctx.sessionID) };
+            }
 
             try {
                 const mode = await resolveOrgPricingMode(modelsDB, booking.organizationId);
@@ -1034,29 +768,56 @@ module.exports = function (modelsDB, Utilities) {
                 const pricingDate = (mode === 'invoiceDate')
                     ? new Date()
                     : (booking.date || new Date());
-                const { lines, skipped, invLang } = await _buildInvoiceLines({ bookingId, pricingDate }, ctx);
+                const { lines, skipped, invLang } = await services.buildLines({ bookingId, pricingDate }, ctx);
                 const taxRateRows = await modelsDB.TaxRates.findAll({ raw: true });
-                const collapsed = _collapseInvoiceLines(lines, taxRateRows, invLang);
-                collapsed.forEach((ln, i) => { ln.sortOrder = i + 1; });
+                const collapsed = services.collapse(lines, taxRateRows, invLang);
+
+                // Только невыставленное — тем же путём, что «Заполнить»:
+                // у счёта, которого ещё нет в базе, собственных движений быть не
+                // может, поэтому исключать нечего (`invoiceId` не передаём).
+                const limited = await _limitToRemaining(collapsed, {
+                    bookingIds: [bookingId], sessionID: ctx.sessionID
+                });
+                limited.lines.forEach((ln, i) => { ln.sortOrder = i + 1; });
+
+                // Предоплата, которую подставляет ПРОГРАММА, не может быть больше
+                // того, что счёт просит заплатить: иначе человек видит в новой
+                // форме отрицательную сумму к оплате, а выставление потом
+                // откажет. Излишек остаётся остатком предоплаты по брони.
+                // Скидка брони — в её строке «Buchungen», на её строки; шапка пуста.
+                const bookingRow = {
+                    organizationId: booking.organizationId,
+                    bookingId,
+                    discountMode:  booking.discountMode || 'percent',
+                    discountValue: Number(booking.discountValue) || 0
+                };
+                const prepayCap = await _payableTotal(limited.lines, {}, [bookingRow]);
+                const prepayOffered = capPrepayment(
+                    await settlementBalance.ofBooking({ bookingId: booking.UID, sessionID: ctx.sessionID }),
+                    prepayCap);
 
                 return {
                     skippedNotice: await _skippedNotice(skipped, ctx.sessionID),
+                    alreadyNotice: limited.droppedCount
+                        ? await tfForSession(limited.lines.length
+                            ? 'invoice_partly_invoiced' : 'invoice_all_invoiced',
+                            ctx.sessionID, { count: limited.droppedCount })
+                        : null,
                     prefill: {
                         organizationId: booking.organizationId,
                         hotelId:        booking.hotelId,
                         clientId:       booking.clientId,
                         status:         'draft',
-                        prepayment:     Number(booking.prepayment) || 0,
-                        // Скидка переносится из брони (одна бронь — без агрегации).
-                        discountMode:   booking.discountMode || 'percent',
-                        discountValue:  Number(booking.discountValue) || 0
+                        // Остаток регистра расчётов по броне, но не больше суммы
+                        // этого счёта (см. выше и `capPrepayment`).
+                        prepayment:     prepayOffered,
+                        // Скидка шапки — дополнительная на весь счёт: из брони не берётся.
+                        discountMode:   'percent',
+                        discountValue:  0
                     },
                     prefillTabular: {
-                        invoice_bookings: [{
-                            organizationId: booking.organizationId,
-                            bookingId
-                        }],
-                        invoice_lines: collapsed
+                        invoice_bookings: [bookingRow],
+                        invoice_lines: limited.lines
                     }
                 };
             } catch (e) {
@@ -1175,6 +936,47 @@ module.exports = function (modelsDB, Utilities) {
         // 1. organizationId в запись и строки ТЧ (паттерн booking).
         // 2. Санитизация числовых полей строк ("" → null).
         // 3. Авторитетный пересчёт amount = quantity * unitPrice построчно.
+        /**
+         * Счёт впервые записан (событие ядра `onAfterSave`).
+         *
+         * Счёт из «Rechnung erstellen» приходит НЕСОХРАНЁННЫМ, и оповещения расчёта
+         * (`invoice.fillWarnings`: услуга без цены и т. п.) ему было не на что
+         * записать — они появлялись только после «Ausfüllen». Один и тот же счёт
+         * говорил разное в зависимости от кнопки, которой его сделали (прогон
+         * 17.10.2026, Q13; решение владельца 19.10.2026 — выровнять). Здесь та же
+         * причина считается тем же расчётом, что у «Ausfüllen», и только у нового
+         * черновика: у встречного документа строки — не расчёт брони.
+         */
+        async onAfterSave({ recordId, isNew }, ctx) {
+            if (!isNew || !recordId) return;
+            const invoice = await modelsDB.Invoices.findByPk(recordId, { raw: true });
+            if (!invoice || invoice.status !== 'draft' || invoice.correctionKind) return;
+            const links = await modelsDB.InvoiceBookings.findAll({ where: { invoiceId: recordId }, raw: true });
+            const bookingIds = [...new Set(links.map(l => l.bookingId).filter(Boolean))];
+            if (!bookingIds.length) return;
+            const mode = await resolveOrgPricingMode(modelsDB, invoice.organizationId);
+            const allSkipped = [];
+            for (const bookingId of bookingIds) {
+                const booking = await modelsDB.Bookings.findByPk(bookingId, { raw: true });
+                if (!booking) continue;
+                const pricingDate = (mode === 'invoiceDate')
+                    ? (invoice.date || new Date())
+                    : (booking.date || invoice.date || new Date());
+                const { skipped } = await services.buildLines({ bookingId, pricingDate }, ctx);
+                for (const s of (skipped || [])) {
+                    if (!allSkipped.some(x => x.service === s.service && x.reason === s.reason)) allSkipped.push(s);
+                }
+            }
+            const documentAlerts = require('../../../node_modules/my-old-space/drive_root/db/documentAlerts');
+            await documentAlerts.rebuild({
+                table: 'invoices', uid: recordId,
+                ruleCodes: ['invoice.fillWarnings'],
+                input: { skipped: allSkipped },
+                sessionID: ctx.sessionID,
+                requestedBy: (ctx.user && ctx.user.UID) || null
+            });
+        },
+
         async onBeforeSave({ record, changes, tabularSections, parentUID, isNew, counterOf }, ctx) {
             if (!changes.organizationId) {
                 try {

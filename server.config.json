@@ -2,5 +2,6 @@
     "serverName": "Wonunger App",
     "port": 3000,
     "appDir": "apps",
-    "driveRoot": "drive_root"
+    "driveRoot": "drive_root",
+    "timeZone": "Europe/Berlin"
 }

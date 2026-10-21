@@ -87,6 +87,13 @@ module.exports = async function (modelsDB) {
         // второй путь выставления — мимо очереди и мимо замка формы.
         const invoiceRpc = Object.assign({}, invoiceApi);
         delete invoiceRpc.postIssue;
+        const formMethods = require('../../node_modules/my-old-space/drive_root/formMethods');
+        const APP = 'invoice';
+        // Методы ФОРМЫ счёта — здесь же её серверное событие `onBeforeSave`.
+        formMethods.register({
+            app: APP, subject: { table: 'invoices', kind: 'record' },
+            methods: invoiceRpc, roles: ['user', 'admin']
+        });
         const serverScriptName = loadServerScript('invoice.actions', invoiceRpc, 'user');
 
         const clientSource = fs
@@ -95,9 +102,8 @@ module.exports = async function (modelsDB) {
         const clientUID = await loadScript(clientSource, 'user');
 
         await layoutMemory.saveLayout({
-            appName:      'uniForm',
-            mode:         'record',
-            tableName:    'invoices',
+            app:          APP,
+            subject:      { table: 'invoices', kind: 'record' },
             roles:        '*',
             layout:       require('./forms/invoices.layout.json'),
             clientScript: clientUID,
@@ -105,13 +111,12 @@ module.exports = async function (modelsDB) {
             recordCaption:{ i18n: 'Invoice' },
             formIcon:     '/apps/booking_icons/resources/public/16x16/invoice.png',
             listIcon:     '/apps/booking_icons/resources/public/16x16/invoice_journal.png',
-            events: {
-                onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' },
-                // Проведение закончилось — приложению остаётся ЕГО дело, печать:
-                // архивная копия к этому моменту снята, и печатать можно из неё, а
-                // не живой сборкой (она со временем разойдётся с выданным счётом).
-                onPostingFinished: { fn: 'onPostingFinished' }
-            }
+            // Серверное событие `onBeforeSave` — метод формы (зарегистрирован выше).
+            // Здесь только клиентское: проведение закончилось — приложению остаётся
+            // ЕГО дело, печать. Архивная копия к этому моменту снята, и печатать
+            // можно из неё, а не живой сборкой (она со временем разойдётся с
+            // выданным счётом).
+            clientEvents: { onPostingFinished: 'onPostingFinished' }
         });
         // Список — автогенерация uniForm (заголовок/иконка из appCaption/listIcon).
 

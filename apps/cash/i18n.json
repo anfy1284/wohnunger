@@ -72,10 +72,10 @@
         "pl": "Anulowany"
     },
     "cash_operation_date_field": {
-        "en": "Operation date",
-        "ru": "Дата операции",
-        "de": "Vorgangsdatum",
-        "pl": "Data operacji"
+        "en": "Payment date",
+        "ru": "День платежа",
+        "de": "Zahlungstag",
+        "pl": "Dzień płatności"
     },
     "cash_cashbox_field": {
         "en": "Money location",
@@ -196,6 +196,18 @@
         "ru": "Наличные",
         "de": "Bar",
         "pl": "Gotówka"
+    },
+    "cash_err_noncash_place_required": {
+        "en": "A non-cash payment cannot be recorded in the cash box «{{place}}»: the cash book keeps cash only. Choose a storage place of kind «Bank account».",
+        "ru": "Безналичная оплата не может быть записана в наличную кассу «{{place}}»: кассовая книга ведёт только наличные. Выберите место хранения вида «Банковский счёт».",
+        "de": "Eine unbare Zahlung kann nicht in der Barkasse «{{place}}» erfasst werden: das Kassenbuch führt nur Bargeld. Wählen Sie einen Zahlungsort der Art «Bankkonto».",
+        "pl": "Płatność bezgotówkowa nie może być zapisana w kasie gotówkowej «{{place}}»: księga kasowa prowadzi tylko gotówkę. Wybierz miejsce przechowywania rodzaju «Rachunek bankowy»."
+    },
+    "cash_err_cash_place_required": {
+        "en": "A cash payment cannot be recorded in «{{place}}»: cash is kept in the cash book. Choose a storage place of kind «Cash box».",
+        "ru": "Наличная оплата не может быть записана в «{{place}}»: наличные ведутся в кассовой книге. Выберите место хранения вида «Наличная касса».",
+        "de": "Eine Barzahlung kann nicht in «{{place}}» erfasst werden: Bargeld wird im Kassenbuch geführt. Wählen Sie einen Zahlungsort der Art «Barkasse».",
+        "pl": "Płatność gotówkowa nie może być zapisana w «{{place}}»: gotówkę prowadzi się w księdze kasowej. Wybierz miejsce przechowywania rodzaju «Kasa gotówkowa»."
     },
     "cash_box_kind_field": {
         "en": "Kind",
@@ -568,5 +580,83 @@
         "ru": "Комиссия не может быть отрицательной.",
         "de": "Die Gebühr darf nicht negativ sein.",
         "pl": "Prowizja nie może być ujemna."
+    },
+    "cash_booking_field": {
+        "en": "Booking",
+        "ru": "Бронь",
+        "de": "Buchung",
+        "pl": "Rezerwacja"
+    },
+    "jrn_cash_documents_caption": {
+        "en": "Money movements",
+        "ru": "Движение денег",
+        "de": "Geldbewegungen",
+        "pl": "Ruchy pieniędzy"
+    },
+    "cash_settings_default_payment_method": {
+        "en": "Default payment method",
+        "ru": "Способ оплаты по умолчанию",
+        "de": "Standard-Zahlungsart",
+        "pl": "Domyślny sposób płatności"
+    },
+    "cash_settings_default_payment_method_hint": {
+        "en": "Pre-filled in a new receipt or payment and in the prepayment of a new booking.",
+        "ru": "Подставляется в новое поступление или выплату и в аванс новой брони.",
+        "de": "Wird in neuen Einnahmen und Ausgaben sowie bei der Anzahlung einer neuen Buchung vorbelegt.",
+        "pl": "Wstawiany w nowym wpływie lub wypłacie oraz w zaliczce nowej rezerwacji."
+    },
+    "cash_tab_payment": {
+        "en": "Payment",
+        "ru": "Платёж",
+        "de": "Zahlung",
+        "pl": "Płatność"
+    },
+    "cash_tab_document": {
+        "en": "Document",
+        "ru": "Документ",
+        "de": "Beleg",
+        "pl": "Dokument"
+    },
+    "cash_group_amount": {
+        "en": "Amount",
+        "ru": "Сумма",
+        "de": "Betrag",
+        "pl": "Kwota"
+    },
+    "cash_group_from_whom": {
+        "en": "From whom / what for",
+        "ru": "От кого / за что",
+        "de": "Von wem / wofür",
+        "pl": "Od kogo / za co"
+    },
+    "cash_group_to_whom": {
+        "en": "To whom / what for",
+        "ru": "Кому / за что",
+        "de": "An wen / wofür",
+        "pl": "Komu / za co"
+    },
+    "cash_group_from_to": {
+        "en": "From / to",
+        "ru": "Откуда / куда",
+        "de": "Von / nach",
+        "pl": "Skąd / dokąd"
+    },
+    "cash_group_document": {
+        "en": "Document",
+        "ru": "Документ",
+        "de": "Beleg",
+        "pl": "Dokument"
+    },
+    "cash_group_place": {
+        "en": "Cash box / account",
+        "ru": "Касса / счёт",
+        "de": "Kasse / Konto",
+        "pl": "Kasa / konto"
+    },
+    "cash_group_assignment": {
+        "en": "Assignment",
+        "ru": "Принадлежность",
+        "de": "Zuordnung",
+        "pl": "Przypisanie"
     }
 }

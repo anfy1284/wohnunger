@@ -19,19 +19,20 @@ module.exports = function (modelsDB, Utilities) {
         // 1. Заполняет organizationId в записи и в строках ТЧ (паттерн priceList).
         // 2. Контроль периодов: обе даты заполнены, dateFrom < dateTo.
         async onBeforeSave({ record, changes, tabularSections, parentUID }, ctx) {
-            // 1. organizationId
-            if (!changes.organizationId) {
+            // 1. organizationId — поле формы (16.10.2026). Если его нет, а отель выбран —
+            //    организация отеля: сезон принадлежит отелю, и другой организации у него
+            //    быть не может. Снимок пользователя здесь больше не используется — в нём
+            //    организации могло не оказаться (прогон 16.10.2026: СТОП на S6).
+            const hotelUID = changes.hotelId || (record && record.hotelId);
+            if (!changes.organizationId && !(record && record.organizationId) && hotelUID) {
                 try {
-                    const globalCtx = require('../../../node_modules/my-old-space/drive_root/globalServerContext');
-                    const user = await globalCtx.getUserBySessionID(ctx.sessionID);
-                    if (user && user.organizationId) {
-                        changes.organizationId = user.organizationId;
-                    }
+                    const h = await modelsDB.Hotels.findByPk(hotelUID, { raw: true });
+                    if (h && h.organizationId) changes.organizationId = h.organizationId;
                 } catch (e) {
-                    console.warn('[seasons/onBeforeSave] Could not resolve user org:', e && e.message);
+                    console.warn('[seasons/onBeforeSave] организация отеля не прочитана:', e && e.message);
                 }
             }
-            let orgId = changes.organizationId;
+            let orgId = changes.organizationId || (record && record.organizationId);
             if (!orgId) {
                 const sId = parentUID || (changes && changes.UID);
                 if (sId) {

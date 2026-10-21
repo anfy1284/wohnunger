@@ -22,6 +22,20 @@
                 "caption": { "i18n": "season_name" }
             },
             {
+                "//": "Организация и отель — явными полями (решение владельца 16.10.2026): раньше организацию молча ставил хук сохранения из снимка пользователя, и когда её там не оказалось, сотрудник получал «заполните Organisation» про поле, которого на форме нет. Заполняются автозаполнением; единственный доступный вариант подставляется сам.",
+                "type": "recordSelector",
+                "name": "organizationId",
+                "data": "organizationId",
+                "caption": { "i18n": "Organization" },
+                "properties": {
+                    "selection": {
+                        "table": "organizations",
+                        "idField": "UID",
+                        "displayField": "name"
+                    }
+                }
+            },
+            {
                 "type": "recordSelector",
                 "name": "hotelId",
                 "data": "hotelId",
@@ -30,7 +44,8 @@
                     "selection": {
                         "table": "hotels",
                         "idField": "UID",
-                        "displayField": "name"
+                        "displayField": "name",
+                        "where": { "organizationId": "{organizationId}" }
                     }
                 }
             }

@@ -95,7 +95,13 @@ async function main() {
             console.log(`  live-роль, отсутствующая в копии: ${role.uid}`);
         }
         // 4. Настройка, заведённая ПОСЛЕ снятия копии: её значения не перенести.
-        const field = (await sequelize.query(
+        // Только для СТАРОЙ раскладки настроек (`user_settings_fields`). С 09.09.2026
+        // настройки живут в `settings_values` и восстанавливаются из копии целиком
+        // (стратегия `app_settings`), слияния с живой базой у них нет — проверять
+        // здесь нечего. Без этой развилки прогон падал на «отношение не существует»
+        // (21.10.2026).
+        const legacySettings = tables.includes('user_settings_fields') && tables.includes('user_settings_string_values');
+        const field = !legacySettings ? null : (await sequelize.query(
             `SELECT f.${q('UID')} AS uid FROM ${q(SHADOW)}.user_settings_fields f
               WHERE EXISTS (SELECT 1 FROM ${q(SHADOW)}.user_settings_string_values v
                              WHERE v.${q('settingsFieldId')} = f.${q('UID')}) LIMIT 1`,
@@ -134,7 +140,7 @@ async function main() {
                     (SELECT COUNT(*) FROM public.user_systems) AS live`)));
         console.log('сессий в клоне:', JSON.stringify(await chk(
             `SELECT COUNT(*) AS n FROM ${q(SHADOW)}.sessions`)));
-        console.log('строковых настроек клон vs live:', JSON.stringify(await chk(
+        if (legacySettings) console.log('строковых настроек клон vs live:', JSON.stringify(await chk(
             `SELECT (SELECT COUNT(*) FROM ${q(SHADOW)}.user_settings_string_values) AS shadow,
                     (SELECT COUNT(*) FROM public.user_settings_string_values) AS live`)));
         console.log('\nПРОГОН БЕЗ ОШИБОК');

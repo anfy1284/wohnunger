@@ -17,6 +17,13 @@ const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGatew
 const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
 const settings = require('../../../node_modules/my-old-space/drive_root/settings');
 const state = require('../../../node_modules/my-old-space/drive_root/settings/state');
+// Деньги приходят из базы строкой (DECIMAL) и считаются в центах.
+const M = require('../../../node_modules/my-old-space/drive_root/db/money');
+// Предоплата и остаток услуг по брони — те же модули, что отвечают форме брони:
+// один и тот же вопрос, заданный дважды разным кодом, однажды получит два
+// разных ответа.
+const settlementBalance = require('../../common/lib/settlementBalance');
+const bookingServices = require('../../common/lib/bookingServices');
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -64,7 +71,8 @@ module.exports = function (modelsDB, Utilities) {
 
             // Комнаты выбранного отеля (RLS), сортировка по номеру.
             const rooms = await dbGateway.execute({ operation: 'read', table: 'rooms', where: { hotelId }, options: { raw: true }, context: ctxDb }) || [];
-            const roomList = rooms.map(r => ({ UID: r.UID, number: r.number })).sort(byNumber);
+            // Подпись строки календаря — название номера («Doppelzimmer 1»), порядок — по номеру.
+            const roomList = rooms.map(r => ({ UID: r.UID, number: r.number, name: r.name })).sort(byNumber);
             result.rooms = roomList;
             const roomSet = new Set(roomList.map(r => r.UID));
             if (!roomList.length) return result;
@@ -125,5 +133,69 @@ module.exports = function (modelsDB, Utilities) {
         }
     }
 
-    return { loadCalendar };
+    /**
+     * ВЫЧИСЛЯЕМЫЕ РЕКВИЗИТЫ ЖУРНАЛА БРОНЕЙ (`entityConfig.listAttributes`).
+     *
+     * Метод ядра: зовётся один раз на страницу строк журнала и отвечает
+     * `{ UID: { реквизит: значение } }`. Запрос НА СТРОКУ здесь недопустим —
+     * журнал открывает сотню строк (ТЗ «Учёт услуг по брони», §9).
+     *
+     * `prepaymentPaid` — СКОЛЬКО ВНЕСЕНО по броне: движения регистра расчётов от
+     * денежных документов, без зачёта счётом (21.10.2026: «0» после счёта читался
+     * как «не платили»). Поля такого в таблице нет и быть не должно: предоплата ЕСТЬ
+     * сумма проведённых денежных документов, а хранимое поле рядом разошлось бы с
+     * ними на первом же исправленном платеже (раздел 77 архитектуры). Спрашиваем
+     * ОДНИМ запросом — `settlementBalance.paidOfBookings`, тот же модуль и тот же
+     * вопрос, что у поля «Anzahlung» на форме брони.
+     *
+     * `overInvoiced` — сумма, на которую ВЫСТАВЛЕНО БОЛЬШЕ, чем заказано
+     * (ТЗ §8): гость уехал раньше, бронь урезали после выставления счёта. Это и
+     * есть автоматическое обнаружение случая § 17 Abs. 1 UStG, который сегодня
+     * никто не замечает. Признак — отрицательный остаток регистра услуг, а не
+     * сравнение дат: причина расхождения может быть любой, а признак один.
+     *
+     * Строкам БЕЗ расхождения отдаётся `null`, а не нуль: пустая ячейка — это
+     * «нечего смотреть», а «0,00» в каждой строке журнала читается как данные и
+     * через день перестаёт читаться вовсе. На том же `null` держится и красный
+     * тон строки (`rowTones`, правило `notIn: [""]`).
+     */
+    async function onLoadListAttributes({ ids }, ctx) {
+        const out = {};
+        const bookingIds = (ids || []).filter(Boolean);
+        if (!bookingIds.length) return out;
+        const sessionID = ctx && ctx.sessionID;
+
+        // Предоплата — одним запросом на все брони страницы.
+        let byBooking = {};
+        try {
+            const res = await settlementBalance.paidOfBookings({ bookingIds, sessionID });
+            byBooking = (res && res.byBooking) || {};
+        } catch (e) {
+            console.error('[booking/onLoadListAttributes] предоплата не посчитана:', e && e.message || e);
+        }
+
+        // Расхождение «выставлено больше, чем заказано» — тоже одним запросом:
+        // остаток регистра услуг по всем броням страницы, в разрезе позиций.
+        const over = {};
+        try {
+            const remaining = await bookingServices.remaining({ bookingIds, sessionID });
+            for (const row of remaining.values()) {
+                over[row.bookingId] = M.add(over[row.bookingId] || 0,
+                    bookingServices.overInvoicedAmount(row));
+            }
+            for (const id of Object.keys(over)) if (M.isZero(over[id])) delete over[id];
+        } catch (e) {
+            console.error('[booking/onLoadListAttributes] расхождение не посчитано:', e && e.message || e);
+        }
+
+        for (const id of bookingIds) {
+            out[id] = {
+                prepaymentPaid: byBooking[id] != null ? byBooking[id] : M.db(0),
+                overInvoiced: over[id] ? M.db(over[id]) : null
+            };
+        }
+        return out;
+    }
+
+    return { loadCalendar, onLoadListAttributes };
 };

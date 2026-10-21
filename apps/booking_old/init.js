@@ -17,7 +17,7 @@ module.exports = async function (modelsDB) {
         const serverScriptName = loadServerScript('booking.bookingActions', {
 
             // ── Серверные события формы ──────────────────────────────────
-            // Привязываются в saveLayout({ events: { ... } }) — это события
+            // Серверные события — методы формы (drive_root/formMethods) — это события
             // самой формы как UI-объекта.
 
             // Вызывается сервером ДО записи в БД.
@@ -615,16 +615,19 @@ module.exports = async function (modelsDB) {
             }
         ];
 
+        // Приложение МЁРТВОЕ (в apps.json не зарегистрировано, ссылается на удалённые
+        // таблицы) — форма вызова приведена к текущей только чтобы старого вызова не
+        // осталось нигде: живой он или нет, читающий код не различает.
+        require('../../node_modules/my-old-space/drive_root/formMethods').register({
+            app: 'booking_old', subject: { table: 'bookings', kind: 'record' },
+            methods: require('./forms/bookings.server')(modelsDB, Utilities), roles: ['user', 'admin']
+        });
         await layoutMemory.saveLayout({
-            appName: 'uniForm',
-            mode:    'record',
-            tableName: 'bookings',
-            roles: 'user',
-            layout: bookingsLayout,
-            clientScript: clientUID,
-            events: {
-                onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' }
-            }
+            app:     'booking_old',
+            subject: { table: 'bookings', kind: 'record' },
+            roles:   'user',
+            layout:  bookingsLayout,
+            clientScript: clientUID
         });
 
         console.log('[booking/init] Custom layouts registered');

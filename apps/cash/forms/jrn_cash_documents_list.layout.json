@@ -1,0 +1,52 @@
+[
+    {
+        "//": "Журнал документов «Geldbewegungen» (ТЗ платежей брони §3.1). Кнопки панели — ядровые: «Добавить» спрашивает вид документа, «Открыть» ведёт в форму документа его вида, «Удалить» помечает документ, «Провести» раскладывает выделение по видам. Командной панели формы нет — журналу нечего сохранять.",
+        "type": "table",
+        "name": "journal",
+        "properties": {
+            "dynamicTable": true,
+            "appName": "uniForm",
+            "tableName": "jrn_cash_documents",
+            "readOnly": true,
+            "multiSelect": true,
+            "visibleRows": 20,
+            "showToolbar": true,
+            "fields": [
+                "docTable",
+                "number",
+                "operationDate",
+                "cashboxId",
+                "paymentMethod",
+                "clientId",
+                "bookingId",
+                "amount",
+                "comment"
+            ],
+            "columnOverrides": {
+                "docTable": {
+                    "width": 160
+                },
+                "number": {
+                    "width": 90
+                },
+                "operationDate": {
+                    "width": 110,
+                    "showTime": false
+                },
+                "amount": {
+                    "width": 110
+                }
+            },
+            "initialSort": [
+                {
+                    "field": "date",
+                    "order": "desc"
+                },
+                {
+                    "field": "seq",
+                    "order": "desc"
+                }
+            ]
+        }
+    }
+]

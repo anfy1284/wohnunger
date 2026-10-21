@@ -383,6 +383,10 @@
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "transfer",
+                    "defaultFromSetting": {
+                        "app": "cash",
+                        "key": "defaultPaymentMethod"
+                    },
                     "inputType": "emunList",
                     "options": [
                         {
@@ -419,6 +423,20 @@
                     "onDelete": "RESTRICT",
                     "caption": {
                         "i18n": "Client"
+                    }
+                },
+                "//bookingId": "Бронь платежа (16.10.2026): видимая ссылка, чтобы и ВОЗВРАТ предоплаты, и приход вне диалога «Anzahlung hinzufügen» попадали в разрез брони регистра расчётов. Раньше бронь знал только приход из диалога (sourceTable/sourceUID), и возврат уходил клиенту без брони — Anzahlung брони не уменьшалась (прогон Q7b).",
+                "bookingId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "SET NULL",
+                    "caption": {
+                        "i18n": "cash_booking_field"
                     }
                 },
                 "amount": {
@@ -635,6 +653,10 @@
                     "type": "STRING",
                     "allowNull": false,
                     "defaultValue": "transfer",
+                    "defaultFromSetting": {
+                        "app": "cash",
+                        "key": "defaultPaymentMethod"
+                    },
                     "inputType": "emunList",
                     "options": [
                         {
@@ -671,6 +693,20 @@
                     "onDelete": "RESTRICT",
                     "caption": {
                         "i18n": "Client"
+                    }
+                },
+                "//bookingId": "Бронь платежа (16.10.2026): видимая ссылка, чтобы и ВОЗВРАТ предоплаты, и приход вне диалога «Anzahlung hinzufügen» попадали в разрез брони регистра расчётов. Раньше бронь знал только приход из диалога (sourceTable/sourceUID), и возврат уходил клиенту без брони — Anzahlung брони не уменьшалась (прогон Q7b).",
+                "bookingId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "SET NULL",
+                    "caption": {
+                        "i18n": "cash_booking_field"
                     }
                 },
                 "amount": {
@@ -1101,6 +1137,126 @@
             "foreignKey": "organizationId"
         }
     ],
+    "//journals": "ЖУРНАЛ ДОКУМЕНТОВ «Geldbewegungen» (ТЗ «Платежи брони и журнал документов», §3.1): все денежные документы одним списком, в порядке момента времени. Не таблица — представление над тремя документами (drive_root/db/journals.js); ядро само добавляет UID, вид документа, номер, дату, момент, пометку и состояние проведения. Здесь — только общие поля; у перемещения касса — «откуда», клиента и брони нет. Тот же журнал с отбором по брони стоит на вкладке «Zahlungen» формы брони.",
+    "journals": [
+        {
+            "name": "CashDocumentsJournal",
+            "tableName": "jrn_cash_documents",
+            "caption": {
+                "i18n": "jrn_cash_documents_caption"
+            },
+            "documents": [
+                "cash_receipts",
+                "cash_payments",
+                "cash_transfers"
+            ],
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "references": {
+                        "model": "organizations",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "Organization"
+                    }
+                },
+                "hotelId": {
+                    "type": "STRING",
+                    "references": {
+                        "model": "hotels",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "Hotel"
+                    }
+                },
+                "operationDate": {
+                    "type": "DATE",
+                    "caption": {
+                        "i18n": "cash_operation_date_field"
+                    }
+                },
+                "amount": {
+                    "type": "DECIMAL(12,2)",
+                    "caption": {
+                        "i18n": "cash_amount_field"
+                    }
+                },
+                "paymentMethod": {
+                    "type": "STRING",
+                    "inputType": "emunList",
+                    "options": [
+                        {
+                            "value": "transfer",
+                            "caption": {
+                                "i18n": "cash_pm_transfer"
+                            }
+                        },
+                        {
+                            "value": "card",
+                            "caption": {
+                                "i18n": "cash_pm_card"
+                            }
+                        },
+                        {
+                            "value": "cash",
+                            "caption": {
+                                "i18n": "cash_pm_cash"
+                            }
+                        }
+                    ],
+                    "caption": {
+                        "i18n": "cash_payment_method_field"
+                    }
+                },
+                "cashboxId": {
+                    "type": "STRING",
+                    "references": {
+                        "model": "cashboxes",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "cash_cashbox_field"
+                    }
+                },
+                "clientId": {
+                    "type": "STRING",
+                    "references": {
+                        "model": "clients",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "Client"
+                    }
+                },
+                "bookingId": {
+                    "type": "STRING",
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "cash_booking_field"
+                    }
+                },
+                "comment": {
+                    "type": "TEXT",
+                    "caption": {
+                        "i18n": "Notes"
+                    }
+                }
+            },
+            "map": {
+                "cash_transfers": {
+                    "cashboxId": "fromCashboxId",
+                    "paymentMethod": null,
+                    "clientId": null,
+                    "bookingId": null
+                }
+            }
+        }
+    ],
     "registers": [
         {
             "name": "CashRegister",
@@ -1231,6 +1387,17 @@
                     },
                     "caption": {
                         "i18n": "Client"
+                    }
+                },
+                "bookingId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": {
+                        "model": "bookings",
+                        "key": "UID"
+                    },
+                    "caption": {
+                        "i18n": "Booking"
                     }
                 },
                 "settlementKind": {

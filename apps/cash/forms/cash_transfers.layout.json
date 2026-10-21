@@ -5,7 +5,6 @@
             {
                 "name": "btnPost",
                 "command": "post",
-                "confirm": false,
                 "caption": {
                     "i18n": "cash_transfer_post"
                 },
@@ -21,7 +20,6 @@
             {
                 "name": "btnUnpost",
                 "command": "unpost",
-                "confirm": false,
                 "caption": {
                     "i18n": "cash_transfer_unpost"
                 },
@@ -45,149 +43,219 @@
         ]
     },
     {
-        "type": "group",
-        "caption": "",
-        "noBorder": true,
-        "orientation": "horizontal",
-        "layout": [
+        "//": "Раскладка «для живого человека» (ТЗ платежей брони §4.2): на первой вкладке — сколько, когда, откуда и куда; на второй — реквизиты документа и принадлежность.",
+        "type": "tabs",
+        "name": "cashTransferTabs",
+        "tabs": [
             {
-                "type": "group",
-                "caption": "",
-                "noBorder": true,
-                "alignFields": true,
-                "orientation": "vertical",
+                "caption": {
+                    "i18n": "cash_tab_payment"
+                },
                 "layout": [
                     {
-                        "type": "textbox",
-                        "name": "number",
-                        "data": "number",
-                        "caption": {
-                            "i18n": "number_field"
-                        }
-                    },
-                    {
-                        "type": "date",
-                        "name": "date",
-                        "data": "date",
-                        "caption": {
-                            "i18n": "document_date_field"
-                        }
-                    },
-                    {
-                        "type": "date",
-                        "name": "operationDate",
-                        "data": "operationDate",
-                        "caption": {
-                            "i18n": "cash_operation_date_field"
-                        }
+                        "type": "group",
+                        "caption": "",
+                        "noBorder": true,
+                        "orientation": "horizontal",
+                        "layout": [
+                            {
+                                "type": "group",
+                                "caption": {
+                                    "i18n": "cash_group_amount"
+                                },
+                                "alignFields": true,
+                                "orientation": "vertical",
+                                "layout": [
+                                    {
+                                        "type": "number",
+                                        "name": "amount",
+                                        "data": "amount",
+                                        "caption": {
+                                            "i18n": "cash_amount_field"
+                                        },
+                                        "properties": {
+                                            "width": 120,
+                                            "minValue": 0
+                                        }
+                                    },
+                                    {
+                                        "type": "number",
+                                        "name": "feeAmount",
+                                        "data": "feeAmount",
+                                        "caption": {
+                                            "i18n": "cash_fee_field"
+                                        },
+                                        "properties": {
+                                            "width": 120,
+                                            "minValue": 0
+                                        }
+                                    },
+                                    {
+                                        "type": "date",
+                                        "name": "operationDate",
+                                        "data": "operationDate",
+                                        "caption": {
+                                            "i18n": "cash_operation_date_field"
+                                        },
+                                        "properties": {
+                                            "showTime": false,
+                                            "width": 120
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "group",
+                                "caption": {
+                                    "i18n": "cash_group_from_to"
+                                },
+                                "alignFields": true,
+                                "orientation": "vertical",
+                                "layout": [
+                                    {
+                                        "type": "recordSelector",
+                                        "name": "fromCashboxId",
+                                        "data": "fromCashboxId",
+                                        "caption": {
+                                            "i18n": "cash_from_cashbox_field"
+                                        },
+                                        "properties": {
+                                            "width": 220,
+                                            "selection": {
+                                                "table": "cashboxes",
+                                                "idField": "UID",
+                                                "displayField": "name"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "recordSelector",
+                                        "name": "toCashboxId",
+                                        "data": "toCashboxId",
+                                        "caption": {
+                                            "i18n": "cash_to_cashbox_field"
+                                        },
+                                        "properties": {
+                                            "width": 220,
+                                            "selection": {
+                                                "table": "cashboxes",
+                                                "idField": "UID",
+                                                "displayField": "name"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             },
             {
-                "type": "group",
-                "caption": "",
-                "noBorder": true,
-                "alignFields": true,
-                "orientation": "vertical",
+                "caption": {
+                    "i18n": "cash_tab_document"
+                },
                 "layout": [
                     {
-                        "type": "recordSelector",
-                        "name": "fromCashboxId",
-                        "data": "fromCashboxId",
-                        "caption": {
-                            "i18n": "cash_from_cashbox_field"
-                        },
-                        "properties": {
-                            "selection": {
-                                "table": "cashboxes",
-                                "idField": "UID",
-                                "displayField": "name"
+                        "type": "group",
+                        "caption": "",
+                        "noBorder": true,
+                        "orientation": "horizontal",
+                        "layout": [
+                            {
+                                "type": "group",
+                                "caption": {
+                                    "i18n": "cash_group_document"
+                                },
+                                "alignFields": true,
+                                "orientation": "vertical",
+                                "layout": [
+                                    {
+                                        "type": "textbox",
+                                        "name": "number",
+                                        "data": "number",
+                                        "caption": {
+                                            "i18n": "number_field"
+                                        },
+                                        "properties": {
+                                            "width": 120
+                                        }
+                                    },
+                                    {
+                                        "type": "date",
+                                        "name": "date",
+                                        "data": "date",
+                                        "caption": {
+                                            "i18n": "document_date_field"
+                                        },
+                                        "properties": {
+                                            "width": 160
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "group",
+                                "caption": {
+                                    "i18n": "cash_group_assignment"
+                                },
+                                "alignFields": true,
+                                "orientation": "vertical",
+                                "layout": [
+                                    {
+                                        "type": "recordSelector",
+                                        "name": "organizationId",
+                                        "data": "organizationId",
+                                        "caption": {
+                                            "i18n": "Organization"
+                                        },
+                                        "properties": {
+                                            "width": 220,
+                                            "selection": {
+                                                "table": "organizations",
+                                                "idField": "UID",
+                                                "displayField": "name"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "recordSelector",
+                                        "name": "hotelId",
+                                        "data": "hotelId",
+                                        "caption": {
+                                            "i18n": "Hotel"
+                                        },
+                                        "properties": {
+                                            "width": 220,
+                                            "selection": {
+                                                "table": "hotels",
+                                                "idField": "UID",
+                                                "displayField": "name"
+                                            }
+                                        }
+                                    }
+                                ]
                             }
-                        }
+                        ]
                     },
                     {
-                        "type": "recordSelector",
-                        "name": "toCashboxId",
-                        "data": "toCashboxId",
-                        "caption": {
-                            "i18n": "cash_to_cashbox_field"
-                        },
-                        "properties": {
-                            "selection": {
-                                "table": "cashboxes",
-                                "idField": "UID",
-                                "displayField": "name"
+                        "type": "group",
+                        "caption": "",
+                        "noBorder": true,
+                        "alignFields": true,
+                        "orientation": "vertical",
+                        "layout": [
+                            {
+                                "type": "textbox",
+                                "name": "comment",
+                                "data": "comment",
+                                "caption": {
+                                    "i18n": "Notes"
+                                }
                             }
-                        }
-                    },
-                    {
-                        "type": "number",
-                        "name": "amount",
-                        "data": "amount",
-                        "caption": {
-                            "i18n": "cash_amount_field"
-                        }
-                    },
-                    {
-                        "type": "number",
-                        "name": "feeAmount",
-                        "data": "feeAmount",
-                        "caption": {
-                            "i18n": "cash_fee_field"
-                        }
-                    }
-                ]
-            },
-            {
-                "type": "group",
-                "caption": "",
-                "noBorder": true,
-                "alignFields": true,
-                "orientation": "vertical",
-                "layout": [
-                    {
-                        "type": "recordSelector",
-                        "name": "organizationId",
-                        "data": "organizationId",
-                        "caption": {
-                            "i18n": "Organization"
-                        },
-                        "properties": {
-                            "selection": {
-                                "table": "organizations",
-                                "idField": "UID",
-                                "displayField": "name"
-                            }
-                        }
-                    },
-                    {
-                        "type": "recordSelector",
-                        "name": "hotelId",
-                        "data": "hotelId",
-                        "caption": {
-                            "i18n": "Hotel"
-                        },
-                        "properties": {
-                            "selection": {
-                                "table": "hotels",
-                                "idField": "UID",
-                                "displayField": "name"
-                            }
-                        }
+                        ]
                     }
                 ]
             }
         ]
-    },
-    {
-        "type": "textbox",
-        "name": "comment",
-        "data": "comment",
-        "caption": {
-            "i18n": "Notes"
-        },
-        "properties": {
-            "multiline": true
-        }
     }
 ]

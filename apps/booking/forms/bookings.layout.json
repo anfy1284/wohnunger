@@ -8,10 +8,19 @@
                 "caption": { "i18n": "create_invoice_btn" },
                 "icon": "/apps/booking_icons/resources/public/16x16/invoice.png",
                 "events": { "onClick": "invoiceButtonClick" }
+            },
+            {
+                "//": "Бронь проводится при каждой записи (posting.mode = onSave) — её движения в reg_booking_services обязаны быть видны так же, как у счёта и кассовых документов.",
+                "name": "btnMovements",
+                "command": "movements",
+                "confirm": false,
+                "caption": { "i18n": "mv_command" },
+                "icon": "/apps/general_icons/resources/public/16x16/register.png"
             }
         ]
     },
     {
+        "//": "ПОМЕТКИ «выставлено больше, чем заказано» здесь БОЛЬШЕ НЕТ (02.10.2026): её заменил механизм ядра — панель оповещений (ТЗ tmp/ТЗ_ОПОВЕЩЕНИЯ_ПО_ДОКУМЕНТАМ.md §10), правило apps/booking/alerts.rules.js#booking.overInvoiced. Текст тот же (ключ over_invoiced_notice), но у него появилось ДЕЙСТВИЕ («Открыть счёт» — корректировку выпускает счёт, а не бронь), он виден в журнале значком и в обработке «Проверка документов», и он исчезает сам. Оставить обе значило бы показать человеку одну и ту же фразу дважды на одной форме.",
         "type": "tabs",
         "name": "bookingMainTabs",
         "tabs": [
@@ -68,10 +77,47 @@
                                         }
                                     },
                                     {
-                                        "type": "number",
-                                        "name": "prepayment",
-                                        "data": "prepayment",
-                                        "caption": { "i18n": "prepayment_field" }
+                                        "//": "«Anzahlung» (ТЗ платежей брони §4.1). У НОВОЙ брони (и пока её аванс не стал документом) — поле ввода суммы и рядом «Zahlungsart»; документ поступления создаст проведение брони. У проведённой — СКОЛЬКО ВСЕГО ВНЕСЕНО, только чтение. Что показывать, решает реквизит firstPrepaymentOpen — его считает сервер (onLoadAttributes): штамп порождённого документа служебный и на форму не приходит.",
+                                        "type": "group",
+                                        "caption": { "i18n": "prepayment_field" },
+                                        "noBorder": true,
+                                        "orientation": "horizontal",
+                                        "layout": [
+                                            {
+                                                "type": "attribute",
+                                                "name": "firstPrepaymentOpen",
+                                                "data": "firstPrepaymentOpen",
+                                                "attribute": true,
+                                                "default": true
+                                            },
+                                            {
+                                                "type": "number",
+                                                "name": "firstPrepaymentAmount",
+                                                "data": "firstPrepaymentAmount",
+                                                "caption": "",
+                                                "properties": { "width": 110, "minValue": 0 },
+                                                "visibleWhen": { "field": "firstPrepaymentOpen", "in": ["true"] }
+                                            },
+                                            {
+                                                "type": "number",
+                                                "name": "prepaymentPaid",
+                                                "data": "prepaymentPaid",
+                                                "caption": "",
+                                                "attribute": true,
+                                                "readOnly": true,
+                                                "default": 0,
+                                                "properties": { "width": 110 },
+                                                "visibleWhen": { "field": "firstPrepaymentOpen", "notIn": ["true"] }
+                                            },
+                                            {
+                                                "type": "emunList",
+                                                "name": "firstPrepaymentMethod",
+                                                "data": "firstPrepaymentMethod",
+                                                "caption": "",
+                                                "properties": { "width": 130 },
+                                                "visibleWhen": { "field": "firstPrepaymentOpen", "in": ["true"] }
+                                            }
+                                        ]
                                     },
                                     {
                                         "type": "group",
@@ -159,7 +205,7 @@
                                             "width": 200,
                                             "inputType": "recordSelector",
                                             "properties": {
-                                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
+                                                "selection": { "table": "rooms", "idField": "UID", "displayField": "name" }
                                             },
                                             "events": {
                                                 "onChange": "onRoomSelected"
@@ -279,6 +325,18 @@
                                         "displayField": "name"
                                     }
                                 }
+                            },
+                            {
+                                "type": "checkbox",
+                                "name": "noInvoiceRequired",
+                                "data": "noInvoiceRequired",
+                                "caption": { "i18n": "no_invoice_required_field" }
+                            },
+                            {
+                                "type": "checkbox",
+                                "name": "longTermLetting",
+                                "data": "longTermLetting",
+                                "caption": { "i18n": "long_term_letting_field" }
                             }
                         ]
                     },
@@ -351,6 +409,43 @@
                             "visibleRows": 10
                         },
                         "events": { "onDataRefreshed": "onInvoicesRefreshed" }
+                    }
+                ]
+            },
+            {
+                "//": "ПЛАТЕЖИ БРОНИ (ТЗ платежей брони §3.2, §4.1): журнал денежных документов ядра с постоянным отбором по этой брони. «Добавить» спрашивает вид (поступление/выплата) и открывает новый документ, заполненный методом формы fillPaymentDocument. У несохранённой брони вкладки нет — платёж ссылался бы на запись, которой ещё нет; после первого сохранения она появляется без переоткрытия окна.",
+                "caption": { "i18n": "booking_tab_payments" },
+                "visibleWhen": { "saved": true },
+                "layout": [
+                    {
+                        "type": "table",
+                        "name": "payments",
+                        "caption": "",
+                        "properties": {
+                            "dynamicTable": true,
+                            "appName": "uniForm",
+                            "tableName": "jrn_cash_documents",
+                            "readOnly": true,
+                            "showToolbar": true,
+                            "visibleRows": 10,
+                            "owner": {
+                                "where": { "bookingId": "{UID}" },
+                                "fill": "fillPaymentDocument"
+                            },
+                            "documents": ["cash_receipts", "cash_payments"],
+                            "fields": ["docTable", "number", "operationDate", "paymentMethod", "cashboxId", "amount", "comment"],
+                            "columnOverrides": {
+                                "operationDate": { "width": 110, "showTime": false },
+                                "amount": { "width": 110 },
+                                "docTable": { "width": 150 },
+                                "number": { "width": 90 }
+                            },
+                            "initialSort": [
+                                { "field": "date", "order": "asc" },
+                                { "field": "seq", "order": "asc" }
+                            ],
+                            "hiddenButtons": ["listSettings"]
+                        }
                     }
                 ]
             }

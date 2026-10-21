@@ -13,6 +13,40 @@
 // Ручные правки строк при этом теряются — предупреждаем. Несохранённая форма
 // сначала сохраняется (ТЧ броней должна лежать в БД до серверного заполнения).
 async function fillInvoice(ev, ctx) {
+    return _fillInvoice(ctx, false);
+}
+
+// Изменилась табличная часть «Buchungen» (бронь выбрана, заменена или строка
+// удалена) — строки счёта больше не соответствуют его броням. Предлагаем
+// перезаполнить тем же «Ausfüllen»; ОДИН вопрос вместо двух — он уже говорит, что
+// строки будут собраны заново (ручные правки строк при этом теряются).
+// Только у черновика: выставленный счёт не перезаполняется вовсе.
+var _bookingsChangedTimer = null;
+function onBookingsChanged(a, b, c, ctx) {
+    // Сигнатуры разные: колоночное onChange — (rowIndex, newVal, display, ctx),
+    // onRowDeleted — (row, ctx). ctx всегда последний.
+    var args = Array.prototype.slice.call(arguments);
+    var context = args[args.length - 1];
+    var form = context && context.form;
+    if (!form) return;
+    // Счёт «на основании брони» только что собран из этих броней — ядро прогоняет
+    // обработчики по предзаполненным строкам, и вопрос был бы бессмысленным.
+    if (form._firingPrefilled) return;
+    var status = form.getControlValue ? form.getControlValue('status') : null;
+    if (status && status !== 'draft') return;
+    // Выбор брони в ячейке шлёт событие и на пустое значение (очистка поля) —
+    // спрашивать тогда не о чем, перезаполнять тоже.
+    if (args.length === 4 && (args[1] === null || args[1] === undefined || args[1] === '')) return;
+    // Серия правок подряд (удалил одну строку, выбрал другую бронь) — один вопрос.
+    if (_bookingsChangedTimer) clearTimeout(_bookingsChangedTimer);
+    _bookingsChangedTimer = setTimeout(async function () {
+        _bookingsChangedTimer = null;
+        var ok = await showConfirm(__t('invoice_bookings_changed_refill'));
+        if (ok) await _fillInvoice(context, true);
+    }, 300);
+}
+
+async function _fillInvoice(ctx, confirmed) {
     var form = ctx.form;
     var uidEntry = form._dataMap && form._dataMap['UID'];
     var invoiceId = uidEntry && uidEntry.value;
@@ -20,7 +54,7 @@ async function fillInvoice(ev, ctx) {
 
     var linesTbl = form.controlsMap && form.controlsMap['ts_invoice_lines'];
     var rows = linesTbl ? linesTbl.data_getRows(linesTbl.dataKey) : [];
-    if (rows && rows.length) {
+    if (!confirmed && rows && rows.length) {
         var ok = await showConfirm(__t('refill_lines_warning'));
         if (!ok) return;
     }
@@ -57,18 +91,29 @@ async function fillInvoice(ev, ctx) {
         };
         if (result.invoice) {
             setField('prepayment', result.invoice.prepayment);
-            // Скидка могла быть перенесена/агрегирована из броней — обновляем поля формы.
-            setField('discountValue', result.invoice.discountValue);
-            setField('discountMode', result.invoice.discountMode);
+        }
+        // Скидки броней легли в строки «Buchungen» — показать их.
+        var bkTbl = form.controlsMap && form.controlsMap['ts_invoice_bookings'];
+        if (bkTbl && Array.isArray(result.bookings)) {
+            var bArr = bkTbl.data_getRows(bkTbl.dataKey);
+            for (var j = 0; j < bArr.length; j++) {
+                var upd = result.bookings.find(function (b) { return b.UID === bArr[j].UID || b.bookingId === bArr[j].bookingId; });
+                if (upd) { bArr[j].discountValue = upd.discountValue; bArr[j].discountMode = upd.discountMode; }
+            }
+            bkTbl.data_updateValue(bkTbl.dataKey, bArr);
+            try { if (typeof bkTbl._invokeRenderBodyRows === 'function') bkTbl._invokeRenderBodyRows(); } catch(_) {}
         }
     } catch(_) {}
     try { if (typeof form.setModified === 'function') form.setModified(false); } catch(_) {}
+    refreshPayable(ctx);
 
-    // Разные скидки в нескольких бронях-основаниях объединены — предупреждаем.
-    if (result.discountNotice) { try { showAlert(result.discountNotice); } catch(_) {} }
     // Услуги брони, не попавшие в счёт (нет цены / начисляются автоматически).
     // Раньше они исчезали молча — счёт недосчитывался денег без единого признака.
     if (result.skippedNotice) { try { showAlert(result.skippedNotice); } catch(_) {} }
+    // Часть услуг (или все) уже выставлены другим счётом — в этот они не попали.
+    // Это нормальный исход, но без слов он выглядит в точности как сбой расчёта:
+    // нажал «Заполнить», а строк нет.
+    if (result.alreadyNotice) { try { showAlert(result.alreadyNotice); } catch(_) {} }
 }
 
 // Колоночное событие onChange колонки «Услуга» в спецификации счёта: подставляет
@@ -114,6 +159,7 @@ async function onLineServiceSelected(rowIndex, newVal, displayVal, ctx) {
     if (res.noPrice) {
         try { showAlert(__t(res.priceIssue === 'ambiguous' ? 'service_price_room_specific_alert' : 'service_no_price_alert')); } catch(_) {}
     }
+    refreshPayable(ctx);
 }
 
 // «Печать»: сохранить (если изменено) → серверная генерация HTML → printPreview.
@@ -160,8 +206,20 @@ async function printInvoice(ev, ctx) {
 // Колоночное событие onChange количества/цены: живой пересчёт amount строки
 // (авторитетный пересчёт — на сервере в onBeforeSave).
 function onLineQtyOrPriceEdited(rowIndex, newVal, displayVal, ctx) {
+    recalcLineAmount('ts_invoice_lines', rowIndex, ctx);
+    refreshPayable(ctx);
+}
+
+// То же для вкладки «Wie es sein soll» корректировки: строки «как должно быть»
+// раньше не пересчитывались до сохранения — 420,00 при Anz. 2 (прогон 17.10.2026, E6).
+// «Zu zahlen» корректировки — разница с выставленным, её считает сервер при сохранении.
+function onTargetLineQtyOrPriceEdited(rowIndex, newVal, displayVal, ctx) {
+    recalcLineAmount('ts_invoice_target_lines', rowIndex, ctx);
+}
+
+function recalcLineAmount(tableName, rowIndex, ctx) {
     var form = ctx.form;
-    var tbl = form.controlsMap && form.controlsMap['ts_invoice_lines'];
+    var tbl = form.controlsMap && form.controlsMap[tableName];
     if (!tbl) return;
     var rows = tbl.data_getRows(tbl.dataKey);
     var row = rows && rows[rowIndex];
@@ -179,6 +237,68 @@ function onLineQtyOrPriceEdited(rowIndex, newVal, displayVal, ctx) {
         try { cell.setValue(amount); } catch (e) {}
     }
     try { tbl.data_updateValue(cellKey, amount); } catch (e) {}
+}
+
+// ── «Сумма к оплате» на форме ────────────────────────────────────────────
+//
+// Число СЧИТАЕТ СЕРВЕР (метод формы `payable`), клиент только показывает.
+// Своего расчёта здесь быть не должно: скидка не распространяется на
+// durchlaufender Posten (курортный сбор), а это признак справочника налоговых
+// групп — вторая копия правила в браузере разошлась бы с печатью, причём молча
+// и в деньгах.
+//
+// Запрос с задержкой: при наборе количества событие приходит на каждую цифру,
+// и спрашивать сервер столько же раз незачем. Ответ применяется только если он
+// последний — иначе медленный ранний ответ перезаписал бы свежий.
+var _payableTimer = null;
+var _payableSeq = 0;
+
+function refreshPayable(ctx) {
+    var form = ctx && ctx.form;
+    if (!form || typeof form.callMethod !== 'function') return;
+    if (_payableTimer) clearTimeout(_payableTimer);
+    _payableTimer = setTimeout(async function () {
+        _payableTimer = null;
+        var seq = ++_payableSeq;
+        try {
+            var tbl = form.controlsMap && form.controlsMap['ts_invoice_lines'];
+            var rows = (tbl && tbl.data_getRows(tbl.dataKey)) || [];
+            var lines = rows.map(function (r) {
+                return { amount: r.amount, taxCategoryId: r.taxCategoryId, bookingId: r.bookingId };
+            });
+            // Скидки броней — из строк ТЧ «Buchungen» (действуют на строки своей брони).
+            var bkTbl = form.controlsMap && form.controlsMap['ts_invoice_bookings'];
+            var bookings = ((bkTbl && bkTbl.data_getRows(bkTbl.dataKey)) || []).map(function (b) {
+                return { bookingId: b.bookingId, discountMode: b.discountMode, discountValue: b.discountValue };
+            });
+            var val = function (name) {
+                var e = form._dataMap && form._dataMap[name];
+                return e ? e.value : null;
+            };
+            var res = await form.callMethod('payable', {
+                lines: lines,
+                discountMode: val('discountMode'),
+                discountValue: val('discountValue'),
+                prepayment: val('prepayment'),
+                bookings: bookings
+            });
+            if (seq !== _payableSeq) return;          // пришёл не последний ответ
+            if (!res || res.payableAmount === undefined) return;
+            form.setControlValue('payableAmount', res.payableAmount);
+        } catch (e) {
+            console.error('[invoice] сумма к оплате не пересчитана:', e && e.message);
+        }
+    }, 250);
+}
+
+/** Правка предоплаты или скидки — то же число меняется (события лейаута). */
+function onTotalsFieldChanged(newVal, displayVal, ctx) {
+    refreshPayable(ctx);
+}
+
+/** Скидка брони в строке ТЧ «Buchungen» (колоночное событие: номер строки первым). */
+function onBookingDiscountEdited(rowIndex, newVal, displayVal, ctx) {
+    refreshPayable(ctx);
 }
 
 // `_setFormField` удалён вместе с собственным выставлением счёта: состояние формы
@@ -204,7 +324,16 @@ var _printAfterIssue = false;
 async function issueAndPrintInvoice(ev, ctx) {
     _printAfterIssue = true;
     try {
-        await ctx.form.runDocumentCommand('post', __t('issue_invoice_confirm'));
+        // Текст переспроса НЕ передаём: он объявлен у команды проведения
+        // (`entityConfig.posting.confirm`), и эта кнопка обязана спросить ровно
+        // то же, что спрашивает «Выставить». Своя копия текста здесь однажды
+        // разошлась бы с объявленной.
+        //
+        // Команда вернула «не поехало» (отказ в переспросе, несохранённое не
+        // записалось) — намерение печатать снимаем. Иначе оно переживёт отказ и
+        // напечатает счёт при следующем проведении, о котором никто не просил.
+        const went = await ctx.form.runDocumentCommand('post');
+        if (!went) _printAfterIssue = false;
     } catch (e) {
         _printAfterIssue = false;
         throw e;
@@ -230,5 +359,6 @@ async function onPostingFinished(info, ctx) {
 // «Сторнировать» и «Скорректировать» здесь НЕТ намеренно: это команды ядра,
 // кнопки объявлены в лейауте как `"command": "storno" | "correct"`
 // (drive_root/db/documentCommands.js + DataForm.runDocumentCommand).
-return { fillInvoice, printInvoice, onLineQtyOrPriceEdited, onLineServiceSelected,
-         issueAndPrintInvoice, onPostingFinished };
+return { fillInvoice, printInvoice, onLineQtyOrPriceEdited, onTargetLineQtyOrPriceEdited, onLineServiceSelected,
+         issueAndPrintInvoice, onPostingFinished, onTotalsFieldChanged, onBookingDiscountEdited,
+         onBookingsChanged };

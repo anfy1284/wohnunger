@@ -95,7 +95,7 @@
                 "guestsCount": {
                     "type": "INTEGER",
                     "allowNull": false,
-                    "caption": { "i18n": "guests_count" }
+                    "caption": { "i18n": "guests_count_field" }
                 },
                 "price": {
                     "type": "DECIMAL(12,2)",
@@ -107,6 +107,66 @@
                 "parentTable": "price_lists",
                 "parentField": "priceListId",
                 "caption": { "i18n": "price_list_rooms_tab" }
+            },
+            "options": {
+                "timestamps": true
+            }
+        },
+        {
+            "//": "Цена ночи гостя вида, который в тариф номера не входит (guest_types.roomRateMode = separate: дети 2–5 лет). Решение владельца 19.10.2026: цена проживания живёт в прайс-листе, а не в услуге с UID, зашитым в код (srv-child — услуга одного клиента). Номер и сезон необязательны: пусто = для всех номеров / круглый год; заполненный сильнее пустого (apps/common/lib/priceResolver.js#pickGuestTypePrice).",
+            "name": "PriceListGuestTypePrices",
+            "tableName": "price_list_guest_type_prices",
+            "fields": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "organizations", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "Organization" }
+                },
+                "priceListId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "price_lists", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "CASCADE",
+                    "caption": { "i18n": "price_list_ref" }
+                },
+                "guestTypeId": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "references": { "model": "guest_types", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "guest_type_field" }
+                },
+                "roomId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": { "model": "rooms", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "Room" }
+                },
+                "seasonId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": { "model": "seasons", "key": "UID" },
+                    "onUpdate": "CASCADE",
+                    "onDelete": "RESTRICT",
+                    "caption": { "i18n": "Season" }
+                },
+                "price": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "caption": { "i18n": "guest_type_night_price" }
+                }
+            },
+            "tabularSection": {
+                "parentTable": "price_lists",
+                "parentField": "priceListId",
+                "caption": { "i18n": "price_list_guest_types_tab" }
             },
             "options": {
                 "timestamps": true

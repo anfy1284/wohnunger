@@ -101,8 +101,7 @@ async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
             const i18n = require('../../../node_modules/my-old-space/drive_root/i18n');
             const t = (key) => i18n.t(key, lang);
             const tf = (key, vars) => i18n.tf(key, lang, vars);
-            const localeMap = { en: 'en-GB', ru: 'ru-RU', pl: 'pl-PL', de: 'de-DE' };
-            const locale = localeMap[lang] || 'de-DE';
+            const locale = require('../../common/lib/locale').localeOf(lang);
 
             // Сторно обязан ссылаться на исходный счёт (§ 31 Abs. 5 UStDV):
             // без номера и даты отменяемого документа встречный документ не с чем
@@ -145,8 +144,24 @@ async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
                 }
             }
 
+            // СВЁРТКА СТРОК ОДНОЙ УСЛУГИ С РАЗНЫМИ ЦЕНАМИ (типы гостей, квартиры) —
+            // только для бумаги, по настройке гостиницы счёта (`invoice.mergeServiceLines`,
+            // mergeServiceLines.js). Строки счёта в базе не меняются: из них пишется
+            // регистр услуг.
+            let printLines = null;
+            let mergeServiceLines = false;
+            if (invoice.hotelId) {
+                try {
+                    const settings = require('../../../node_modules/my-old-space/drive_root/settings');
+                    mergeServiceLines = await settings.getRecordSetting('hotel', invoice.hotelId, 'invoice', 'mergeServiceLines') === true;
+                } catch (e) { console.warn('[reports] mergeServiceLines setting:', e && e.message); }
+            }
+            if (mergeServiceLines) printLines = require('./mergeServiceLines').mergeServiceLines(lines);
+
+            // Строки ТЧ «Buchungen» — со скидками броней (totals.js).
+            const invoiceBookings = links;
             const { html, missingKeys, brutto } = renderInvoiceHTML({
-                invoice, bookings, client, hotel, org, lines, t, tf,
+                invoice, bookings, invoiceBookings, client, hotel, org, lines, printLines, t, tf,
                 locale, lang, invoiceNote, taxCategories, draft, correctsInvoice,
                 correctedBase: correctedTotal
             });
@@ -154,7 +169,9 @@ async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
             // Слепок данных, из которых собран HTML, — это и есть «что было в
             // счёте» на момент выставления: имена услуг, адрес организации,
             // ставки. Всё это потом может измениться в справочниках.
-            const payload = { invoice, bookings, client, hotel, org, lines, lang, invoiceNote, taxCategories, correctsInvoice, correctedBase: correctedTotal };
+            // `lines` — строки счёта как в базе; `mergeServiceLines` — была ли включена
+            // свёртка при печати (HTML копии собран уже свёрнутым).
+            const payload = { invoice, bookings, invoiceBookings, client, hotel, org, lines, lang, invoiceNote, taxCategories, correctsInvoice, correctedBase: correctedTotal, mergeServiceLines };
 
             return { html, payload, invoice, org, client, lines, lang, draft, missingKeys, brutto };
 }

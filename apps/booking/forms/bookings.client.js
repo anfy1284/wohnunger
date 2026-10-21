@@ -248,6 +248,10 @@ async function _createInvoiceFromBooking(form) {
     // расчётом автоматически). Показываем ДО открытия формы счёта — иначе
     // недостача денег в спецификации остаётся незамеченной.
     if (result.skippedNotice) { try { await showAlert(result.skippedNotice); } catch(_) {} }
+    // Часть услуг (или все) уже выставлены другим счётом по этой же брони и в
+    // новый не попали. Сказать об этом обязательно: счёт без строк выглядит как
+    // сбой расчёта, а это штатный исход («всё уже выставлено»).
+    if (result.alreadyNotice) { try { await showAlert(result.alreadyNotice); } catch(_) {} }
 
     if (window.MySpace && typeof window.MySpace.open === 'function') {
         await window.MySpace.open('uniForm', {
@@ -319,5 +323,10 @@ function onInvoicesRefreshed(tbl, ctx) {
     });
     if (typeof btn.setMenu === 'function') btn.setMenu(menu);
 }
+
+// «Добавить предоплату» (диалог) убран 21.10.2026 (ТЗ платежей брони, решение 4):
+// аванс новой брони вводится прямо в её полях и становится документом при
+// проведении, а все прочие платежи — на вкладке «Zahlungen» (журнал денежных
+// документов ядра). Кода на клиенте для этого не нужно.
 
 return { onRoomSelected, onExtraLineActivated, onFormChange, onServiceCountEdited, invoiceButtonClick, onInvoicesRefreshed };

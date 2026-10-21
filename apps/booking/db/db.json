@@ -11,13 +11,88 @@
                             "handler": "booking.onBeforeCreate"
                         }
                     ]
+                },
+                "//listAttributes": "Вычисляемые реквизиты ЖУРНАЛА (drive_root/db/listAttributes.js): величины, которых в таблице нет и быть не должно. Считает их метод onLoadListAttributes формы списка — ОДНИМ запросом на страницу строк. prepaymentPaid — СКОЛЬКО ВСЕГО ВНЕСЕНО по броне: движения регистра расчётов от денежных документов (поступление +, возврат −), без зачёта счётом (21.10.2026, ТЗ платежей брони §4.1 — «0» после счёта читался как «не платили»; незачтённый остаток по-прежнему берёт счёт). overInvoiced — сумма, на которую выставлено больше, чем заказано (ТЗ §8): отрицательный остаток регистра услуг, то есть автоматическое обнаружение случая § 17 Abs. 1 UStG. Пусто у строк без расхождения: «0,00» в каждой строке читается как данные и перестаёт читаться вовсе.",
+                "listAttributes": [
+                    {
+                        "name": "prepaymentPaid",
+                        "type": "DECIMAL(12,2)",
+                        "caption": { "i18n": "prepayment_field" }
+                    },
+                    {
+                        "name": "overInvoiced",
+                        "type": "DECIMAL(12,2)",
+                        "caption": { "i18n": "over_invoiced_field" }
+                    }
+                ],
+                "//rowTones": "Строка брони с расхождением — красная. Правило читает тот же реквизит журнала: пусто (нет расхождения) правилу не подходит, любое значение — подходит. Отдельного флага для этого не заводим: признак один, и второй его экземпляр однажды разошёлся бы с первым.",
+                "rowTones": [
+                    {
+                        "when": { "field": "overInvoiced", "notIn": [""] },
+                        "tone": "red"
+                    }
+                ],
+                "//posting": "Режим onSave: бронь уходит в очередь при каждом сохранении, команд проведения и слова «провести» на форме нет — владелица о проведении не узнаёт, а регистр услуг наполняется сам (ТЗ «Учёт услуг по брони», §6). Ключа unpost нет, то есть распроведение разрешено по умолчанию; кнопки у него в этом режиме всё равно нет, а практический путь к нему пользовательский — пометка на удаление снимает проведение в той же транзакции. depends пуст: бронь ничего из регистров не читает, перепроводить её за чужими движениями не нужно.",
+                "posting": {
+                    "mode": "onSave",
+                    "handler": "booking.postServices",
+                    "writes": [
+                        "reg_booking_services"
+                    ],
+                    "writesTables": [],
+                    "//creates": "Первый аванс новой брони (поля firstPrepayment…) проведение превращает в документ поступления — ОДИН раз, через ctx.createOnce со штампом firstPrepaymentReceiptId (ТЗ платежей брони §3.3, §4.1). Поступление живёт своей жизнью: перепроведение брони его не снимает и, если его удалили, не воскрешает.",
+                    "creates": [
+                        "cash_receipts"
+                    ],
+                    "depends": [],
+                    "captions": {
+                        "state": {
+                            "i18n": "posting_state_field"
+                        }
+                    }
                 }
             },
             "fields": {
+                "//prepayment": "ВРЕМЕННО ВОЗВРАЩЕНО (16.10.2026, решение владельца). Старая хранимая предоплата брони. Её место заняли денежные документы, а на форме и в журнале — вычисляемый prepaymentBalance. Колонка оставлена ТОЛЬКО затем, чтобы миграция не стёрла её при первом старте новой версии в проде: скрипт tmp/2026-09-24_anzahlungen_uebertragen берёт суммы отсюда и превращает их в документы поступления. service: true — ни в автоформах, ни в журнале её не видно. Никакой код её не читает и не пишет, кроме того скрипта. Удалить на одном из следующих обновлений, ПОСЛЕ того как перенос выполнен в проде (tmp/БЕКЛОГ.md).",
+                "prepayment": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": true,
+                    "defaultValue": null,
+                    "service": true,
+                    "caption": { "i18n": "prepayment_field" }
+                },
                 "name": {
                     "type": "STRING",
                     "allowNull": true,
                     "caption": { "i18n": "name_field" }
+                },
+                "//firstPrepayment": "АВАНС НОВОЙ БРОНИ (21.10.2026, ТЗ платежей брони §4.1). Сумма и способ вводятся прямо на форме НОВОЙ брони; документ поступления из них создаёт проведение брони — только успешное: не провелась — документа нет. Дата поступления — createdAt брони (момент ввода, серверное время; § 146 Abs. 1 Satz 2 AO), а не момент проведения: повтор после ошибки через полночь её не сдвигает. После создания поля на форме больше не показываются (решает реквизит формы firstPrepaymentOpen), а штамп firstPrepaymentReceiptId не даёт создать второй документ ни при каком перепроведении.",
+                "firstPrepaymentAmount": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": { "i18n": "prepayment_field" }
+                },
+                "firstPrepaymentMethod": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "cash",
+                    "defaultFromSetting": { "app": "cash", "key": "defaultPaymentMethod" },
+                    "inputType": "emunList",
+                    "options": [
+                        { "value": "transfer", "caption": { "i18n": "cash_pm_transfer" } },
+                        { "value": "card", "caption": { "i18n": "cash_pm_card" } },
+                        { "value": "cash", "caption": { "i18n": "cash_pm_cash" } }
+                    ],
+                    "caption": { "i18n": "cash_payment_method_field" }
+                },
+                "//firstPrepaymentReceiptId": "ШТАМП: UID поступления, созданного из аванса. Пишет ядро (coreWrite, в транзакции проведения), человек — никогда. refersTo, а не references: поступление можно удалить (пометка + удаление помеченных), и штамп при этом НЕ сбрасывается — именно поэтому перепроведение брони удалённое поступление не воскрешает.",
+                "firstPrepaymentReceiptId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "refersTo": "cash_receipts",
+                    "service": true,
+                    "caption": { "i18n": "first_prepayment_receipt_field" }
                 },
                 "organizationId": {
                     "type": "STRING",
@@ -78,11 +153,19 @@
                     "allowNull": true,
                     "caption": { "i18n": "Notes" }
                 },
-                "prepayment": {
-                    "type": "DECIMAL(12,2)",
-                    "allowNull": true,
-                    "defaultValue": null,
-                    "caption": { "i18n": "prepayment_field" }
+                "//noInvoiceRequired": "Отметка «Счёт не требуется» (решение владельца 15.10.2026): счёт по брони сознательно не выставляется (частный гость расплатился на месте и т. п.). Снимает оповещение booking.notInvoiced — иначе законно невыставленные брони висели бы жёлтым вечно и приучили бы не читать жёлтое. Причину отдельно не спрашиваем: для неё есть «Примечания».",
+                "noInvoiceRequired": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": false,
+                    "caption": { "i18n": "no_invoice_required_field" }
+                },
+                "//longTermLetting": "Длительная сдача (19.10.2026, прогон 17.10.2026 V3): проживание, которое ПО ДОГОВОРУ задумано дольше шести месяцев, не «kurzfristige Beherbergung» (§ 4 Nr. 12 Satz 2 UStG), а освобождённая сдача жилья (§ 4 Nr. 12 Satz 1 Buchst. a UStG). Решает намерение при заключении договора (BFH XI R 69/90, Abschn. 4.12.9 Abs. 1 UStAE), а не фактическая длительность, поэтому это реквизит брони, а не вычисление: программа ставит его сама по датам при их вводе (> 6 месяцев), человек может исправить. Строки проживания получают категорию exempt_longterm (apps/common/lib/bookingServices.js).",
+                "longTermLetting": {
+                    "type": "BOOLEAN",
+                    "allowNull": false,
+                    "defaultValue": false,
+                    "caption": { "i18n": "long_term_letting_field" }
                 },
                 "discountValue": {
                     "type": "DECIMAL(12,2)",
@@ -149,6 +232,8 @@
                 "parentField": "bookingId",
                 "caption": { "i18n": "booking_rooms_tab" }
             },
+            "//entityConfig": "Своего имени у строки «номер в брони» нет — она и есть номер. Представлением объявлена ССЫЛКА, и ядро показывает представление номера (resolveTableForeignKeys, переход по ссылке): так строку видят «Движения» брони и строки счёта.",
+            "entityConfig": { "presentationField": "roomId" },
             "options": {
                 "timestamps": true
             }
@@ -513,6 +598,105 @@
             "source": "BookingExtraLines",
             "target": "TaxRates",
             "foreignKey": "taxRateId"
+        }
+    ],
+    "registers": [
+        {
+            "//": "УСЛУГИ ПО БРОНИ. Бронь пишет «заказано» (+), счёт «выставлено» (−); остаток отвечает на вопрос «что ещё не выставлено». Двойное выставление становится невозможным арифметически, а не проверкой в коде (ТЗ «Учёт услуг по брони», §4).",
+            "name": "BookingServicesRegister",
+            "tableName": "reg_booking_services",
+            "kind": "balances",
+            "caption": { "i18n": "reg_booking_services_caption" },
+            "//dimensions": "organizationId — реквизит доступа (RLS); bookingId — в разрезе чего спрашивают; остальные семь — КЛЮЧ ПОЗИЦИИ, объявленный в apps/common/lib/bookingServices.js (POSITION_FIELDS). Состав обязан совпадать с тем объявлением — сверяется assertRegisterKey при первом же проведении.",
+            "dimensions": {
+                "organizationId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": { "model": "organizations", "key": "UID" },
+                    "caption": { "i18n": "Organization" }
+                },
+                "bookingId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": { "model": "bookings", "key": "UID" },
+                    "caption": { "i18n": "Booking" }
+                },
+                "serviceId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": { "model": "services", "key": "UID" },
+                    "caption": { "i18n": "Service" }
+                },
+                "//bookingRoomId": "БЕЗ внешнего ключа, в отличие от invoice_lines. Строки ТЧ брони удаляются при каждой правке брони, а движения на этот момент ещё старые: внешний ключ отказал бы удалить номер, то есть запретил бы правку брони. Движение принадлежит документу и переписывается его перепроведением — ссылочную целостность здесь держит регистратор, а не СУБД.",
+                "bookingRoomId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "refersTo": "booking_rooms",
+                    "caption": { "i18n": "Room" }
+                },
+                "//extraLineId": "Строка доп.услуг брони. Единственное, чем одна доп.услуга отличается от другой: имя правится, сумма и ставка совпадают запросто.",
+                "extraLineId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "refersTo": "booking_extra_lines",
+                    "caption": { "i18n": "extra_line_ref" }
+                },
+                "guestTypeId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": { "model": "guest_types", "key": "UID" },
+                    "caption": { "i18n": "guest_type_field" }
+                },
+                "//taxComponentId": "ССЫЛКА на строку налоговой разбивки услуги, а не её имя: имя владелец правит в справочнике, и ключ позиции на нём держаться не вправе — переименование увело бы «заказано» на новый ключ, а «выставлено» осталось бы на старом. Внешнего ключа нет по той же причине, что у bookingRoomId: это строка ТЧ, её удаление не должно отказывать в правке услуги. Напечатанное имя лежит в строке счёта снимком.",
+                "//refersTo": "Ссылка БЕЗ внешнего ключа (ядро, globalServerContext.getTableMetadata): экран «Движения» показывает подпись строки, а не её UID, а СУБД по-прежнему не запрещает удалить строку ТЧ.",
+                "taxComponentId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "refersTo": "service_tax_components",
+                    "caption": { "i18n": "tax_component_ref" }
+                },
+                "taxRate": {
+                    "type": "DECIMAL(5,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": { "i18n": "tax_rate" }
+                },
+                "taxCategoryId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "references": { "model": "tax_categories", "key": "UID" },
+                    "caption": { "i18n": "tax_category" }
+                }
+            },
+            "//resources": "Количество — тоже DECIMAL: человеко-ночи целые, но ресурс регистра обязан складываться точно, а не в двоичных дробях.",
+            "resources": {
+                "quantity": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": { "i18n": "Quantity" }
+                },
+                "amount": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": { "i18n": "Amount" }
+                }
+            },
+            "//attributes": "Сопроводительные РЕКВИЗИТЫ: по ним не группируют и не сравнивают. Цена именно здесь, а не в измерениях (решение владельца 01.10.2026): измерением она дробила бы позицию, и правка действующего прайс-листа после выставления счёта позволяла бы выставить услугу второй раз. Подпись нужна человеку, который смотрит движения документа.",
+            "attributes": {
+                "unitPrice": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": { "i18n": "unit_price" }
+                },
+                "label": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": { "i18n": "Notes" }
+                }
+            }
         }
     ]
 }

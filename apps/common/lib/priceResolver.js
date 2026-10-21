@@ -83,7 +83,7 @@ module.exports = function (modelsDB) {
     // строки ТЧ несут _docIdx (0 = самый поздний документ).
     // seasonPeriods: { seasonId: [{ dateFrom, dateTo }, ...] }.
     async function loadSlice({ organizationId, hotelId, pricingDate }) {
-        const empty = { docs: [], roomRows: [], svcRows: [], seasonPeriods: {} };
+        const empty = { docs: [], roomRows: [], svcRows: [], guestRows: [], seasonPeriods: {} };
         if (!organizationId) return empty;
         const till = pricingDate ? new Date(pricingDate) : new Date();
         if (isNaN(till.getTime())) return empty;
@@ -101,9 +101,12 @@ module.exports = function (modelsDB) {
         docs.forEach((doc, i) => { docIdx[doc.UID] = i; });
         const docIds = docs.map(doc => doc.UID);
 
-        const [roomRows, svcRows, periodRows] = await Promise.all([
+        const [roomRows, svcRows, guestRows, periodRows] = await Promise.all([
             modelsDB.PriceListRoomPrices.findAll({ where: { priceListId: docIds }, raw: true }),
             modelsDB.PriceListServicePrices.findAll({ where: { priceListId: docIds }, raw: true }),
+            modelsDB.PriceListGuestTypePrices
+                ? modelsDB.PriceListGuestTypePrices.findAll({ where: { priceListId: docIds }, raw: true })
+                : [],
             modelsDB.SeasonPeriods.findAll({ where: { organizationId }, raw: true })
         ]);
         // Цена нормализуется в ЧИСЛО здесь, в единственной точке доступа к
@@ -114,11 +117,21 @@ module.exports = function (modelsDB) {
         // раз для всех.
         for (const r of roomRows) { r._docIdx = docIdx[r.priceListId]; r.price = M.num(r.price); }
         for (const r of svcRows)  { r._docIdx = docIdx[r.priceListId]; r.price = M.num(r.price); }
+        for (const r of guestRows) { r._docIdx = docIdx[r.priceListId]; r.price = M.num(r.price); }
+        // Сезон принадлежит ОТЕЛЮ (решение владельца 16.10.2026): при расчёте для
+        // отеля периоды чужих сезонов не действуют, даже если строка прайс-листа
+        // по ошибке на такой сезон ссылается.
+        let hotelSeasonIds = null;
+        if (hotelId) {
+            const hs = await modelsDB.Seasons.findAll({ where: { organizationId, hotelId }, attributes: ['UID'], raw: true });
+            hotelSeasonIds = new Set(hs.map(r => r.UID));
+        }
         const seasonPeriods = {};
         for (const p of periodRows) {
+            if (hotelSeasonIds && !hotelSeasonIds.has(p.seasonId)) continue;
             (seasonPeriods[p.seasonId] = seasonPeriods[p.seasonId] || []).push(p);
         }
-        return { docs, roomRows, svcRows, seasonPeriods };
+        return { docs, roomRows, svcRows, guestRows, seasonPeriods };
     }
 
     // ── Цена проживания из среза ─────────────────────────────────────
@@ -172,6 +185,34 @@ module.exports = function (modelsDB) {
         return Array.from(byPos.values());
     }
 
+    // ── Цена ночи гостя вида вне тарифа номера ───────────────────────
+    // Вкладка прайс-листа «Preise nach Gästeart» (19.10.2026). Позиция:
+    // вид гостя + номер (пусто = все номера) + сезон (пусто = круглый год).
+    // По каждой позиции — строка самого позднего документа; из подходящих
+    // позиций побеждает ТОЧНЕЙШАЯ: свой номер сильнее «всех номеров», сезон
+    // сильнее «круглого года» — так же, как покомнатная цена услуги сильнее
+    // общей. Сезон строки применим, если один из его периодов накрывает ночь.
+    function pickGuestTypePrice(slice, { guestTypeId, roomId, stayDate }) {
+        if (!slice || !guestTypeId || !stayDate) return null;
+        const day = new Date(stayDate);
+        if (isNaN(day.getTime())) return null;
+        const byPos = new Map();
+        for (const r of (slice.guestRows || [])) {
+            if (r.guestTypeId !== guestTypeId) continue;
+            const key = `${r.roomId || ''}|${r.seasonId || ''}`;
+            const cur = byPos.get(key);
+            if (!cur || r._docIdx < cur._docIdx) byPos.set(key, r);
+        }
+        let best = null, bestRank = -1;
+        for (const r of byPos.values()) {
+            if (r.roomId && r.roomId !== roomId) continue;
+            if (r.seasonId && !seasonCoversDay(slice, r.seasonId, day)) continue;
+            const rank = (r.roomId ? 2 : 0) + (r.seasonId ? 1 : 0);
+            if (rank > bestRank || (rank === bestRank && r._docIdx < best._docIdx)) { best = r; bestRank = rank; }
+        }
+        return best ? { price: best.price, priceListId: best.priceListId } : null;
+    }
+
     // ── Одиночные вызовы (сами грузят срез) ──────────────────────────
     async function resolveRoomPrice({ organizationId, hotelId, roomId, guestsCount, stayDate, pricingDate }) {
         const slice = await loadSlice({ organizationId, hotelId, pricingDate });
@@ -184,7 +225,7 @@ module.exports = function (modelsDB) {
     }
 
     return {
-        loadSlice, pickRoomPrice, pickServicePrices, resolveRoomPrice, resolveServicePrices,
+        loadSlice, pickRoomPrice, pickServicePrices, pickGuestTypePrice, resolveRoomPrice, resolveServicePrices,
         // Работа с возрастными границами — только через эти помощники.
         // Прямые сравнения `ageFrom != null` в коде потребителей запрещены:
         // они не видят разницы между «пусто» и «ноль».

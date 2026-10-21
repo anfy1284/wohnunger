@@ -12,6 +12,8 @@ module.exports = async function (modelsDB) {
     try {
         const { loadScript, loadServerScript, Utilities } = require('../../node_modules/my-old-space');
         const layoutMemory   = require('../../node_modules/my-old-space/drive_root/layoutMemory');
+        const formMethods    = require('../../node_modules/my-old-space/drive_root/formMethods');
+        const APP = 'common';
 
         // ── Кастомная форма записи «Услуга» ──────────────────────────────
         // Нужна ради поля «Формула расчёта количества» (quantityFormula) с
@@ -20,9 +22,8 @@ module.exports = async function (modelsDB) {
         const servicesClientUID = await loadScript(servicesClient, 'user');
 
         await layoutMemory.saveLayout({
-            appName:       'uniForm',
-            mode:          'record',
-            tableName:     'services',
+            app:           APP,
+            subject:       { table: 'services', kind: 'record' },
             roles:         '*',
             layout:        require('./forms/services.layout.json'),
             clientScript:  servicesClientUID,
@@ -37,25 +38,23 @@ module.exports = async function (modelsDB) {
         // в год). Строки проживания прайс-листа ссылаются на сезон, а не на
         // пару дат von/bis; резолв цены по дате проживания — через периоды
         // сезона (apps/common/lib/priceResolver.js).
-        const seasonsServerScript = loadServerScript(
-            'seasons.actions',
-            require('./forms/seasons.server')(modelsDB, Utilities),
-            'user'
-        );
+        const seasonsFns = require('./forms/seasons.server')(modelsDB, Utilities);
+        // Методы ФОРМЫ сезона — здесь же её серверное событие `onBeforeSave`.
+        formMethods.register({
+            app: APP, subject: { table: 'seasons', kind: 'record' },
+            methods: seasonsFns, roles: ['user', 'admin']
+        });
+        const seasonsServerScript = loadServerScript('seasons.actions', seasonsFns, 'user');
 
         await layoutMemory.saveLayout({
-            appName:       'uniForm',
-            mode:          'record',
-            tableName:     'seasons',
+            app:           APP,
+            subject:       { table: 'seasons', kind: 'record' },
             roles:         '*',
             layout:        require('./forms/seasons.layout.json'),
             appCaption:    { i18n: 'seasons_app_caption' },
             recordCaption: { i18n: 'season_record_caption' },
             formIcon:      '/apps/general_icons/resources/public/16x16/calendar.png',
-            listIcon:      '/apps/general_icons/resources/public/16x16/catalog.png',
-            events: {
-                onBeforeSave: { serverScript: seasonsServerScript, fn: 'onBeforeSave' }
-            }
+            listIcon:      '/apps/general_icons/resources/public/16x16/catalog.png'
         });
         // Список — автогенерация uniForm (заголовок/иконка из appCaption/listIcon).
 
@@ -72,6 +71,42 @@ module.exports = async function (modelsDB) {
                         order: 900,
                         icon: '/apps/general_icons/resources/public/16x16/catalog.png',
                         items: [
+                            // Основные справочники сотрудника (15.10.2026). Раньше до них
+                            // можно было добраться только кнопкой «…» в поле выбора на
+                            // форме: поправить адрес клиента или добавить услугу значило
+                            // сначала открыть какую-нибудь бронь. Глобальные справочники
+                            // (типы гостей, ставки НДС, статусы) сюда НЕ входят: их правка
+                            // меняет данные всех организаций — это дело администратора.
+                            {
+                                caption: { i18n: 'clients' },
+                                action: 'open', singleton: true, appName: 'uniForm',
+                                icon: '/apps/booking_icons/resources/public/16x16/client.png',
+                                params: { mode: 'list', dbTable: 'clients' }
+                            },
+                            {
+                                caption: { i18n: 'hotels' },
+                                action: 'open', singleton: true, appName: 'uniForm',
+                                icon: '/apps/booking_icons/resources/public/16x16/hotel.png',
+                                params: { mode: 'list', dbTable: 'hotels' }
+                            },
+                            {
+                                caption: { i18n: 'rooms' },
+                                action: 'open', singleton: true, appName: 'uniForm',
+                                icon: '/apps/booking_icons/resources/public/16x16/room.png',
+                                params: { mode: 'list', dbTable: 'rooms' }
+                            },
+                            {
+                                caption: { i18n: 'services' },
+                                action: 'open', singleton: true, appName: 'uniForm',
+                                icon: '/apps/booking_icons/resources/public/16x16/service.png',
+                                params: { mode: 'list', dbTable: 'services' }
+                            },
+                            {
+                                caption: { i18n: 'organizations' },
+                                action: 'open', singleton: true, appName: 'uniForm',
+                                icon: '/apps/general_icons/resources/public/16x16/organization.png',
+                                params: { mode: 'list', dbTable: 'organizations' }
+                            },
                             {
                                 caption: { i18n: 'seasons_app_caption' },
                                 action: 'open',

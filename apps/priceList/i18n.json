@@ -1,4 +1,10 @@
 {
+    "price_list_season_other_hotel": {
+        "en": "Season \"{{season}}\" belongs to another hotel. Choose a season of this price list's hotel.",
+        "ru": "Сезон «{{season}}» относится к другому отелю. Выберите сезон отеля этого прайс-листа.",
+        "de": "Die Saison „{{season}}“ gehört zu einem anderen Hotel. Wählen Sie eine Saison des Hotels dieser Preisliste.",
+        "pl": "Sezon „{{season}}” należy do innego hotelu. Wybierz sezon hotelu tego cennika."
+    },
     "price_list_app_caption": {
         "en": "Price lists",
         "ru": "Прайс-листы",
@@ -16,6 +22,30 @@
         "ru": "Проживание",
         "de": "Unterkunft",
         "pl": "Zakwaterowanie"
+    },
+    "price_list_guest_types_tab": {
+        "en": "Prices by guest type",
+        "ru": "Цены по видам гостей",
+        "de": "Preise nach Gästeart",
+        "pl": "Ceny wg rodzaju gościa"
+    },
+    "guest_type_night_price": {
+        "en": "Price per night",
+        "ru": "Цена за ночь",
+        "de": "Preis pro Nacht",
+        "pl": "Cena za noc"
+    },
+    "guest_type_price_room_hint": {
+        "en": "Empty — for all rooms",
+        "ru": "Пусто — для всех номеров",
+        "de": "Leer — für alle Zimmer",
+        "pl": "Puste — dla wszystkich pokoi"
+    },
+    "guest_type_price_season_hint": {
+        "en": "Empty — all year round",
+        "ru": "Пусто — круглый год",
+        "de": "Leer — ganzjährig",
+        "pl": "Puste — cały rok"
     },
     "price_list_services_tab": {
         "en": "Services",

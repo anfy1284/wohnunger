@@ -143,9 +143,11 @@
                         "targetCaption": {
                             "i18n": "invoice_target_lines_tab"
                         },
+                        "//matchBy": "Чем строка коррекции опознаётся как «та же позиция», что строка исходного счёта. Это НЕ ключ позиции регистра услуг (apps/common/lib/bookingServices.js): там спрашивают «что ещё не выставлено» и цена в ключ не входит, а здесь сравниваются два снимка ОДНОЙ И ТОЙ ЖЕ пары документов, и смена цены обязана читаться как другая позиция — иначе разница поехала бы. Ссылка на компонент добавлена РЯДОМ с его именем, а не вместо: у строк, выставленных до появления ссылки, она пуста, и по имени они продолжают сопоставляться.",
                         "matchBy": [
                             "serviceId",
                             "bookingRoomId",
+                            "taxComponentId",
                             "taxComponentName",
                             "taxRate",
                             "taxCategoryId",
@@ -162,13 +164,15 @@
                     "//": "Для счёта «выставлен» = «проведён» (ТЗ §5.3). Команда на форме называется «Выставить», а не «Провести»: подписи объявляются потаблично.",
                     "mode": "manual",
                     "handler": "invoice.postIssue",
-                    "unpost": [],
+                    "//unpost": "Распроведение разрешено по умолчанию; выставленный счёт — особый случай: он напечатан и отдан клиенту (GoBD). Исправляется встречным документом — сторно или коррекцией.",
+                    "unpost": false,
+                    "//confirm": "Переспрос принадлежит КОМАНДЕ, а не кнопке: его показывает и «Выставить», и «Выставить и напечатать», и стандартный «ОК», если бы он проводил. Выставление необратимо — счёт получает номер, архивную копию и уходит клиенту.",
+                    "confirm": {
+                        "i18n": "issue_invoice_confirm"
+                    },
                     "captions": {
                         "post": {
                             "i18n": "issue_invoice_btn"
-                        },
-                        "unpost": {
-                            "i18n": "posting_cmd_unpost"
                         },
                         "postAndClose": {
                             "i18n": "invoice_issue_and_close_btn"
@@ -178,7 +182,8 @@
                         }
                     },
                     "writes": [
-                        "reg_settlements"
+                        "reg_settlements",
+                        "reg_booking_services"
                     ],
                     "writesTables": [],
                     "depends": [],
@@ -432,6 +437,28 @@
                     "caption": {
                         "i18n": "booking_ref"
                     }
+                },
+                "//discountValue": "Скидка БРОНИ в этом счёте (19.10.2026): действует только на строки этой брони (apps/reports/invoice/totals.js). Подставляется из брони при заполнении; ненулевая ручная не затирается. Скидка в шапке счёта — дополнительная, на весь счёт.",
+                "discountValue": {
+                    "type": "DECIMAL(12,2)",
+                    "allowNull": false,
+                    "defaultValue": 0,
+                    "caption": {
+                        "i18n": "discount_value_field"
+                    }
+                },
+                "discountMode": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "percent",
+                    "caption": {
+                        "i18n": "discount_mode_field"
+                    },
+                    "inputType": "emunList",
+                    "options": [
+                        { "value": "percent", "caption": "%" },
+                        { "value": "amount", "caption": "€" }
+                    ]
                 }
             },
             "tabularSection": {
@@ -503,17 +530,30 @@
                         "i18n": "booking_ref"
                     }
                 },
+                "//refersTo_bookingRoomId": "БЕЗ внешнего ключа (16.10.2026). Было ON DELETE SET NULL: бронь при КАЖДОМ сохранении удаляет и заново вставляет строки своих табличных частей (с теми же UID), и в момент удаления база обнуляла эту ссылку во ВСЕХ счетах брони, включая выставленные. Перепроведение такого счёта и корректировка (строится из его строк) писали в регистр услуг пустой ключ позиции — оповещения «выставлено больше» / «не выставлено» не гасли (прогон сценариев E6). refersTo: подпись на экране есть, ограничения в СУБД нет — как у измерений регистра.",
                 "bookingRoomId": {
                     "type": "STRING",
                     "allowNull": true,
-                    "references": {
-                        "model": "booking_rooms",
-                        "key": "UID"
-                    },
-                    "onUpdate": "CASCADE",
-                    "onDelete": "SET NULL",
+                    "refersTo": "booking_rooms",
                     "caption": {
                         "i18n": "booking_room_ref"
+                    }
+                },
+                "//taxComponentId": "Строка налоговой разбивки услуги (service_tax_components), из которой пришла эта строка. Входит в ключ позиции регистра услуг ВМЕСТО имени компонента: имя — обычные данные, владелец правит его в справочнике, и переименование увело бы «заказано» на новый ключ, а «выставлено» оставило на старом, то есть позволило бы выставить услугу второй раз. Напечатанное имя остаётся рядом снимком (`taxComponentName`). БЕЗ внешнего ключа намеренно: `ON DELETE SET NULL` задним числом изменил бы ключ позиции уже выставленной строки, а это ровно то, от чего ссылка здесь и стоит.",
+                "taxComponentId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "caption": {
+                        "i18n": "tax_component_ref"
+                    }
+                },
+                "//refersTo_extraLineId": "БЕЗ внешнего ключа (16.10.2026). Было ON DELETE SET NULL: бронь при КАЖДОМ сохранении удаляет и заново вставляет строки своих табличных частей (с теми же UID), и в момент удаления база обнуляла эту ссылку во ВСЕХ счетах брони, включая выставленные. Перепроведение такого счёта и корректировка (строится из его строк) писали в регистр услуг пустой ключ позиции — оповещения «выставлено больше» / «не выставлено» не гасли (прогон сценариев E6). refersTo: подпись на экране есть, ограничения в СУБД нет — как у измерений регистра.",
+                "extraLineId": {
+                    "type": "STRING",
+                    "allowNull": true,
+                    "refersTo": "booking_extra_lines",
+                    "caption": {
+                        "i18n": "extra_line_ref"
                     }
                 },
                 "sectionLabel": {
@@ -728,18 +768,6 @@
             "source": "InvoiceLines",
             "target": "Bookings",
             "foreignKey": "bookingId"
-        },
-        {
-            "type": "hasMany",
-            "source": "BookingRooms",
-            "target": "InvoiceLines",
-            "foreignKey": "bookingRoomId"
-        },
-        {
-            "type": "belongsTo",
-            "source": "InvoiceLines",
-            "target": "BookingRooms",
-            "foreignKey": "bookingRoomId"
         },
         {
             "type": "hasMany",

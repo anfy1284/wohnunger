@@ -46,7 +46,7 @@ const esc     = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'
  *        скидки и печатается полной суммой.
  * @returns {string} HTML-документ
  */
-function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf, locale, lang, invoiceNote, taxCategories, draft, correctsInvoice, correctedBase }) {
+function renderInvoiceHTML({ invoice, bookings, invoiceBookings, client, hotel, org, lines, printLines, t, tf, locale, lang, invoiceNote, taxCategories, draft, correctsInvoice, correctedBase }) {
     if (typeof t !== 'function') t = (k) => k;
     if (typeof tf !== 'function') tf = (k) => k;
     locale = locale || 'de-DE';
@@ -93,23 +93,33 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     // посекционно (заголовок «Buchung Nr. X, даты» + строки этой брони);
     // строки без bookingId (ручные) — в конце без заголовка. Одна бронь — без секций.
     // Свод MwSt (taxGroups) считается из тех же строк.
-    const sections = [];
-    if (bookings.length > 1) {
-        for (const b of bookings) {
-            const own = rawLines.filter(ln => ln.bookingId === b.UID);
-            if (!own.length) continue;
-            sections.push({
-                header: tf('invoice_booking_section', {
-                    number: b.number || '', from: fmtDate(b.checkIn), to: fmtDate(b.checkOut)
-                }),
-                lines: own
-            });
+    const sectionsOf = (src) => {
+        const out = [];
+        if (bookings.length > 1) {
+            for (const b of bookings) {
+                const own = src.filter(ln => ln.bookingId === b.UID);
+                if (!own.length) continue;
+                out.push({
+                    header: tf('invoice_booking_section', {
+                        number: b.number || '', from: fmtDate(b.checkIn), to: fmtDate(b.checkOut)
+                    }),
+                    lines: own
+                });
+            }
+            const orphan = src.filter(ln => !ln.bookingId || !bookings.some(b => b.UID === ln.bookingId));
+            if (orphan.length) out.push({ header: null, lines: orphan });
+        } else {
+            out.push({ header: null, lines: src });
         }
-        const orphan = rawLines.filter(ln => !ln.bookingId || !bookings.some(b => b.UID === ln.bookingId));
-        if (orphan.length) sections.push({ header: null, lines: orphan });
-    } else {
-        sections.push({ header: null, lines: rawLines });
-    }
+        return out;
+    };
+    const sections = sectionsOf(rawLines);
+    // Итоги, скидка и свод НДС — ВСЕГДА из строк счёта как они есть; строки,
+    // свёрнутые для печати (`printLines`, настройка гостиницы «Gleiche Leistungen
+    // mit verschiedenen Preisen zusammenfassen»), идут только в таблицу позиций.
+    // Раскладка скидки по свёрнутой строке округлялась бы иначе, и свод НДС мог бы
+    // разойтись на цент с тем, что записало выставление.
+    const printSections = Array.isArray(printLines) ? sectionsOf(printLines) : sections;
     const flatLines = sections.reduce((acc, s) => acc.concat(s.lines), []);
 
     // Zwischensumme (брутто всех строк до скидки) и БАЗА СКИДКИ.
@@ -120,66 +130,23 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     // и передана НЕ без изменений → признак durchlaufender Posten теряется и
     // позиция превращается в собственный оборот отеля. Признак — ДАННЫЕ
     // справочника (`tax_categories.discountable`), не код шаблона.
-    const catMap = taxCategories || {};
     // Скидочность решается ПО СТРОКЕ, а не по налоговой группе: одна ставка 0%
     // несёт и pass_through (скидка запрещена), и exempt_longterm § 4 Nr. 12a
     // (собственный освобождённый оборот — скидка допустима), группировка по
-    // ставке такое различие не выражает. Нет снапшота категории (пользователь
-    // вручную сменил ставку в строке) → строка считается скидочной.
-    const isDiscountable = (ln) => {
-        const c = ln.taxCategoryId ? catMap[ln.taxCategoryId] : null;
-        return !(c && c.discountable === false);
-    };
-    let subtotalBrutto = 0, discountBase = 0;
-    for (const ln of flatLines) {
-        subtotalBrutto = M.add(subtotalBrutto, ln.amount);
-        if (isDiscountable(ln)) discountBase = M.add(discountBase, ln.amount);
-    }
-
-    // Скидка (документальный реквизит invoices.discountMode/Value): процент от
-    // скидочной базы либо абсолют, но не больше базы.
-    const discMode = invoice.discountMode || 'percent';
-    const discInput = M.num(invoice.discountValue);
-    let discount = (discMode === 'percent')
-        ? M.pct(discountBase, discInput)
-        : M.num(discInput);
-    // Границы скидки — ПО ЗНАКУ БАЗЫ, а не отрезок [0, база]. У сторно все
-    // суммы отрицательны, и прежнее сравнение `discount > discountBase` было
-    // истинно уже при НУЛЕВОЙ скидке (0 > −737): скидкой становилась вся база,
-    // скидочный оборот схлопывался в ноль, а Gesamtbetrag сторно показывал
-    // только недискаунтируемые строки (курсбор) вместо полной отмены счёта.
-    const discMin = Math.min(0, discountBase);
-    const discMax = Math.max(0, discountBase);
-    if (discount < discMin) discount = discMin;
-    if (discount > discMax) discount = discMax; // недискаунтируемое не трогаем
-    const discPctLabel = discInput.toLocaleString(locale, { maximumFractionDigits: 2 });
-
-    const discountedBrutto = M.sub(subtotalBrutto, discount);
-
-    // Раскладка скидки ПО СТРОКАМ пропорционально их брутто (k = остаток/база).
-    // Копеечный дрейф гасим в самую крупную скидочную строку.
-    // Знаменатель — «база не ноль», а не «база больше нуля»: на отрицательной
-    // базе сторно доля k иначе застывала бы в 1, строки печатались бы полными
-    // суммами и свод НДС разошёлся бы с Gesamtbetrag на величину скидки.
-    const k = discountBase !== 0 ? (discountBase - discount) / discountBase : 1;
-    const lineBrutto = new Map();
-    let allocSum = 0, driftLine = null;
-    for (const ln of flatLines) {
-        if (isDiscountable(ln)) {
-            const v = M.mul(ln.amount, k);
-            lineBrutto.set(ln, v);
-            allocSum = M.add(allocSum, v);
-            // «Самая крупная строка» — по МОДУЛЮ: у сторно все суммы
-            // отрицательны, и сравнение по значению выбрало бы самую мелкую.
-            if (!driftLine || M.cmp(Math.abs(M.num(ln.amount)), Math.abs(M.num(driftLine.amount))) > 0) driftLine = ln;
-        } else {
-            lineBrutto.set(ln, M.num(ln.amount));
-        }
-    }
-    if (driftLine) {
-        const drift = M.sub(discountBase, discount, allocSum);
-        if (drift !== 0) lineBrutto.set(driftLine, M.add(lineBrutto.get(driftLine), drift));
-    }
+    // ставке такое различие не выражает.
+    //
+    // Сам расчёт итогов — в `totals.js`: тот же ответ нужен выставлению счёта
+    // (предоплата не больше суммы к оплате) и подстановке предоплаты при
+    // заполнении. Второй счёт-калькулятор разошёлся бы с печатью молча.
+    const catMap = taxCategories || {};
+    const { invoiceTotals } = require('./totals');
+    // Скидки броней (ТЧ «Buchungen») и скидка на весь счёт, и их раскладка по
+    // строкам (`lineBrutto`) — всё в `totals.js`: свод НДС по ставкам строится из
+    // уже скидочных сумм строк, и при разных скидках броней раскладка «по всему
+    // счёту одной долей» дала бы неверное нетто по ставкам.
+    const { subtotalBrutto, discount, discountedBrutto, lineBrutto, discountLines } =
+        invoiceTotals({ lines: flatLines, invoice, taxCategories, bookingDiscounts: invoiceBookings || [] });
+    const pctLabel = v => M.num(v).toLocaleString(locale, { maximumFractionDigits: 2 });
 
     // Группировка по ставке — из УЖЕ скидочных сумм строк. Вместе со ставкой
     // копим налоговые категории строк: из них берутся основания ставки для
@@ -217,7 +184,7 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     // за единицу печатаются отдельными реквизитами, а не только внутри текста.
     let rowsHtml = '';
     let pos = 0;
-    for (const sec of sections) {
+    for (const sec of printSections) {
         if (sec.header) {
             rowsHtml += '<tr class="section-head"><td colspan="6">' + esc(sec.header) + '</td></tr>\n';
         }
@@ -225,12 +192,16 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
             pos++;
             const rate = M.num(ln.taxRate);
             const qty  = Number(ln.quantity);
+            // Цены за единицу НЕТ у строки, свёрнутой из разных типов гостей
+            // (mergeServiceLines.js): печатается «–», а не «0,00 €» — `Number(null)`
+            // дал бы ноль, и строка читалась бы как бесплатная.
+            const noUnit = ln.unitPrice === null || ln.unitPrice === undefined;
             const unit = Number(ln.unitPrice);
             rowsHtml += '<tr>'
                 + '<td class="num pos">' + pos + '</td>'
                 + '<td>' + esc(ln.label) + '</td>'
                 + '<td class="num">' + (isFinite(qty)  ? fmtQty(qty) : '') + '</td>'
-                + '<td class="num">' + (isFinite(unit) ? fmtNum(unit) + ' &euro;' : '') + '</td>'
+                + '<td class="num">' + (noUnit ? '&ndash;' : (isFinite(unit) ? fmtNum(unit) + ' &euro;' : '')) + '</td>'
                 + '<td class="num">' + rate + '&nbsp;%</td>'
                 + '<td class="num">' + fmtNum(ln.amount) + ' &euro;</td>'
                 + '</tr>\n';
@@ -265,9 +236,9 @@ function renderInvoiceHTML({ invoice, bookings, client, hotel, org, lines, t, tf
     const totalsHtml = '<table class="totals-table">\n'
         + (hasRowsAboveTotal
             ? sumRow('t-sub', t('invoice_subtotal'), fmtNum(subtotalBrutto) + ' &euro;')
-              + sumRow('t-line',
-                    t('invoice_discount') + (discMode === 'percent' ? ' (' + discPctLabel + '%)' : ''),
-                    fmtDelta(-discount) + ' &euro;')
+              + discountLines.map(d => sumRow('t-line',
+                    t('invoice_discount') + (d.mode === 'percent' ? ' (' + pctLabel(d.value) + '%)' : ''),
+                    fmtDelta(-d.amount) + ' &euro;')).join('')
             : '')
         + sumRow('t-grand' + (hasRowsAboveTotal ? '' : ' t-first'),
                  t('invoice_total_amount'), fmtNum(discountedBrutto) + ' &euro;')

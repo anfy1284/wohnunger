@@ -84,7 +84,7 @@
                             "width": 180,
                             "inputType": "recordSelector",
                             "properties": {
-                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
+                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number", "where": { "hotelId": "{hotelId}" } }
                             }
                         },
                         {
@@ -93,11 +93,57 @@
                             "width": 180,
                             "inputType": "recordSelector",
                             "properties": {
-                                "selection": { "table": "seasons", "idField": "UID", "displayField": "name" }
+                                "selection": { "table": "seasons", "idField": "UID", "displayField": "name", "where": { "hotelId": "{hotelId}" } }
                             }
                         },
-                        { "caption": { "i18n": "guests_count" }, "data": "guestsCount", "width": 110, "inputType": "integer", "defaultValue": 1, "properties": { "minValue": 1 } },
+                        { "caption": { "i18n": "guests_count_field" }, "data": "guestsCount", "width": 110, "inputType": "integer", "defaultValue": 1, "properties": { "minValue": 1 } },
                         { "caption": { "i18n": "base_rate_price" }, "data": "price", "width": 120, "inputType": "number" }
+                    ],
+                    "properties": {
+                        "editMode": "cell-immediate",
+                        "visibleRows": 12,
+                        "tabularFilter": { "priceListId": "{UID}" },
+                        "hiddenButtons": ["recordOpen"]
+                    }
+                }]
+            },
+            {
+                "caption": { "i18n": "price_list_guest_types_tab" },
+                "layout": [{
+                    "type": "table",
+                    "name": "ts_price_list_guest_type_prices",
+                    "data": "price_list_guest_type_prices",
+                    "columns": [
+                        {
+                            "caption": { "i18n": "guest_type_field" },
+                            "data": "guestTypeId",
+                            "width": 200,
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "selection": { "table": "guest_types", "idField": "UID", "displayField": "name", "where": { "roomRateMode": "separate" } }
+                            }
+                        },
+                        {
+                            "caption": { "i18n": "Room" },
+                            "data": "roomId",
+                            "width": 180,
+                            "tooltip": { "i18n": "guest_type_price_room_hint" },
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "selection": { "table": "rooms", "idField": "UID", "displayField": "name", "where": { "hotelId": "{hotelId}" } }
+                            }
+                        },
+                        {
+                            "caption": { "i18n": "Season" },
+                            "data": "seasonId",
+                            "width": 180,
+                            "tooltip": { "i18n": "guest_type_price_season_hint" },
+                            "inputType": "recordSelector",
+                            "properties": {
+                                "selection": { "table": "seasons", "idField": "UID", "displayField": "name", "where": { "hotelId": "{hotelId}" } }
+                            }
+                        },
+                        { "caption": { "i18n": "guest_type_night_price" }, "data": "price", "width": 140, "inputType": "number" }
                     ],
                     "properties": {
                         "editMode": "cell-immediate",
@@ -129,7 +175,7 @@
                             "width": 150,
                             "inputType": "recordSelector",
                             "properties": {
-                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number" }
+                                "selection": { "table": "rooms", "idField": "UID", "displayField": "number", "where": { "hotelId": "{hotelId}" } }
                             }
                         },
                         { "caption": { "i18n": "age_from" }, "data": "ageFrom", "width": 100, "inputType": "integer" },

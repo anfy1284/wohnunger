@@ -30,7 +30,8 @@ const FW = path.join(__dirname, '..', '..', '..', 'node_modules', 'my-old-space'
 const dbGateway = require(path.join(FW, 'drive_root', 'dbGateway'));
 const money = require(path.join(FW, 'drive_root', 'db', 'money'));
 const registers = require(path.join(FW, 'drive_root', 'db', 'registers'));
-const { startOfDay, endOfDay, addDays } = require(path.join(FW, 'drive_root', 'db', 'dates'));
+const { startOfDay, endOfDay, startOfMonth, endOfMonth } = require(path.join(FW, 'drive_root', 'db', 'dates'));
+const { isEmptyDate } = require(path.join(FW, 'drive_root', 'db', 'emptyValues'));
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -89,8 +90,13 @@ module.exports = function (modelsDB, Utilities) {
         // Растягиваем ЗДЕСЬ, а не на клиенте: функция принимает from/to и от
         // следующего вызывающего (форма параметров отчёта, API) получит ту же
         // полночь. Граница периода — забота того, кто period фильтрует.
-        const from = startOfDay(params.from) || startOfDay(addDays(new Date(), -30));
-        const to = endOfDay(params.to) || endOfDay(new Date());
+        //
+        // Период не задан — ТЕКУЩИЙ МЕСЯЦ ПО ЧАСАМ СЕРВЕРА. Раньше его считал
+        // клиент по часам браузера; правило владельца 15.10.2026: дата,
+        // сформированная автоматически, берётся только с сервера.
+        const now = new Date();
+        const from = startOfDay(params.from) || startOfMonth(now);
+        const to = endOfDay(params.to) || endOfMonth(now);
 
         // ОСТАТОК НА НАЧАЛО — тем же механизмом, что и всё остальное: сумма
         // движений строго до начала периода. Своего SQL у отчёта нет.
@@ -168,7 +174,10 @@ module.exports = function (modelsDB, Utilities) {
         for (const m of movements || []) {
             const doc = docs.get(m.recorderTable + '|' + m.recorderUID) || {};
             // Дата ОПЕРАЦИИ, а не дата ввода: см. шапку модуля.
-            const opDate = doc.operationDate || m.period;
+            // Пустая дата — 0001-01-01, «истинное» значение: `||` её не отсеивал, и
+            // документы без даты операции печатались днём «01.01.1». Тогда — дата
+            // движения (период регистра), то есть дата документа.
+            const opDate = (doc.operationDate && !isEmptyDate(doc.operationDate)) ? doc.operationDate : m.period;
             const key = dayKey(opDate);
             if (curDay !== null && key !== dayKey(curDay)) closeDay();
             if (curDay === null || key !== dayKey(curDay)) curDay = opDate;

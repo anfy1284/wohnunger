@@ -77,12 +77,6 @@
         "de": "Das Abreisedatum muss nach dem Anreisedatum liegen.",
         "pl": "Data wymeldowania musi być późniejsza niż data zameldowania."
     },
-    "no_room_price_for_occupancy": {
-        "en": "No accommodation price for {{room}} with {{guests}} guest(s). Add a price for this occupancy or reduce the number of guests.",
-        "ru": "Нет тарифа проживания для {{room}} на {{guests}} гост. Добавьте цену для такой заполняемости или уменьшите число гостей.",
-        "de": "Kein Übernachtungspreis für {{room}} bei {{guests}} Gast/Gästen. Hinterlegen Sie einen Preis für diese Belegung oder reduzieren Sie die Gästezahl.",
-        "pl": "Brak ceny zakwaterowania dla {{room}} przy {{guests}} gościach. Dodaj cenę dla tej liczby osób lub zmniejsz liczbę gości."
-    },
     "accommodation_section": {
         "en": "Accommodation",
         "ru": "Проживание",
@@ -112,6 +106,54 @@
         "ru": "Наименование",
         "de": "Bezeichnung",
         "pl": "Nazwa"
+    },
+    "over_invoiced_field": {
+        "en": "Over-invoiced",
+        "ru": "Выставлено лишнего",
+        "de": "Zu viel abgerechnet",
+        "pl": "Zafakturowano nadmiar"
+    },
+    "booking_alert_open_invoice": {
+        "en": "Open the invoice",
+        "ru": "Открыть счёт",
+        "de": "Rechnung öffnen",
+        "pl": "Otwórz rachunek"
+    },
+    "booking_alert_open_price_lists": {
+        "en": "Price lists",
+        "ru": "Прайс-листы",
+        "de": "Preislisten",
+        "pl": "Cenniki"
+    },
+    "booking_alert_create_invoice": {
+        "en": "Create",
+        "ru": "Создать",
+        "de": "Erstellen",
+        "pl": "Utwórz"
+    },
+    "booking_alert_not_invoiced": {
+        "en": "The guest has left, the invoice has not been issued: {{amount}}.",
+        "ru": "Гость выехал, счёт не выставлен: {{amount}}.",
+        "de": "Der Gast ist abgereist, die Rechnung ist nicht ausgestellt: {{amount}}.",
+        "pl": "Gość wyjechał, rachunek nie został wystawiony: {{amount}}."
+    },
+    "over_invoiced_notice": {
+        "en": "More has been invoiced than ordered: {{amount}}. Issue a correction for the invoice.",
+        "ru": "Выставлено больше, чем заказано: {{amount}}. Нужна корректировка счёта.",
+        "de": "Es wurde mehr abgerechnet als bestellt: {{amount}}. Eine Rechnungskorrektur ist nötig.",
+        "pl": "Zafakturowano więcej, niż zamówiono: {{amount}}. Potrzebna korekta rachunku."
+    },
+    "extra_line_ref": {
+        "en": "Extra line",
+        "ru": "Строка доп.услуг",
+        "de": "Zusatzposition",
+        "pl": "Pozycja dodatkowa"
+    },
+    "reg_booking_services_caption": {
+        "en": "Booking services",
+        "ru": "Услуги по брони",
+        "de": "Leistungen der Buchung",
+        "pl": "Usługi rezerwacji"
     },
     "amount_gross": {
         "en": "Amount (incl. tax)",
@@ -417,12 +459,6 @@
         "de": "Abschnittsbezeichnung",
         "pl": "Etykieta sekcji"
     },
-    "tax_component_name": {
-        "en": "Tax component",
-        "ru": "Налоговый компонент",
-        "de": "Steuerkomponente",
-        "pl": "Składnik podatkowy"
-    },
     "unit_price": {
         "en": "Unit price",
         "ru": "Цена за ед.",
@@ -453,6 +489,18 @@
         "de": "Allgemein",
         "pl": "Ogólne"
     },
+    "no_invoice_required_field": {
+        "en": "No invoice required",
+        "ru": "Счёт не требуется",
+        "de": "Keine Rechnung erforderlich",
+        "pl": "Faktura niewymagana"
+    },
+    "long_term_letting_field": {
+        "en": "Long-term letting (over 6 months, VAT-exempt)",
+        "ru": "Длительная сдача (более 6 месяцев, без НДС)",
+        "de": "Dauervermietung (über 6 Monate, steuerfrei)",
+        "pl": "Najem długoterminowy (ponad 6 miesięcy, zwolniony z VAT)"
+    },
     "booking_tab_extra": {
         "en": "Additional",
         "ru": "Дополнительное",
@@ -482,5 +530,53 @@
         "ru": "Вертикальная",
         "de": "Senkrecht",
         "pl": "Pionowa"
+    },
+    "booking_tab_payments": {
+        "en": "Payments",
+        "ru": "Платежи",
+        "de": "Zahlungen",
+        "pl": "Płatności"
+    },
+    "first_prepayment_receipt_field": {
+        "en": "Receipt created from the prepayment",
+        "ru": "Поступление, созданное из аванса",
+        "de": "Aus der Anzahlung erstellte Einnahme",
+        "pl": "Wpływ utworzony z zaliczki"
+    },
+    "booking_err_no_rooms": {
+        "en": "No room is selected — the booking cannot be posted, and its prepayment is not recorded yet.",
+        "ru": "Не выбран номер — бронь не проводится, и её аванс пока не учтён.",
+        "de": "Kein Zimmer gewählt — die Buchung wird nicht verbucht, die Anzahlung ist noch nicht erfasst.",
+        "pl": "Nie wybrano pokoju — rezerwacja nie zostanie zaksięgowana, a zaliczka nie jest jeszcze zarejestrowana."
+    },
+    "booking_err_no_place_for_method": {
+        "en": "There is no money location suitable for the chosen payment method (cash — a cash box, transfer or card — an account). Create one under «Money locations».",
+        "ru": "Для выбранного способа оплаты нет подходящего места хранения денег (наличные — касса, перевод и карта — счёт). Создайте его в справочнике «Места хранения денег».",
+        "de": "Für die gewählte Zahlungsart ist kein passender Zahlungsort angelegt (bar — Kasse, Überweisung und Karte — Konto). Legen Sie einen unter «Zahlungsorte» an.",
+        "pl": "Dla wybranego sposobu płatności nie ma odpowiedniego miejsca przechowywania (gotówka — kasa, przelew i karta — konto). Utwórz je w «Miejsca przechowywania»."
+    },
+    "booking_not_found_for_payment": {
+        "en": "The booking was not found — save it first.",
+        "ru": "Бронь не найдена — сначала запишите её.",
+        "de": "Die Buchung wurde nicht gefunden — bitte zuerst speichern.",
+        "pl": "Nie znaleziono rezerwacji — najpierw ją zapisz."
+    },
+    "booking_payment_kind_not_allowed": {
+        "en": "This kind of document cannot be added to a booking.",
+        "ru": "Документ этого вида к брони не добавляется.",
+        "de": "Ein Beleg dieser Art kann nicht zu einer Buchung hinzugefügt werden.",
+        "pl": "Dokumentu tego rodzaju nie można dodać do rezerwacji."
+    },
+    "prepay_err_no_optype": {
+        "en": "The cash operation type \"{{code}}\" is missing from the directory for this organization.",
+        "ru": "В справочнике видов операции этой организации нет вида «{{code}}».",
+        "de": "Die Vorgangsart „{{code}}“ fehlt im Verzeichnis dieser Organisation.",
+        "pl": "W słowniku rodzajów operacji tej organizacji brakuje rodzaju „{{code}}”."
+    },
+    "tax_component_ref": {
+        "en": "Tax component",
+        "ru": "Налоговый компонент",
+        "de": "Steuerkomponente",
+        "pl": "Składnik podatkowy"
     }
 }

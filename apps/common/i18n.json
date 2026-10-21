@@ -5,6 +5,24 @@
         "de": "Farbe",
         "pl": "Kolor"
     },
+    "service_charge_mode": {
+        "en": "Calculation",
+        "ru": "Расчёт",
+        "de": "Berechnung",
+        "pl": "Naliczanie"
+    },
+    "service_charge_per_booking": {
+        "en": "per booking",
+        "ru": "на бронь",
+        "de": "je Buchung",
+        "pl": "za rezerwację"
+    },
+    "service_charge_per_guest": {
+        "en": "per guest",
+        "ru": "на гостя",
+        "de": "je Gast",
+        "pl": "za gościa"
+    },
     "include_by_default": {
         "en": "Include by default",
         "ru": "Включать по умолчанию",
@@ -335,12 +353,6 @@
         "de": "Bis",
         "pl": "Do"
     },
-    "guests_count": {
-        "en": "Guests count",
-        "ru": "Кол-во гостей",
-        "de": "Anzahl Gäste",
-        "pl": "Liczba gości"
-    },
     "base_rate_price": {
         "en": "Base price",
         "ru": "Базовая цена",
@@ -443,6 +455,24 @@
         "de": "Standard-Steuersatz",
         "pl": "Domyślna stawka podatku"
     },
+    "season_price_mode": {
+        "en": "Season price for a stay across seasons",
+        "ru": "Цена сезона при проживании через границу сезонов",
+        "de": "Saisonpreis bei Aufenthalt über Saisongrenzen",
+        "pl": "Cena sezonowa przy pobycie na przełomie sezonów"
+    },
+    "season_price_mode_arrival": {
+        "en": "the whole stay at the price of the arrival day",
+        "ru": "всё проживание по цене дня заезда",
+        "de": "ganzer Aufenthalt zum Preis des Anreisetags",
+        "pl": "cały pobyt w cenie dnia przyjazdu"
+    },
+    "season_price_mode_per_night": {
+        "en": "each night at the price of its own season",
+        "ru": "каждая ночь по цене своего сезона",
+        "de": "jede Nacht zum Preis ihrer Saison",
+        "pl": "każda noc w cenie swojego sezonu"
+    },
     "pricing_date_mode": {
         "en": "Pricing date mode",
         "ru": "Режим даты ценообразования",
@@ -466,5 +496,35 @@
         "ru": "Справочные данные",
         "de": "Stammdaten",
         "pl": "Dane podstawowe"
+    },
+    "tax_components_tab": {
+        "en": "VAT split",
+        "ru": "Разделение НДС",
+        "de": "Steueraufteilung",
+        "pl": "Podział VAT"
+    },
+    "tax_split_percent": {
+        "en": "Percent",
+        "ru": "Процент",
+        "de": "Prozent",
+        "pl": "Procent"
+    },
+    "tax_split_amount": {
+        "en": "Amount per unit",
+        "ru": "Сумма за единицу",
+        "de": "Betrag je Einheit",
+        "pl": "Kwota za jednostkę"
+    },
+    "tax_split_remainder": {
+        "en": "Remainder",
+        "ru": "Остаток",
+        "de": "Rest",
+        "pl": "Reszta"
+    },
+    "guests_count_field": {
+        "en": "Guests count",
+        "ru": "Кол-во гостей",
+        "de": "Anzahl Gäste",
+        "pl": "Liczba gości"
     }
 }

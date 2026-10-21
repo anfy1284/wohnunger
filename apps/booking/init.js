@@ -60,11 +60,17 @@ module.exports = async function (modelsDB) {
 
         // ── Форма «Бронирование» (таблица bookings) ──────────────────────
 
-        const serverScriptName = loadServerScript(
-            'booking.bookingActions',
-            require('./forms/bookings.server')(modelsDB, Utilities),
-            'user'
-        );
+        const formMethods = require('../../node_modules/my-old-space/drive_root/formMethods');
+        const APP = 'booking';
+
+        const bookingFns = require('./forms/bookings.server')(modelsDB, Utilities);
+        // Методы ФОРМЫ записи брони — здесь же её серверное событие `onBeforeSave`.
+        formMethods.register({
+            app: APP, subject: { table: 'bookings', kind: 'record' },
+            methods: bookingFns, roles: ['user', 'admin']
+        });
+        // Имя скрипта остаётся: клиентский код формы зовёт её методы через него.
+        const serverScriptName = loadServerScript('booking.bookingActions', bookingFns, 'user');
 
         // Подставляем имя серверного скрипта вместо плейсхолдера __SERVER_SCRIPT__
         const clientSource = fs
@@ -73,19 +79,17 @@ module.exports = async function (modelsDB) {
         const clientUID = await loadScript(clientSource, 'user');
 
         await layoutMemory.saveLayout({
-            appName:      'uniForm',
-            mode:         'record',
-            tableName:    'bookings',
+            app:          APP,
+            subject:      { table: 'bookings', kind: 'record' },
             roles:        '*',
             layout:       require('./forms/bookings.layout.json'),
             clientScript: clientUID,
             windowState:  'maximized',
             appCaption:   { i18n: 'bookings_app_caption' },
             recordCaption:{ i18n: 'Booking' },
-            events: {
-                onBeforeSave: { serverScript: serverScriptName, fn: 'onBeforeSave' },
-                onChange:     { fn: 'onFormChange' }
-            }
+            // Серверное событие `onBeforeSave` — метод формы (зарегистрирован выше).
+            // Здесь только клиентское.
+            clientEvents: { onChange: 'onFormChange' }
         });
 
         // ── Кастомная форма СПИСКА броней: вкладки «Список» + «Календарь» ─────
@@ -93,11 +97,21 @@ module.exports = async function (modelsDB) {
         // window.callServer(serverScript, 'loadCalendar', ...). Имя серверного
         // скрипта внедряем в свойства календаря в лейауте (аналог __SERVER_SCRIPT__).
         // Клиентский скрипт списку не нужен — календарь самодостаточен.
+        const listFns = require('./forms/bookings_list.server')(modelsDB, Utilities);
         const listServerName = loadServerScript(
             'booking.bookingListActions',
-            require('./forms/bookings_list.server')(modelsDB, Utilities),
+            listFns,
             'user'
         );
+        // Методы формы СПИСКА: среди них `onLoadListAttributes` — его зовёт ядро,
+        // когда журнал отдаёт страницу строк (вычисляемые реквизиты журнала,
+        // `entityConfig.listAttributes`). Без этой регистрации ядро не найдёт
+        // метод и колонки просто не появятся — молча, как и всякая незаполненная
+        // точка расширения.
+        formMethods.register({
+            app: APP, subject: { table: 'bookings', kind: 'list' },
+            methods: listFns, roles: ['user', 'admin']
+        });
 
         const listLayout = require('./forms/bookings_list.layout.json');
         (function injectCalendarServerScript(items) {
@@ -116,15 +130,18 @@ module.exports = async function (modelsDB) {
         })(listLayout);
 
         await layoutMemory.saveLayout({
-            appName:     'uniForm',
-            mode:        'list',
-            tableName:   'bookings',
+            app:         APP,
+            subject:     { table: 'bookings', kind: 'list' },
             roles:       '*',
             layout:      listLayout,
             windowState: 'maximized',
             appCaption:  { i18n: 'bookings_app_caption' },
             listIcon:    '/apps/general_icons/resources/public/16x16/journal.png'
         });
+
+        // Диалог «Добавить предоплату» убран 21.10.2026 (ТЗ платежей брони): аванс
+        // новой брони — её поля + проведение (`hooks/posting.js`), остальные
+        // платежи — вкладка «Zahlungen» (журнал денежных документов ядра).
 
         // ── Сюда добавлять новые формы по той же схеме ───────────────────
         // const invoicesServerName = loadServerScript('booking.invoiceActions',

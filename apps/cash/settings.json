@@ -36,6 +36,21 @@
                 "i18n": "cash_settings_taxation_mode_hint"
             },
             "order": 10
+        },
+        "defaultPaymentMethod": {
+            "//": "Способ оплаты по умолчанию (ТЗ платежей брони, решение 9). Личное: кто обычно принимает наличные, тот не выбирает «Bar» каждый раз. Подставляется в новое поступление/выплату и в аванс новой брони (поля с defaultFromSetting в db.json).",
+            "scope": "user",
+            "type": "enum",
+            "options": [
+                { "value": "cash", "caption": { "i18n": "cash_pm_cash" } },
+                { "value": "transfer", "caption": { "i18n": "cash_pm_transfer" } },
+                { "value": "card", "caption": { "i18n": "cash_pm_card" } }
+            ],
+            "default": "cash",
+            "group": { "i18n": "cash_settings_group" },
+            "caption": { "i18n": "cash_settings_default_payment_method" },
+            "hint": { "i18n": "cash_settings_default_payment_method_hint" },
+            "order": 20
         }
     }
 }

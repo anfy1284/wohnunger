@@ -17,17 +17,29 @@
         "de": "Nachlass",
         "pl": "Rabat"
     },
+    "invoice_extra_discount": {
+        "en": "Additional discount (whole invoice)",
+        "ru": "Доп. скидка (на весь счёт)",
+        "de": "Zusätzlicher Nachlass (ganze Rechnung)",
+        "pl": "Dodatkowy rabat (cały rachunek)"
+    },
+    "booking_discount_column": {
+        "en": "Discount",
+        "ru": "Скидка",
+        "de": "Nachlass",
+        "pl": "Rabat"
+    },
+    "booking_discount_column_hint": {
+        "en": "Discount of this booking — applies only to its lines",
+        "ru": "Скидка этой брони — действует только на её строки",
+        "de": "Nachlass dieser Buchung — gilt nur für ihre Zeilen",
+        "pl": "Rabat tej rezerwacji — dotyczy tylko jej pozycji"
+    },
     "discount_mode_field": {
         "en": "Discount unit",
         "ru": "Единица скидки",
         "de": "Nachlass-Einheit",
         "pl": "Jednostka rabatu"
-    },
-    "discount_multi_booking_warning": {
-        "en": "Several bookings have different discounts — combined into {discount}. Please check.",
-        "ru": "В нескольких бронях разные скидки — объединены в {discount}. Проверьте.",
-        "de": "Mehrere Buchungen haben unterschiedliche Nachlässe — zusammengefasst zu {discount}. Bitte prüfen.",
-        "pl": "Kilka rezerwacji ma różne rabaty — połączono w {discount}. Sprawdź."
     },
     "create_invoice_btn": {
         "en": "Create invoice",
@@ -59,6 +71,12 @@
         "de": "Ausfüllen",
         "pl": "Wypełnij"
     },
+    "invoice_bookings_changed_refill": {
+        "en": "The bookings of the invoice have changed. Refill the invoice lines from them? Manual corrections of the lines will be lost.",
+        "ru": "Брони счёта изменились. Перезаполнить строки счёта по ним? Ручные правки строк будут потеряны.",
+        "de": "Die Buchungen der Rechnung wurden geändert. Rechnungspositionen danach neu ausfüllen? Manuelle Korrekturen der Positionen gehen verloren.",
+        "pl": "Rezerwacje faktury zostały zmienione. Wypełnić pozycje faktury od nowa? Ręczne poprawki pozycji zostaną utracone."
+    },
     "refill_lines_warning": {
         "en": "Invoice lines will be refilled, manual corrections will be lost. Continue?",
         "ru": "Строки счёта будут перезаполнены, ручные корректировки будут потеряны. Продолжить?",
@@ -70,6 +88,42 @@
         "ru": "Счёт не найден",
         "de": "Rechnung nicht gefunden",
         "pl": "Nie znaleziono rachunku"
+    },
+    "booking_posting_pending": {
+        "en": "The booking has not been posted yet. Please wait a moment and try again.",
+        "ru": "Бронь ещё не проведена. Подождите немного и повторите попытку.",
+        "de": "Die Buchung ist noch nicht verbucht. Bitte einen Moment warten und erneut versuchen.",
+        "pl": "Rezerwacja nie została jeszcze zaksięgowana. Odczekaj chwilę i spróbuj ponownie."
+    },
+    "booking_not_posted": {
+        "en": "The booking is not posted — an invoice cannot be built from it. Open the booking and check what went wrong.",
+        "ru": "Бронь не проведена — счёт по ней построить нельзя. Откройте бронь и посмотрите, что не так.",
+        "de": "Die Buchung ist nicht verbucht — daraus lässt sich keine Rechnung erstellen. Öffnen Sie die Buchung und prüfen Sie die Ursache.",
+        "pl": "Rezerwacja nie jest zaksięgowana — nie można na jej podstawie utworzyć rachunku. Otwórz rezerwację i sprawdź przyczynę."
+    },
+    "invoice_payable_field": {
+        "en": "Amount due",
+        "ru": "Сумма к оплате",
+        "de": "Zu zahlen",
+        "pl": "Do zapłaty"
+    },
+    "booking_cancelled_no_invoice": {
+        "en": "The booking is cancelled — no services were provided, so no invoice can be created for it. A cancellation fee is charged with a separate document.",
+        "ru": "Бронь отменена — услуги не оказаны, счёт по ней выставить нельзя. Плата за отмену оформляется отдельным документом.",
+        "de": "Die Buchung ist storniert — es wurden keine Leistungen erbracht, dafür kann keine Rechnung erstellt werden. Eine Stornogebühr wird mit einem eigenen Beleg berechnet.",
+        "pl": "Rezerwacja jest anulowana — usługi nie zostały wykonane, więc nie można dla niej utworzyć rachunku. Opłatę za anulowanie wystawia się osobnym dokumentem."
+    },
+    "invoice_all_invoiced": {
+        "en": "Nothing was added: all services of this booking have already been invoiced. Positions skipped: {{count}}.",
+        "ru": "Ничего не добавлено: все услуги этой брони уже выставлены. Позиций пропущено: {{count}}.",
+        "de": "Nichts übernommen: alle Leistungen dieser Buchung sind bereits abgerechnet. Übersprungene Positionen: {{count}}.",
+        "pl": "Nic nie dodano: wszystkie usługi tej rezerwacji już zafakturowano. Pominiętych pozycji: {{count}}."
+    },
+    "invoice_partly_invoiced": {
+        "en": "Some positions were left out — they have already been invoiced. Positions skipped: {{count}}.",
+        "ru": "Часть позиций не попала в счёт — они уже выставлены. Позиций пропущено: {{count}}.",
+        "de": "Einige Positionen wurden nicht übernommen — sie sind bereits abgerechnet. Übersprungene Positionen: {{count}}.",
+        "pl": "Część pozycji nie trafiła do rachunku — już zafakturowano. Pominiętych pozycji: {{count}}."
     },
     "booking_not_found": {
         "en": "Booking not found",
@@ -144,10 +198,10 @@
         "pl": "Zwróć uwagę — część pozycji nie została naliczona:"
     },
     "guest_type_no_price": {
-        "en": "{{service}} — this guest type is set to be priced separately («{{gtDir}}» → field «{{gtField}}»), but the price list has no price for it on the calculation date. Nothing was charged for this guest.",
-        "ru": "{{service}} — для этого вида гостя задана отдельная цена проживания («{{gtDir}}» → поле «{{gtField}}»), но в прайс-листе на дату расчёта её нет. Гость не начислен.",
-        "de": "{{service}} — für diese Gästeart ist ein eigener Übernachtungspreis vorgesehen („{{gtDir}}“ → Feld „{{gtField}}“), in der Preisliste zum Berechnungsdatum fehlt er jedoch. Für diesen Gast wurde nichts berechnet.",
-        "pl": "{{service}} — dla tego rodzaju gościa przewidziano osobną cenę noclegu («{{gtDir}}» → pole «{{gtField}}»), ale w cenniku na datę wyliczenia jej nie ma. Nic nie naliczono."
+        "en": "{{service}} — this guest type is priced separately («{{gtDir}}» → field «{{gtField}}»), but the price list has no price for it on the calculation date: add it on the tab «Prices by guest type». Nothing was charged for this guest.",
+        "ru": "{{service}} — для этого вида гостя задана отдельная цена проживания («{{gtDir}}» → поле «{{gtField}}»), но в прайс-листе на дату расчёта её нет: укажите её на вкладке «Цены по видам гостей». Гость не начислен.",
+        "de": "{{service}} — für diese Gästeart ist ein eigener Übernachtungspreis vorgesehen („{{gtDir}}“ → Feld „{{gtField}}“), in der Preisliste zum Berechnungsdatum fehlt er jedoch: tragen Sie ihn im Reiter „Preise nach Gästeart“ ein. Für diesen Gast wurde nichts berechnet.",
+        "pl": "{{service}} — dla tego rodzaju gościa przewidziano osobną cenę noclegu («{{gtDir}}» → pole «{{gtField}}»), ale w cenniku na datę wyliczenia jej nie ma: wpisz ją w zakładce «Ceny wg rodzaju gościa». Nic nie naliczono."
     },
     "room_no_price": {
         "en": "Room {{service}} — the price list has no price for {{guests}} guest(s) on the calculation date. Accommodation was not charged at all.",
@@ -160,6 +214,12 @@
         "ru": "{{service}} — в брони количество введено вручную: {{count}}. Сама услуга при таком сроке проживания даёт {{expected}} («{{dir}}» → «{{service}}» → поле «{{field}}»). В счёт взято введённое вручную — проверьте, так ли задумано.",
         "de": "{{service}} — in der Buchung wurde die Menge von Hand eingetragen: {{count}}. Die Leistung selbst ergibt bei dieser Aufenthaltsdauer {{expected}} („{{dir}}“ → „{{service}}“ → Feld „{{field}}“). In die Rechnung ging der von Hand eingetragene Wert — bitte prüfen, ob das so gewollt ist.",
         "pl": "{{service}} — w rezerwacji ilość wpisano ręcznie: {{count}}. Sama usługa przy takiej długości pobytu daje {{expected}} («{{dir}}» → «{{service}}» → pole «{{field}}»). Do rachunku trafiła wartość wpisana ręcznie — sprawdź, czy o to chodziło."
+    },
+    "invoice_alert_open": {
+        "en": "Open",
+        "ru": "Открыть",
+        "de": "Öffnen",
+        "pl": "Otwórz"
     },
     "service_skipped_auto": {
         "en": "{{service}} — charged automatically from the guest list, a separate service line is not needed. Please remove it from the booking.",
@@ -222,10 +282,10 @@
         "pl": "Storno"
     },
     "issue_invoice_confirm": {
-        "en": "Issue the invoice? After that it cannot be changed — an error can only be corrected by a storno document.",
-        "ru": "Выставить счёт? После этого изменить его нельзя — ошибку можно исправить только сторно-документом.",
-        "de": "Rechnung ausstellen? Danach kann sie nicht mehr geändert werden — ein Fehler lässt sich nur durch eine Stornorechnung korrigieren.",
-        "pl": "Wystawić rachunek? Potem nie można go zmienić — błąd poprawia się wyłącznie dokumentem storno."
+        "en": "Issue the invoice? After that it cannot be changed. Errors are fixed with an invoice correction or a cancellation (storno) invoice.",
+        "ru": "Выставить счёт? После этого изменить его нельзя. Ошибку исправляют корректировкой счёта или сторно-счётом.",
+        "de": "Rechnung ausstellen? Danach kann sie nicht mehr geändert werden. Fehler werden durch eine Rechnungskorrektur oder eine Stornorechnung behoben.",
+        "pl": "Wystawić rachunek? Potem nie można go zmienić. Błędy poprawia się korektą rachunku albo rachunkiem storno."
     },
     "storno_invoice_confirm": {
         "en": "Prepare a storno? A counter-document with reversed amounts opens unsaved. This invoice is marked as cancelled only when the storno is issued.",
@@ -238,6 +298,12 @@
         "ru": "Счёт нельзя выставить — не хватает обязательных реквизитов (§ 14 UStG):",
         "de": "Die Rechnung kann nicht ausgestellt werden — Pflichtangaben fehlen (§ 14 UStG):",
         "pl": "Nie można wystawić rachunku — brakuje danych obowiązkowych (§ 14 UStG):"
+    },
+    "invoice_prepayment_exceeds_total": {
+        "en": "The prepayment ({{prepayment}} €) is larger than the invoice total ({{total}} €). An invoice does not pay money back: reduce the prepayment — the remainder stays as the booking's prepayment and goes into the next invoice.",
+        "ru": "Предоплата ({{prepayment}} €) больше суммы счёта ({{total}} €). Счёт не возвращает деньги: уменьшите предоплату — остаток останется предоплатой брони и попадёт в следующий счёт.",
+        "de": "Die Anzahlung ({{prepayment}} €) ist größer als der Rechnungsbetrag ({{total}} €). Eine Rechnung zahlt kein Geld zurück: verringern Sie die Anzahlung — der Rest bleibt als Anzahlung der Buchung und geht in die nächste Rechnung.",
+        "pl": "Zaliczka ({{prepayment}} €) jest większa niż kwota rachunku ({{total}} €). Rachunek nie zwraca pieniędzy: zmniejsz zaliczkę — reszta pozostanie zaliczką rezerwacji i wejdzie do następnego rachunku."
     },
     "invoice_issued_at": {
         "en": "Issued at",
@@ -340,5 +406,23 @@
         "ru": "Выставить и закрыть",
         "de": "Ausstellen und schließen",
         "pl": "Wystaw i zamknij"
+    },
+    "settings_app_invoice": {
+        "en": "Invoices",
+        "ru": "Счета",
+        "de": "Rechnungen",
+        "pl": "Faktury"
+    },
+    "invoice_settings_merge_service_lines": {
+        "en": "Combine identical services with different prices",
+        "ru": "Объединять одинаковые услуги с разными ценами",
+        "de": "Gleiche Leistungen mit verschiedenen Preisen zusammenfassen",
+        "pl": "Łącz te same usługi o różnych cenach"
+    },
+    "invoice_settings_merge_service_lines_hint": {
+        "en": "On the printed invoice, one service of a booking becomes one line even if its price differs — breakfast for adults and children, final cleaning of two apartments: total quantity, unit price «–», total amount. VAT rates and accommodation lines are never combined. The invoice lines themselves are not changed; already issued invoices keep their print.",
+        "ru": "В печатной форме счёта одна услуга брони — одна строка, даже если цены у неё разные: завтрак взрослых и детей, уборка двух квартир. Общее количество, цена за единицу «–», общая сумма. Разные ставки НДС и строки проживания не объединяются никогда. Сами строки счёта не меняются; уже выставленные счета печатаются как были.",
+        "de": "Auf der gedruckten Rechnung wird eine Leistung einer Buchung zu einer Zeile, auch wenn ihr Preis abweicht — Frühstück für Erwachsene und Kinder, Endreinigung zweier Wohnungen: Gesamtmenge, Einzelpreis «–», Gesamtbetrag. Verschiedene Steuersätze und Übernachtungszeilen werden nie zusammengefasst. Die Rechnungszeilen selbst bleiben unverändert; bereits ausgestellte Rechnungen behalten ihren Ausdruck.",
+        "pl": "Na wydruku faktury jedna usługa rezerwacji staje się jedną pozycją, nawet gdy jej ceny się różnią — śniadanie dorosłych i dzieci, sprzątanie końcowe dwóch apartamentów: łączna ilość, cena jednostkowa «–», łączna kwota. Różne stawki VAT i pozycje noclegów nigdy nie są łączone. Same pozycje faktury się nie zmieniają; wystawione faktury zachowują swój wydruk."
     }
 }

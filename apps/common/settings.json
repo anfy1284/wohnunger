@@ -63,6 +63,30 @@
             "default": "bookingDate",
             "order": 20,
             "control": "radio"
+        },
+        "seasonPriceMode": {
+            "scope": "organization",
+            "type": "enum",
+            "options": [
+                {
+                    "value": "arrival",
+                    "caption": {
+                        "i18n": "season_price_mode_arrival"
+                    }
+                },
+                {
+                    "value": "perNight",
+                    "caption": {
+                        "i18n": "season_price_mode_per_night"
+                    }
+                }
+            ],
+            "caption": {
+                "i18n": "season_price_mode"
+            },
+            "default": "arrival",
+            "order": 25,
+            "control": "radio"
         }
     }
 }

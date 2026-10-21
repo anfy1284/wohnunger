@@ -3,10 +3,12 @@
         {
             "name": "AccommodationTypes",
             "tableName": "accommodation_types",
+            "//name": "Справочник поставляется ЗАПОЛНЕННЫМ (defaultValues.json): пустой выпадающий список на форме организации выглядит как поломка, а придумывать «Pension» или «Ferienwohnung» самому пользователю незачем — это общие понятия, а не его данные. Значение переводимое (таблица `translations`), поэтому в базе лежит английское название.",
             "fields": {
                 "name": {
                     "type": "STRING",
                     "allowNull": false,
+                    "translatable": true,
                     "caption": {
                         "i18n": "accommodation_type_name"
                     }
@@ -61,6 +63,9 @@
                 "email": {
                     "type": "STRING",
                     "allowNull": true,
+                    "validate": {
+                        "isEmail": true
+                    },
                     "caption": {
                         "i18n": "Email"
                     }
@@ -341,6 +346,20 @@
                     "caption": {
                         "i18n": "quantity_formula"
                     }
+                },
+                "//chargeMode": "Как считается услуга (16.10.2026): perGuest — число гостей × количество, цена по возрастной полосе гостя (без полос — одна на всех); perBooking — количество как есть, цена без полосы. Раньше «на гостя» молча включалось наличием возрастных цен в прайс-листе — прогон дал собаке такие цены, и она посчиталась на каждого гостя. Новая услуга — perBooking; существующим значение проставил шаг обновления tmp/2026-10-16_leistungen_berechnungsart (perGuest тем, у кого есть возрастные цены, — ровно прежнее правило).",
+                "chargeMode": {
+                    "type": "STRING",
+                    "allowNull": false,
+                    "defaultValue": "perBooking",
+                    "caption": {
+                        "i18n": "service_charge_mode"
+                    },
+                    "inputType": "emunList",
+                    "options": [
+                        { "value": "perBooking", "caption": { "i18n": "service_charge_per_booking" } },
+                        { "value": "perGuest", "caption": { "i18n": "service_charge_per_guest" } }
+                    ]
                 }
             },
             "options": {
@@ -468,6 +487,9 @@
                 "email": {
                     "type": "STRING",
                     "allowNull": true,
+                    "validate": {
+                        "isEmail": true
+                    },
                     "caption": {
                         "i18n": "Email"
                     }
@@ -581,7 +603,28 @@
                     "defaultValue": "percent",
                     "caption": {
                         "i18n": "tax_split_mode"
-                    }
+                    },
+                    "inputType": "emunList",
+                    "options": [
+                        {
+                            "value": "percent",
+                            "caption": {
+                                "i18n": "tax_split_percent"
+                            }
+                        },
+                        {
+                            "value": "amount",
+                            "caption": {
+                                "i18n": "tax_split_amount"
+                            }
+                        },
+                        {
+                            "value": "remainder",
+                            "caption": {
+                                "i18n": "tax_split_remainder"
+                            }
+                        }
+                    ]
                 },
                 "splitValue": {
                     "type": "DECIMAL(12,2)",
@@ -615,6 +658,14 @@
             },
             "options": {
                 "timestamps": true
+            },
+            "//tabularSection": "Табличная часть услуги (16.10.2026): разделение цены услуги по ставкам НДС (Frühstück: Speisen 7 % / Getränke 19 %) задаёт сам сотрудник на форме услуги. Раньше таблица жила отдельно и была доступна только администратору — прогон сценариев не смог настроить завтрак.",
+            "tabularSection": {
+                "parentTable": "services",
+                "parentField": "serviceId",
+                "caption": {
+                    "i18n": "tax_components_tab"
+                }
             }
         },
         {
@@ -770,15 +821,16 @@
                         "i18n": "Organization"
                     }
                 },
+                "//hotelId": "Сезон принадлежит ОТЕЛЮ (решение владельца 16.10.2026): у каждого отеля свои сезоны. Выбор сезона в прайс-листе отбирается по отелю прайс-листа (selection.where), priceResolver берёт периоды только сезонов отеля. RESTRICT: отель с сезонами не удаляется молча.",
                 "hotelId": {
                     "type": "STRING",
-                    "allowNull": true,
+                    "allowNull": false,
                     "references": {
                         "model": "hotels",
                         "key": "UID"
                     },
                     "onUpdate": "CASCADE",
-                    "onDelete": "SET NULL",
+                    "onDelete": "RESTRICT",
                     "caption": {
                         "i18n": "Hotel"
                     }

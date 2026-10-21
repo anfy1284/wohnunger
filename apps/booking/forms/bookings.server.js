@@ -16,6 +16,11 @@ const formulaEngine = require('../../common/lib/formulaEngine');
 const { isEmptyDate } = require('../../../node_modules/my-old-space/drive_root/db/emptyValues');
 // Деньги приходят из базы строкой (DECIMAL) и считаются в центах.
 const M = require('../../../node_modules/my-old-space/drive_root/db/money');
+// Предоплата брони — остаток регистра расчётов, а не хранимое поле. Вопрос один
+// и тот же у формы брони и у счёта, поэтому и место ответа одно.
+const settlementBalance = require('../../common/lib/settlementBalance');
+// Чем заполнить денежный документ по брони — одно правило с проведением аванса.
+const paymentDocument = require('../lib/paymentDocument');
 
 module.exports = function (modelsDB, Utilities) {
 
@@ -49,7 +54,11 @@ module.exports = function (modelsDB, Utilities) {
         for (const row of rows) {
             if (!row) continue;
             if (row.autoQuantity === false) continue;          // ручное значение — не трогаем
-            const formula = row.serviceId ? formulaById[row.serviceId] : '';
+            // Услуга ещё не выбрана (строка только что добавлена «+»): судить о
+            // формуле не по чему. Раньше здесь снималась галочка 🔄, и выбранная
+            // следом услуга с `@nights` оставалась с количеством 1 (прогон 17.10.2026, D1).
+            if (!row.serviceId) continue;
+            const formula = formulaById[row.serviceId] || '';
             if (!formula) { row.autoQuantity = false; continue; } // пустая формула → снять галочку
             let q = null;
             try { q = formulaEngine.evaluate(formula, values); } catch (_) { q = null; }
@@ -59,7 +68,108 @@ module.exports = function (modelsDB, Utilities) {
         return rows;
     }
 
+    // ПОМЕТКА «ВЫСТАВЛЕНО БОЛЬШЕ, ЧЕМ ЗАКАЗАНО» переехала из этой формы в
+    // механизм ядра (02.10.2026): теперь это ПРАВИЛО ОПОВЕЩЕНИЯ
+    // `booking.overInvoiced` (`apps/booking/alerts.rules.js`,
+    // `hooks/alerts.js`), и показывает его панель оповещений, которую ядро
+    // рисует на любой форме документа.
+    //
+    // Что от этого выиграли, кроме снятия заплатки с одной формы: у пометки
+    // появилось ДЕЙСТВИЕ («Открыть счёт» — корректировку выпускает счёт, а не
+    // бронь), она видна значком в журнале и в обработке «Проверка документов»,
+    // по ней уходит уведомление ОДИН раз, и она исчезает сама, когда
+    // корректировка выпущена. Текст при этом тот же (`over_invoiced_notice`) —
+    // второй формулировки одной беды не завелось.
+
     return {
+
+        /**
+         * ВЫЧИСЛЯЕМЫЕ РЕКВИЗИТЫ ФОРМЫ брони.
+         *
+         * `prepaymentPaid` — «Anzahlung» существующей брони: СКОЛЬКО ВСЕГО ВНЕСЕНО
+         * (поступления минус возвраты по этой брони), а не незачтённый остаток.
+         * После выставления счёта там та же сумма, а не 0: «0» в поле «Anzahlung»
+         * читался как «не платили» (ТЗ платежей брони, решение 3). Хранить величину
+         * рядом значило бы завести второй источник, который разошёлся бы с
+         * денежными документами на первом же исправленном платеже.
+         *
+         * `firstPrepaymentOpen` — можно ли ещё ввести ПЕРВЫЙ аванс прямо в брони
+         * (поля «Anzahlung»/«Zahlungsart»). Да — у новой брони и у той, чей аванс
+         * ещё не стал документом: введён (сумма не 0), штампа нет, бронь не
+         * проведена (например, первое проведение не удалось — поля остаются, их
+         * можно поправить). Решает сервер: штамп — служебное поле, на форму оно не
+         * приходит. Брони, сохранённой БЕЗ аванса, поля больше не показываются —
+         * иначе аванс, введённый через месяц, получил бы дату создания брони (дата
+         * поступления — момент ввода, § 146 Abs. 1 Satz 2 AO); для него есть
+         * вкладка «Zahlungen».
+         */
+        async onLoadAttributes({ recordID, isNew, record }, ctx) {
+            if (isNew || !recordID) return { prepaymentPaid: 0, firstPrepaymentOpen: true };
+            const sessionID = ctx && ctx.sessionID;
+            const r = record || {};
+            const stamp = r.firstPrepaymentReceiptId;
+            const open = !M.isZero(M.num(r.firstPrepaymentAmount))
+                && (stamp === null || stamp === undefined || String(stamp) === '')
+                && r.postingState !== 'posted';
+            return {
+                prepaymentPaid: await settlementBalance.paidOfBooking({
+                    bookingId: recordID, sessionID
+                }),
+                firstPrepaymentOpen: open
+            };
+        },
+
+        /**
+         * ЧЕМ ЗАПОЛНИТЬ ДЕНЕЖНЫЙ ДОКУМЕНТ, добавленный с вкладки «Zahlungen».
+         *
+         * Метод формы-владельца подчинённого журнала (`properties.owner.fill`):
+         * ядро зовёт его при «Добавить» с `{ docTable, recordID }` и кладёт ответ в
+         * `prefill` НЕСОХРАНЁННОЙ формы — передумал и закрыл, в базе ничего нет.
+         * Касса не знает про бронь; бронь говорит сама, что у её платежа заполнить:
+         * организация, отель, клиент, бронь, вид операции (аванс — для поступления,
+         * возврат аванса — для выплаты), способ оплаты из личной настройки и место
+         * хранения под этот способ. Сумму не подставляем: угадать её за человека —
+         * ровно та ошибка, что стоит денег.
+         */
+        async fillPaymentDocument({ docTable, recordID }, ctx) {
+            const sessionID = ctx && ctx.sessionID;
+            const dbGateway = require('../../../node_modules/my-old-space/drive_root/dbGateway');
+            const rows = await dbGateway.execute({
+                operation: 'read', table: 'bookings', where: { UID: recordID },
+                options: { raw: true, limit: 1 },
+                context: { appName: 'booking', sessionID }
+            });
+            const booking = Array.isArray(rows) && rows[0];
+            if (!booking) return { error: await tForSession('booking_not_found_for_payment', sessionID) };
+
+            const code = paymentDocument.OPERATION_CODE[docTable];
+            if (!code) return { error: await tForSession('booking_payment_kind_not_allowed', sessionID) };
+
+            const prefill = {
+                organizationId: booking.organizationId,
+                hotelId: booking.hotelId || null,
+                clientId: booking.clientId || null,
+                bookingId: booking.UID
+            };
+            const opType = await paymentDocument.findOperationType({
+                code, organizationId: booking.organizationId, sessionID
+            });
+            if (opType) prefill.operationTypeId = opType.UID;
+
+            let method = null;
+            try {
+                const settings = require('../../../node_modules/my-old-space/drive_root/settings');
+                method = ctx && ctx.user ? await settings.getUserSetting(ctx.user.UID, 'cash', 'defaultPaymentMethod') : null;
+            } catch (e) { /* без настройки — умолчание поля документа */ }
+            if (method) {
+                prefill.paymentMethod = method;
+                const place = await paymentDocument.placeFor({
+                    organizationId: booking.organizationId, method, sessionID
+                });
+                if (place) prefill.cashboxId = place.UID;
+            }
+            return { prefill };
+        },
 
         // ── Серверное событие формы ──────────────────────────────────────
         // Вызывается ДО записи в БД.
@@ -85,6 +195,20 @@ module.exports = function (modelsDB, Utilities) {
                     const ci = new Date(eff.checkIn), co = new Date(eff.checkOut);
                     if (!isNaN(ci.getTime()) && !isNaN(co.getTime()) && co <= ci) {
                         throw new Error(await tForSession('checkout_after_checkin', ctx.sessionID));
+                    }
+                    // ДЛИТЕЛЬНАЯ СДАЧА (> 6 месяцев по договору — § 4 Nr. 12 Satz 1
+                    // Buchst. a UStG, db.json `//longTermLetting`). Признак ставится по
+                    // датам, когда даты ВВОДЯТ или МЕНЯЮТ: это и есть момент договорённости.
+                    // Ручная правка признака в том же сохранении сильнее; при сохранении
+                    // без смены дат признак не трогаем — человек мог исправить его сам.
+                    const datesTouched = !dbRec || ('checkIn' in (changes || {})) || ('checkOut' in (changes || {}));
+                    const userTouched = dbRec && ('longTermLetting' in (changes || {}))
+                        && !!changes.longTermLetting !== !!dbRec.longTermLetting;
+                    if (datesTouched && !userTouched && !isNaN(ci.getTime()) && !isNaN(co.getTime())) {
+                        const limit = new Date(ci.getTime());
+                        limit.setMonth(limit.getMonth() + 6);
+                        const isLong = co > limit;
+                        changes.longTermLetting = (!dbRec && changes.longTermLetting === true) || isLong;
                     }
                 }
             }
@@ -118,58 +242,13 @@ module.exports = function (modelsDB, Utilities) {
             }
             if ('discountMode' in changes && !changes.discountMode) changes.discountMode = 'percent';
 
-            // 0.5. Контроль заполняемости: для каждого номера в срезе прайс-листов
-            //    должен существовать тариф проживания под текущее число «оплачиваемых»
-            //    гостей (6+) на дату заезда. Дата ценообразования здесь — ВСЕГДА дата
-            //    документа брони (на момент проверки счёта ещё нет). Если тарифа нет
-            //    (занятость превышает прайс-лист номера) — бронь некорректна: молча
-            //    терять строку проживания нельзя, поэтому БЛОКИРУЕМ сохранение с понятным
-            //    сообщением (на языке пользователя). Это не внутри try/catch ниже
-            //    (он глушит ошибки) — иначе блокировка бы не сработала.
-            {
-                const rooms = (tabularSections.booking_rooms || []).filter(r => r && r.UID);
-                const guests = tabularSections.booking_guests || [];
-                const bId2 = parentUID || (changes && changes.UID);
-                let dbRec2 = null;
-                if (bId2) { try { dbRec2 = await modelsDB.Bookings.findByPk(bId2, { raw: true }); } catch (_) {} }
-                const eff2 = Object.assign({}, dbRec2 || {}, changes || {});
-                const ciVal = eff2.checkIn;
-                if (rooms.length && ciVal && eff2.organizationId) {
-                    const ci = new Date(ciVal);
-                    const roomIds = [...new Set(rooms.map(r => r.roomId).filter(Boolean))];
-                    const gtRecs = await modelsDB.GuestTypes.findAll({ raw: true });
-                    const gtAge = {};
-                    for (const g of gtRecs) gtAge[g.UID] = g.ageFrom;
-                    // Новая бронь ещё не имеет даты документа (хук default.documentDate
-                    // сработает при записи) — берём текущий момент, как поставит хук.
-                    const slice = await priceResolver.loadSlice({
-                        organizationId: eff2.organizationId,
-                        hotelId:        eff2.hotelId,
-                        pricingDate:    eff2.date || new Date()
-                    });
-                    const rRecs = roomIds.length
-                        ? await modelsDB.Rooms.findAll({ where: { UID: roomIds }, raw: true }) : [];
-                    const rNum = {};
-                    for (const r of rRecs) rNum[r.UID] = r.number;
-
-                    for (const room of rooms) {
-                        let billingGuests = 0;
-                        for (const g of guests) {
-                            if (g.bookingRoomId !== room.UID) continue;
-                            if (gtAge[g.guestTypeId] >= 6) billingGuests += (g.count || 1);
-                        }
-                        if (billingGuests <= 0) continue;   // нет оплачиваемых гостей — отдельный случай, не блокируем
-                        const has = priceResolver.pickRoomPrice(slice, {
-                            roomId: room.roomId, guestsCount: billingGuests, stayDate: ci
-                        });
-                        if (!has) {
-                            throw new Error(await tfForSession('no_room_price_for_occupancy', ctx.sessionID, {
-                                room: rNum[room.roomId] || room.roomId, guests: billingGuests
-                            }));
-                        }
-                    }
-                }
-            }
+            // 0.5. Контроля «нет цены номера» ЗДЕСЬ БОЛЬШЕ НЕТ (16.10.2026). Он
+            //    блокировал сохранение; владелец: «предупреждать, чтобы можно было
+            //    сначала сохранить, а потом идти разбираться в прайсы». Теперь это
+            //    пометка брони `booking.missingPrices` (hooks/alerts.js) — висит,
+            //    пока цены нет, и уходит сама. Заодно ушёл зашитый в код порог
+            //    «оплачиваемые гости — от 6 лет»: кто входит в тариф номера, решает
+            //    справочник (`guest_types.roomRateMode`), а расчёт уже знает это.
 
             // 2. Консистентность ТЧ + пересчёт количеств услуг (до записи в БД).
             //    Строки СЧЁТА бронь больше НЕ строит: счёт — самостоятельный документ
@@ -241,9 +320,29 @@ module.exports = function (modelsDB, Utilities) {
                 const existing = await modelsDB.BookingRoomServices.count({ where: { bookingRoomId } });
                 if (existing > 0) return { services: [] };
             }
-            const defaults = await modelsDB.HotelDefaultServices.findAll({
+            let defaults = await modelsDB.HotelDefaultServices.findAll({
                 where: { hotelId }, order: [['displayOrder', 'ASC']], raw: true
             });
+            // Набор отеля не задан — услуги с флажком «Standardmäßig einbeziehen»
+            // (16.10.2026). Набор `hotel_default_services` сотруднику заполнить негде,
+            // и в новой организации номер приходил без единой услуги, хотя флажок у
+            // завтрака стоял (прогон сценариев D1.3). Услуга этого отеля или без отеля.
+            if (!defaults.length) {
+                const hotel = await modelsDB.Hotels.findByPk(hotelId, { raw: true });
+                if (hotel) {
+                    const { Op } = require('sequelize');
+                    const flagged = await modelsDB.Services.findAll({
+                        where: {
+                            organizationId: hotel.organizationId,
+                            includeByDefault: true,
+                            deletionMark: false,
+                            [Op.or]: [{ hotelId }, { hotelId: null }, { hotelId: '' }]
+                        },
+                        order: [['displayOrder', 'ASC'], ['name', 'ASC']], raw: true
+                    });
+                    defaults = flagged.map(s => ({ serviceId: s.UID }));
+                }
+            }
             if (!defaults.length) return { services: [] };
             const serviceIds = defaults.map(d => d.serviceId);
             const services = await modelsDB.Services.findAll({ where: { UID: serviceIds }, raw: true });

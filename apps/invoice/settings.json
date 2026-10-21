@@ -1,0 +1,24 @@
+{
+    "app": {
+        "caption": {
+            "i18n": "settings_app_invoice"
+        },
+        "icon": "/apps/booking_icons/resources/public/16x16/invoice.png",
+        "order": 50
+    },
+    "settings": {
+        "mergeServiceLines": {
+            "//": "Решение владельца 21.10.2026: в ПЕЧАТНОЙ форме счёта строки одной услуги, налогового компонента и ставки, различающиеся только ценой (разные типы гостей, разные квартиры), сворачиваются в одну — цена за единицу «–» (§ 14 Abs. 4 UStG её не требует; ставки не сворачиваются никогда, строки проживания тоже). Строки счёта в базе и регистр услуг не меняются (apps/reports/invoice/mergeServiceLines.js). Одна настройка на оба случая: основание и последствия у них одни. Уровень — гостиница: бумага у каждой гостиницы своя.",
+            "scope": "hotel",
+            "type": "boolean",
+            "default": false,
+            "caption": {
+                "i18n": "invoice_settings_merge_service_lines"
+            },
+            "hint": {
+                "i18n": "invoice_settings_merge_service_lines_hint"
+            },
+            "order": 10
+        }
+    }
+}
