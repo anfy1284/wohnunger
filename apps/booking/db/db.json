@@ -53,28 +53,23 @@
                 }
             },
             "fields": {
-                "//prepayment": "ВРЕМЕННО ВОЗВРАЩЕНО (16.10.2026, решение владельца). Старая хранимая предоплата брони. Её место заняли денежные документы, а на форме и в журнале — вычисляемый prepaymentBalance. Колонка оставлена ТОЛЬКО затем, чтобы миграция не стёрла её при первом старте новой версии в проде: скрипт tmp/2026-09-24_anzahlungen_uebertragen берёт суммы отсюда и превращает их в документы поступления. service: true — ни в автоформах, ни в журнале её не видно. Никакой код её не читает и не пишет, кроме того скрипта. Удалить на одном из следующих обновлений, ПОСЛЕ того как перенос выполнен в проде (tmp/БЕКЛОГ.md).",
-                "prepayment": {
-                    "type": "DECIMAL(12,2)",
-                    "allowNull": true,
-                    "defaultValue": null,
-                    "service": true,
-                    "caption": { "i18n": "prepayment_field" }
-                },
                 "name": {
                     "type": "STRING",
                     "allowNull": true,
                     "caption": { "i18n": "name_field" }
                 },
                 "//firstPrepayment": "АВАНС НОВОЙ БРОНИ (21.10.2026, ТЗ платежей брони §4.1). Сумма и способ вводятся прямо на форме НОВОЙ брони; документ поступления из них создаёт проведение брони — только успешное: не провелась — документа нет. Дата поступления — createdAt брони (момент ввода, серверное время; § 146 Abs. 1 Satz 2 AO), а не момент проведения: повтор после ошибки через полночь её не сдвигает. После создания поля на форме больше не показываются (решает реквизит формы firstPrepaymentOpen), а штамп firstPrepaymentReceiptId не даёт создать второй документ ни при каком перепроведении.",
+                "//listColumn_firstPrepayment": "Сумма и способ аванса — поля ВВОДА новой брони, а не её состояние: введены один раз при создании, у всех прочих броней 0 и «Bar». Колонкой журнала они ничего не говорят (прод, 21.10.2026: нули во всём журнале Seiler), поэтому listColumn: false. Сколько по броне внесено на самом деле — вычисляемая колонка журнала prepaymentPaid (listAttributes выше).",
                 "firstPrepaymentAmount": {
                     "type": "DECIMAL(12,2)",
+                    "listColumn": false,
                     "allowNull": false,
                     "defaultValue": 0,
                     "caption": { "i18n": "prepayment_field" }
                 },
                 "firstPrepaymentMethod": {
                     "type": "STRING",
+                    "listColumn": false,
                     "allowNull": false,
                     "defaultValue": "cash",
                     "defaultFromSetting": { "app": "cash", "key": "defaultPaymentMethod" },
