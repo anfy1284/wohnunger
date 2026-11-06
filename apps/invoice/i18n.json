@@ -53,6 +53,12 @@
         "de": "Rechnung Nr. {number} öffnen",
         "pl": "Otwórz rachunek nr {number}"
     },
+    "open_invoice_draft_btn": {
+        "en": "Open invoice (draft)",
+        "ru": "Открыть счёт (черновик)",
+        "de": "Rechnung öffnen (Entwurf)",
+        "pl": "Otwórz rachunek (wersja robocza)"
+    },
     "create_new_invoice_menu": {
         "en": "Create new invoice",
         "ru": "Создать новый счёт",
@@ -64,6 +70,12 @@
         "ru": "№ {number} от {date}",
         "de": "Nr. {number} vom {date}",
         "pl": "Nr {number} z {date}"
+    },
+    "invoice_menu_item_draft": {
+        "en": "Draft of {date}",
+        "ru": "Черновик от {date}",
+        "de": "Entwurf vom {date}",
+        "pl": "Wersja robocza z {date}"
     },
     "fill_invoice_btn": {
         "en": "Fill",

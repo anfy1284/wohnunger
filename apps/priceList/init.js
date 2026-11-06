@@ -23,33 +23,10 @@ module.exports = async function (modelsDB) {
         const layoutMemory = require('../../node_modules/my-old-space/drive_root/layoutMemory');
         const entityHooks  = require('../../node_modules/my-old-space/drive_root/entityHooks');
 
-        // ── Представление документа «Прайс-лист» (поле name) ─────────────
-        // number + отель + дата документа (dd.MM.yyyy).
-        entityHooks.registerPresentation('price_lists', async (data, ctx) => {
-            const parts = [];
-            if (data.number) parts.push(String(data.number));
-
-            if (data.hotelId && ctx && ctx.modelsDB) {
-                const Hotels = ctx.modelsDB.Hotels
-                    || Object.values(ctx.modelsDB).find(m => m && m.tableName === 'hotels');
-                if (Hotels) {
-                    try {
-                        const h = await Hotels.findByPk(data.hotelId, { raw: true });
-                        if (h && h.name) parts.push(h.name);
-                    } catch (e) { /* без имени отеля */ }
-                }
-            }
-
-            if (data.date) {
-                const dt = new Date(data.date);
-                if (!isNaN(dt.getTime())) {
-                    const p = n => String(n).padStart(2, '0');
-                    parts.push(`${p(dt.getDate())}.${p(dt.getMonth() + 1)}.${dt.getFullYear()}`);
-                }
-            }
-
-            return parts.join(' ');
-        });
+        // ── Представление документа (поле `name`) ────────────────────────
+        // ЗДЕСЬ ЕГО НЕТ намеренно — билдер в `presentations.js`: представление
+        // пересобирается и в форкнутом воркере (проведение), а `init.js`
+        // выполняет только главный процесс.
 
         // ── Форма «Прайс-лист» (таблица price_lists) ─────────────────────
         const formMethods = require('../../node_modules/my-old-space/drive_root/formMethods');

@@ -23,33 +23,10 @@ module.exports = async function (modelsDB) {
         const layoutMemory = require('../../node_modules/my-old-space/drive_root/layoutMemory');
         const entityHooks  = require('../../node_modules/my-old-space/drive_root/entityHooks');
 
-        // ── Представление документа «Счёт» (поле name) ────────────────────
-        // number + имя клиента + дата документа (dd.MM.yyyy) — по образцу брони.
-        entityHooks.registerPresentation('invoices', async (data, ctx) => {
-            const parts = [];
-            if (data.number) parts.push(String(data.number));
-
-            if (data.clientId && ctx && ctx.modelsDB) {
-                const Clients = ctx.modelsDB.Clients
-                    || Object.values(ctx.modelsDB).find(m => m && m.tableName === 'clients');
-                if (Clients) {
-                    try {
-                        const c = await Clients.findByPk(data.clientId, { raw: true });
-                        if (c && c.name) parts.push(c.name);
-                    } catch (e) { /* без имени клиента */ }
-                }
-            }
-
-            if (data.date) {
-                const dt = new Date(data.date);
-                if (!isNaN(dt.getTime())) {
-                    const p = n => String(n).padStart(2, '0');
-                    parts.push(`${p(dt.getDate())}.${p(dt.getMonth() + 1)}.${dt.getFullYear()}`);
-                }
-            }
-
-            return parts.join(' ');
-        });
+        // ── Представление документа (поле `name`) ────────────────────────
+        // ЗДЕСЬ ЕГО НЕТ намеренно — билдер в `presentations.js`: представление
+        // пересобирается и в форкнутом воркере (проведение), а `init.js`
+        // выполняет только главный процесс.
 
         // ── Встречные документы: то, что ядру знать неоткуда ──────────────
         // Ядро (drive_root/db/storno.js) копирует документ и инвертирует поля,
@@ -121,7 +98,17 @@ module.exports = async function (modelsDB) {
         // Список — автогенерация uniForm (заголовок/иконка из appCaption/listIcon).
 
         // ── Сортировка журнала: по номеру от большего к меньшему ──────────
-        layoutMemory.registerListSort('invoices', [{ field: 'number', order: 'desc' }]);
+        // ПОРЯДОК ЖУРНАЛА — ПО МОМЕНТУ ДОКУМЕНТА (`date`, `seq`), а не по номеру
+        // (05.11.2026). С тех пор как счёт получает номер при выставлении
+        // (`entityConfig.numbering.onPost`), у черновика номера нет — при
+        // сортировке по номеру пустое значение уходит в самый низ, и только что
+        // сохранённый черновик человек ищет в конце списка. Момент документа
+        // есть у каждого счёта, и «последние сверху» для журнала означает
+        // именно его; `seq` разводит документы одного дня (ТЗ проведения §4).
+        layoutMemory.registerListSort('invoices', [
+            { field: 'date', order: 'desc' },
+            { field: 'seq',  order: 'desc' }
+        ]);
 
         // ── Пункт главного меню ────────────────────────────────────────────
         const mainMenu = require('../../node_modules/my-old-space/apps/main_menu/server.js');

@@ -24,39 +24,10 @@ module.exports = async function (modelsDB) {
         const bookingHooks = require('./hooks/bookingHooks');
         entityHooks.register('booking.onBeforeCreate', bookingHooks.onBeforeCreate);
 
-        // ── Представление документа «Бронирование» (поле name) ───────────────
-        // «Специальный метод документа»: фреймворк (applyPresentation) вызывает его
-        // ВСЕГДА при сохранении (create/update) и пишет результат в name.
-        // Для брони: номер + имя клиента + даты заезда–выезда.
-        entityHooks.registerPresentation('bookings', async (data, ctx) => {
-            const parts = [];
-            if (data.number) parts.push(String(data.number));
-
-            // Имя клиента по clientId (FK → clients.name)
-            if (data.clientId && ctx && ctx.modelsDB) {
-                const Clients = ctx.modelsDB.Clients
-                    || Object.values(ctx.modelsDB).find(m => m && m.tableName === 'clients');
-                if (Clients) {
-                    try {
-                        const c = await Clients.findByPk(data.clientId, { raw: true });
-                        if (c && c.name) parts.push(c.name);
-                    } catch (e) { /* без имени клиента */ }
-                }
-            }
-
-            // Даты заезда–выезда (dd.MM.yyyy)
-            const fmt = (v) => {
-                if (!v) return '';
-                const dt = new Date(v);
-                if (isNaN(dt.getTime())) return String(v);
-                const p = n => String(n).padStart(2, '0');
-                return `${p(dt.getDate())}.${p(dt.getMonth() + 1)}.${dt.getFullYear()}`;
-            };
-            const ci = fmt(data.checkIn), co = fmt(data.checkOut);
-            if (ci || co) parts.push(`${ci}–${co}`);
-
-            return parts.join(' ');
-        });
+        // ── Представление документа (поле `name`) ────────────────────────
+        // ЗДЕСЬ ЕГО НЕТ намеренно — билдер в `presentations.js`: представление
+        // пересобирается и в форкнутом воркере (проведение), а `init.js`
+        // выполняет только главный процесс.
 
         // ── Форма «Бронирование» (таблица bookings) ──────────────────────
 

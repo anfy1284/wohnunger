@@ -19,39 +19,50 @@ const { resolveOrgReportLang } = require('../../common/lib/orgReportLanguage');
  * @param {string} invoiceId
  * @param {Object} [opts]
  * @param {boolean} [opts.draft] — печатать с пометкой «черновик»
+ * @param {Object} [opts.transaction] — транзакция ВЫЗЫВАЮЩЕГО. Обязательна, когда
+ *        сборка идёт ВНУТРИ проведения: ядро успевает записать в документ свои
+ *        реквизиты (номер — при `core.numberOnPost`, 05.11.2026), и чтение мимо
+ *        транзакции видит документ ДО них. Счёт тогда отказывался выставляться с
+ *        «Rechnungsnummer ist nicht vergeben», хотя номер уже был присвоен.
  * @returns {Promise<{html: string, payload: Object, invoice: Object, org: Object, client: Object, lines: Array, lang: string}>}
  */
 async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
     const draft = !!opts.draft;
+    // Транзакция подмешивается в КАЖДОЕ чтение: справочники внутри проведения
+    // тоже могут быть только что записаны (ctx.createOnce), а читать половину
+    // документа из одного состояния базы, половину из другого — хуже, чем не
+    // читать вовсе.
+    const tx = opts.transaction || null;
+    const T = (o) => tx ? Object.assign({}, o, { transaction: tx }) : o;
 
             if (!invoiceId) throw new Error('invoiceId required');
 
-            const invoice = await modelsDB.Invoices.findByPk(invoiceId, { raw: true });
+            const invoice = await modelsDB.Invoices.findByPk(invoiceId, T({ raw: true }));
             if (!invoice) throw new Error('Invoice not found');
 
             const client = invoice.clientId
-                ? await modelsDB.Clients.findByPk(invoice.clientId, { raw: true }) : null;
+                ? await modelsDB.Clients.findByPk(invoice.clientId, T({ raw: true })) : null;
             const hotel = invoice.hotelId
-                ? await modelsDB.Hotels.findByPk(invoice.hotelId, { raw: true }) : null;
+                ? await modelsDB.Hotels.findByPk(invoice.hotelId, T({ raw: true })) : null;
             const org = invoice.organizationId
-                ? await modelsDB.Organizations.findByPk(invoice.organizationId, { raw: true }) : null;
+                ? await modelsDB.Organizations.findByPk(invoice.organizationId, T({ raw: true })) : null;
 
-            const lines = await modelsDB.InvoiceLines.findAll({
+            const lines = await modelsDB.InvoiceLines.findAll(T({
                 where: { invoiceId },
                 order: [['sortOrder', 'ASC']],
                 raw: true
-            });
+            }));
             if (!lines.length) throw new Error('No invoice lines. Fill the invoice first.');
 
             // Брони счёта (в порядке добавления в ТЧ) — для дат проживания в шапке
             // и посекционной печати при нескольких бронях.
-            const links = await modelsDB.InvoiceBookings.findAll({
+            const links = await modelsDB.InvoiceBookings.findAll(T({
                 where: { invoiceId }, order: [['createdAt', 'ASC']], raw: true
-            });
+            }));
             const bookingIds = [...new Set(links.map(l => l.bookingId).filter(Boolean))];
             const bookings = [];
             for (const bId of bookingIds) {
-                const b = await modelsDB.Bookings.findByPk(bId, { raw: true });
+                const b = await modelsDB.Bookings.findByPk(bId, T({ raw: true }));
                 if (b) bookings.push(b);
             }
 
@@ -68,7 +79,7 @@ async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
             try {
                 const catIds = [...new Set(lines.map(l => l.taxCategoryId).filter(Boolean))];
                 if (catIds.length && modelsDB.TaxCategories) {
-                    const cats = await modelsDB.TaxCategories.findAll({ where: { UID: catIds }, raw: true });
+                    const cats = await modelsDB.TaxCategories.findAll(T({ where: { UID: catIds }, raw: true }));
                     const tmw = require('../../../node_modules/my-old-space/drive_root/translationMiddleware');
                     const lookup = (lang && lang !== 'en')
                         ? await tmw.getTranslationLookup('tax_categories', lang, modelsDB) : null;
@@ -93,7 +104,7 @@ async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
             try {
                 const rvId = invoice && invoice.reportVariantId;
                 if (rvId && modelsDB.ReportVariants) {
-                    const variant = await modelsDB.ReportVariants.findByPk(rvId, { raw: true });
+                    const variant = await modelsDB.ReportVariants.findByPk(rvId, T({ raw: true }));
                     if (variant && variant.invoiceNote) invoiceNote = String(variant.invoiceNote);
                 }
             } catch (e) { console.warn('[reports] invoiceNote resolve:', e && e.message); }
@@ -108,7 +119,7 @@ async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
             // сопоставить.
             let correctsInvoice = null;
             if (invoice.correctsInvoiceId) {
-                correctsInvoice = await modelsDB.Invoices.findByPk(invoice.correctsInvoiceId, { raw: true });
+                correctsInvoice = await modelsDB.Invoices.findByPk(invoice.correctsInvoiceId, T({ raw: true }));
             }
 
             // Коррекция несёт только разницу, поэтому сама по себе она не
@@ -120,12 +131,12 @@ async function buildInvoiceDoc(modelsDB, invoiceId, opts = {}) {
             let correctedTotal = null;
             if (!opts.skipCorrectionTotal && invoice.correctionKind === 'correction' && correctsInvoice) {
                 try {
-                    const base = await buildInvoiceDoc(modelsDB, correctsInvoice.UID, { skipCorrectionTotal: true });
+                    const base = await buildInvoiceDoc(modelsDB, correctsInvoice.UID, { skipCorrectionTotal: true, transaction: tx });
                     let sum = Number(base.brutto) || 0;
-                    const siblings = await modelsDB.Invoices.findAll({
+                    const siblings = await modelsDB.Invoices.findAll(T({
                         where: { correctsInvoiceId: correctsInvoice.UID, correctionKind: 'correction' },
                         raw: true
-                    });
+                    }));
                     for (const s of siblings) {
                         // Черновики не в счёт: документ, не покинувший сферу
                         // выставителя, ничего не меняет. Кроме печатаемого —

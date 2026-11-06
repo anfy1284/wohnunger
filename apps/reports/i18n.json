@@ -346,5 +346,11 @@
         "ru": "Новая сумма счёта",
         "de": "Neuer Rechnungsbetrag",
         "pl": "Nowa kwota rachunku"
+    },
+    "invoice_draft_no_number": {
+        "en": "(draft)",
+        "ru": "(черновик)",
+        "de": "(Entwurf)",
+        "pl": "(wersja robocza)"
     }
 }

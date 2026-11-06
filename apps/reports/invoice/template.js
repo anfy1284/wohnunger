@@ -66,7 +66,14 @@ function renderInvoiceHTML({ invoice, bookings, invoiceBookings, client, hotel, 
 
     // «Rechnung Nr.» = номер ДОКУМЕНТА счёта (invoices.number), дата — invoices.date.
     // invoice.name — представление (номер + клиент + дата), в печать не идёт.
-    const invoiceNum  = invoice.number || invoice.UID.slice(0, 8);
+    //
+    // У ЧЕРНОВИКА НОМЕРА НЕТ (счёт получает его при выставлении, 05.11.2026), а
+    // печать черновика — обычное дело: его показывают гостю на словах «вот что
+    // получится». Печатать вместо номера кусок UID (как было) нельзя — он
+    // выглядит как настоящий номер документа, которого не существует. Печатаем
+    // слово «Entwurf» на языке документа: оно и так стоит водяным знаком, и
+    // спутать его с номером невозможно.
+    const invoiceNum  = invoice.number || t('invoice_draft_no_number');
     const invoiceDate = fmtDate(invoice.date || new Date());
     // Период проживания в шапке — по всем броням счёта (min заезд … max выезд).
     // Заполненность даты проверяется через isEmptyDate, а не через `if (date)`:

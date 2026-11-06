@@ -298,15 +298,21 @@ function onInvoicesRefreshed(tbl, ctx) {
         return;
     }
 
+    // НОМЕРА У ЧЕРНОВИКА НЕТ (счёт получает его при выставлении, 05.11.2026):
+    // подпись с пустой подстановкой дала бы «Rechnung Nr.  öffnen» — висящее
+    // «Nr.» и двойной пробел. Поэтому у ненумерованного счёта своя подпись.
     var latest = rows[0];
-    btn.setCaption(__t('open_invoice_btn').replace('{number}', latest.number || ''));
+    btn.setCaption(latest.number
+        ? __t('open_invoice_btn').replace('{number}', latest.number)
+        : __t('open_invoice_draft_btn'));
 
     var menu = [];
     if (rows.length > 1) {
         rows.forEach(function (inv) {
             menu.push({
-                caption: __t('invoice_menu_item')
-                    .replace('{number}', inv.number || '')
+                caption: (inv.number
+                    ? __t('invoice_menu_item').replace('{number}', inv.number)
+                    : __t('invoice_menu_item_draft'))
                     .replace('{date}', _fmtInvoiceDate(inv.date)),
                 icon: ICON_INVOICE,
                 onClick: function () { _openInvoiceRecord(inv.UID); }
